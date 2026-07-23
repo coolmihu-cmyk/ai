@@ -126,7 +126,8 @@ a{color:inherit;text-decoration:none}
 .history-item:hover{border-color:#d5dadd;background:#fafbfb}
 .history-item.active{border-color:#bfc7cc;background:#f8f9fa}
 .history-item img{width:100%;height:100%;object-fit:cover}
-.history-thumb{width:92px!important;height:86px!important;border-radius:9px;object-fit:cover;background:#edf0f1;align-self:start}
+.history-thumb{width:92px!important;height:86px!important;border-radius:9px;object-fit:cover;background:#edf0f1;align-self:start;cursor:zoom-in}
+.history-thumb:focus-visible{outline:2px solid #59646b;outline-offset:2px}
 .history-content{min-width:0;display:flex;flex-direction:column;gap:6px}
 .history-card-head{display:flex;align-items:center;gap:6px;min-width:0}
 .history-item .model-tag{

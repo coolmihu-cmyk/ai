@@ -39,6 +39,9 @@ function renderHistory(){
     el.className='history-item'+(item.url===currentResultUrl?' active':'');
     el.title=item.prompt;
     const img=document.createElement('img');img.className='history-thumb';img.src=item.url;img.alt=item.prompt;
+    img.title='在新标签页打开原图';img.tabIndex=0;img.setAttribute('role','button');
+    img.onclick=e=>{e.stopPropagation();openImage(item.url)};
+    img.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();openImage(item.url)}};
     const content=document.createElement('div');content.className='history-content';
     const head=document.createElement('div');head.className='history-card-head';
     const tag=document.createElement('span');tag.className='model-tag';tag.textContent=MODEL_NAMES[item.model]||item.model;

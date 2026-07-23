@@ -1,5 +1,5 @@
 /* ===================== 常量与状态 ===================== */
-const MODEL_NAMES={gpt:'GPT Image 2',nano:'NB2',mj:'Midjourney',grok:'Grok Image'};
+const MODEL_NAMES={gpt:'Image 2',nano:'NB2',mj:'Midjourney',grok:'Grok Image'};
 const ENHANCE_MODEL='gpt-5.6-luna';
 const MODEL_MAX_PROMPT={gpt:3000,nano:2000,mj:2000,grok:4000};
 const MODEL_RATIOS={
