@@ -1,6 +1,6 @@
 /* ===================== 常量与状态 ===================== */
 const MODEL_NAMES={gpt:'GPT Image 2',nano:'NB2',mj:'Midjourney',grok:'Grok Image'};
-const ENHANCE_MODEL='deepseek-v4-flash';
+const ENHANCE_MODEL='gpt-5.6-luna';
 const MODEL_MAX_PROMPT={gpt:3000,nano:2000,mj:2000,grok:4000};
 const MODEL_RATIOS={
   gpt:['1:1','3:2','4:3','3:4','16:9','9:16'],

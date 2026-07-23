@@ -140,12 +140,25 @@ function positionCanvasNode(item){
   if(item.width)node.style.width=item.width+'px';
   node.style.zIndex=item.z;
 }
+function getCanvasVisibleLimits(){
+  return {
+    width:Math.max(1,els.canvasLayer.clientWidth*.8),
+    height:Math.max(1,els.canvasLayer.clientHeight*.8)
+  };
+}
 function createCanvasNode(item){
   const node=document.createElement('div');
   node.className='canvas-item';node.dataset.canvasId=item.id;
   const img=document.createElement('img');
   img.src=item.url;img.alt=item.prompt||'画布图片';img.draggable=false;
-  img.onload=()=>{if(!item.width){item.width=Math.min(img.naturalWidth||480,Math.max(180,els.canvasLayer.clientWidth*.55));positionCanvasNode(item)}};
+  img.onload=()=>{
+    if(item.width)return;
+    const naturalWidth=img.naturalWidth||480,naturalHeight=img.naturalHeight||480;
+    const limits=getCanvasVisibleLimits();
+    const scale=Math.min(1,limits.width/naturalWidth,limits.height/naturalHeight);
+    item.width=Math.max(1,Math.round(naturalWidth*scale));
+    positionCanvasNode(item);
+  };
   const handle=document.createElement('button');
   handle.type='button';handle.className='canvas-resize-handle';handle.setAttribute('aria-label','缩放图片');
   node.append(img,handle);els.canvasLayer.appendChild(node);positionCanvasNode(item);
@@ -191,8 +204,10 @@ function startCanvasResize(e,id){
 function moveCanvasResize(e){
   if(canvasResize.pointerId!==e.pointerId)return;
   const item=getCanvasItem(canvasResize.id);if(!item)return;
-  const maxWidth=Math.max(240,els.canvasLayer.clientWidth*2);
-  item.width=Math.min(maxWidth,Math.max(96,canvasResize.startWidth+(e.clientX-canvasResize.startX)));
+  const limits=getCanvasVisibleLimits();
+  const maxWidth=Math.max(1,Math.min(limits.width,limits.height*canvasResize.ratio));
+  const minWidth=Math.min(96,maxWidth);
+  item.width=Math.min(maxWidth,Math.max(minWidth,canvasResize.startWidth+(e.clientX-canvasResize.startX)));
   positionCanvasNode(item);e.preventDefault();e.stopPropagation();
 }
 function endCanvasResize(e){
@@ -243,14 +258,14 @@ els.canvasFileInput.onchange=async()=>{
   const files=[...els.canvasFileInput.files].filter(file=>file.type.startsWith('image/'));
   if(!files.length)return;
   for(const file of files){
-    try{addCanvasItem({url:await readCanvasFile(file),model:activeModel,prompt:file.name},{silent:true})}
+    try{addCanvasItem({url:await readCanvasFile(file),model:activeModel,prompt:''},{silent:true})}
     catch{toast(file.name+' 读取失败')}
   }
   els.canvasFileInput.value='';toast('已上传 '+files.length+' 张图片到画布');
 };
 const canvasEditModal=$('#canvasEditModal');
 const CANVAS_EDIT_MODELS=new Set(['gpt','nano','grok']);
-const REVERSE_PROMPT_MODEL=ENHANCE_MODEL;
+const REVERSE_PROMPT_MODEL='gpt-5.6-luna';
 function setCanvasEditModel(key){
   if(!CANVAS_EDIT_MODELS.has(key))key='gpt';
   canvasEditModel=key;
@@ -275,7 +290,16 @@ els.editCanvasImage.onclick=openCanvasEdit;
 $('#closeCanvasEdit').onclick=closeCanvasEdit;
 $('#cancelCanvasEdit').onclick=closeCanvasEdit;
 canvasEditModal.addEventListener('click',e=>{if(e.target===canvasEditModal)closeCanvasEdit()});
-$$('#canvasEditModels .canvas-edit-model').forEach(button=>button.onclick=()=>setCanvasEditModel(button.dataset.model));
+$$('#canvasEditModels .canvas-edit-model').forEach(button=>{
+  const sourceIcon=$('#modelPop .model-tab[data-model="'+button.dataset.model+'"] svg');
+  if(sourceIcon){
+    const icon=sourceIcon.cloneNode(true);
+    icon.removeAttribute('class');
+    icon.setAttribute('aria-hidden','true');
+    button.prepend(icon);
+  }
+  button.onclick=()=>setCanvasEditModel(button.dataset.model);
+});
 $('#reverseCanvasPrompt').onclick=async()=>{
   const currentCanvasItem=getCanvasItem();
   if(!currentCanvasItem){toast('请先选择一张画布图片');return}
@@ -290,10 +314,10 @@ $('#reverseCanvasPrompt').onclick=async()=>{
       body:JSON.stringify({
         model:REVERSE_PROMPT_MODEL,
         messages:[
-          {role:'system',content:'你是一名专业的 AI 图像提示词分析师。根据图片反推出适用于 AI 图像生成的中文提示词，准确描述主体、构图、镜头、光线、色彩、材质、风格和氛围。不要猜测无法从图片确认的细节。只输出最终提示词，不要解释。'},
+          {role:'system',content:'你是一名专业的 AI 图像提示词分析师。必须先识别图片中的真实主体，再根据图片反推出适用于 AI 图像生成的中文提示词。忠实描述人物或物体的外观、姿态、服装、构图、镜头、光线、色彩、材质、风格和氛围；禁止把人物误判为动物或凭空添加图片中不存在的主体。不要猜测无法确认的身份信息。只输出最终提示词，不要解释。'},
           {role:'user',content:[
             {type:'text',text:'请根据这张图片反推一条可直接用于重新生成相似画面的提示词。'},
-            {type:'image_url',image_url:{url:currentCanvasItem.url}}
+            {type:'image_url',image_url:{url:currentCanvasItem.url,detail:'high'}}
           ]}
         ],
         temperature:.35,

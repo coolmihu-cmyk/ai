@@ -262,16 +262,15 @@
 <div class="modal-backdrop" id="canvasEditModal">
   <div class="modal canvas-edit-modal" role="dialog" aria-modal="true" aria-labelledby="canvasEditTitle">
     <div class="modal-head"><h2 id="canvasEditTitle">编辑画布图片</h2><button class="close" id="closeCanvasEdit" type="button" aria-label="关闭">×</button></div>
-    <div class="field">
+    <div class="field canvas-edit-model-field">
       <label>选择模型</label>
       <div class="canvas-edit-models" id="canvasEditModels" role="radiogroup" aria-label="图生图模型">
         <button class="canvas-edit-model active" type="button" data-model="gpt" role="radio" aria-checked="true">GPT 2</button>
         <button class="canvas-edit-model" type="button" data-model="nano" role="radio" aria-checked="false">NB2</button>
         <button class="canvas-edit-model" type="button" data-model="grok" role="radio" aria-checked="false">Grok</button>
-        <button class="canvas-edit-model" type="button" data-model="mj" role="radio" aria-checked="false">MJ</button>
       </div>
     </div>
-    <div class="field">
+    <div class="field canvas-edit-prompt-field">
       <div class="canvas-edit-label-row">
         <label for="canvasEditPrompt">编辑提示词</label>
         <button class="canvas-reverse-prompt" id="reverseCanvasPrompt" type="button" title="根据当前图片生成提示词">
