@@ -1,0 +1,82 @@
+/* 空白画布与多图自由画布 */
+.blank-canvas-mode .result-panel{background:#f7f8f8}
+.blank-canvas-mode .result-body{
+  background-color:#f7f8f8;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='38' height='38' viewBox='0 0 38 38'%3E%3Crect x='18' y='18' width='2' height='2' rx='.35' fill='%23cfd4d7' fill-opacity='.42'/%3E%3C/svg%3E");
+  background-position:center;
+}
+.blank-canvas-mode .result-body::before{display:none}
+.blank-canvas-mode .result-body > .loading,
+.blank-canvas-mode .result-body > .result-image,
+.blank-canvas-mode .result-body > .image-actions{display:none!important}
+.blank-canvas-mode .result-body > .canvas-welcome{
+  position:absolute;inset:0;display:flex!important;align-items:center;justify-content:center;
+  padding:32px;text-align:center;color:#8f979c;pointer-events:none;
+}
+.blank-canvas-mode.canvas-preview-mode .result-body > .canvas-welcome{display:none!important}
+.canvas-welcome-mark{width:48px;height:48px;margin-bottom:4px;display:grid;place-items:center;color:#aeb5b9}
+.canvas-welcome-mark svg{width:34px;height:34px}
+.canvas-welcome-kicker{font-size:8px!important;font-weight:720;letter-spacing:2px;color:#b0b6ba!important}
+.canvas-welcome b{font-size:20px!important;line-height:1.2;font-weight:650;color:#565e63!important;letter-spacing:-.35px}
+.canvas-welcome p{max-width:470px;font-size:12px;line-height:1.8;color:#92999e}
+.canvas-welcome-hint{
+  margin-top:4px;padding:6px 10px;border-top:1px solid #dfe3e5;
+  font-size:9px!important;letter-spacing:.8px;color:#a1a8ac!important;
+}
+.canvas-layer{
+  position:absolute;inset:0;z-index:4;display:none;overflow:visible;pointer-events:none;
+}
+.canvas-preview-mode .canvas-layer{display:block}
+.canvas-item{
+  position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%) translate3d(var(--canvas-x,0),var(--canvas-y,0),0);
+  pointer-events:auto;cursor:grab;touch-action:none;user-select:none;will-change:transform;
+}
+.canvas-item img{
+  display:block;width:100%;height:auto;max-width:none;max-height:none;
+  object-fit:contain;border-radius:8px;box-shadow:0 10px 30px rgba(30,36,40,.14);
+  pointer-events:none;-webkit-user-drag:none;
+}
+.canvas-item.selected::after{
+  content:"";position:absolute;inset:-4px;border:1.5px solid #59646b;border-radius:11px;pointer-events:none;
+}
+.canvas-item.is-dragging{cursor:grabbing}
+.canvas-resize-handle{
+  position:absolute;right:-9px;bottom:-9px;z-index:3;width:18px;height:18px;padding:0;
+  display:none;border:2px solid #fff;border-radius:50%;background:#59646b;
+  box-shadow:0 2px 8px rgba(26,31,35,.2);cursor:nwse-resize;touch-action:none;
+}
+.canvas-item.selected .canvas-resize-handle{display:block}
+.canvas-item.is-resizing{cursor:nwse-resize}
+.canvas-toolbar{
+  position:absolute;left:50%;bottom:24px;z-index:8;transform:translateX(-50%);
+  display:flex;padding:5px;border:1px solid #dfe3e6;border-radius:11px;background:#fff;
+  box-shadow:0 8px 24px rgba(33,39,43,.12);
+}
+.canvas-tool-btn{
+  height:32px;padding:0 12px;border-radius:8px;display:flex;align-items:center;gap:6px;
+  color:#4f575c;font-size:11px;font-weight:620;transition:background-color .14s,color .14s;
+}
+.canvas-tool-btn svg{width:14px;height:14px}
+.canvas-tool-btn:hover{background:#f0f2f3;color:#202427}
+.canvas-tool-btn:disabled{opacity:.38;cursor:not-allowed;background:transparent;color:#8e969b}
+.canvas-delete-btn:not(:disabled):hover{background:#fff0f0;color:#a34848}
+.canvas-edit-modal{max-width:440px}
+.canvas-edit-models{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.canvas-edit-model{
+  height:38px;border:1px solid var(--border);border-radius:9px;background:#f7f8f9;
+  color:var(--text-mid);font-size:11px;font-weight:620;transition:.14s;
+}
+.canvas-edit-model:hover{background:#eef1f2;color:var(--text)}
+.canvas-edit-model.active{background:#252a2e;border-color:#252a2e;color:#fff}
+.canvas-edit-prompt{
+  width:100%;min-height:112px;max-height:220px;padding:11px 12px;border:1px solid var(--border);
+  border-radius:10px;background:#fff;color:var(--text);font-size:12.5px;line-height:1.55;
+  resize:vertical;outline:none;
+}
+.canvas-edit-prompt:focus{border-color:#9ea7ad;box-shadow:0 0 0 3px rgba(70,79,85,.08)}
+.canvas-edit-note{font-size:10.5px;line-height:1.5;color:var(--text-dim)}
+@media(max-width:760px){
+  .canvas-item{max-width:none;max-height:none}
+  .canvas-toolbar{bottom:14px}
+}

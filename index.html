@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>MIHU DESIGN OS</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="stylesheet" href="css/base.css?v=1">
+  <link rel="stylesheet" href="css/layout.css?v=4">
+<link rel="stylesheet" href="css/components.css?v=1">
+<link rel="stylesheet" href="css/canvas.css?v=1">
+</head>
+<body class="blank-canvas-mode">
+
+<div class="app">
+
+  <!-- ===== 右侧创作与历史边栏 ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="project-brand sidebar-brand">
+        <img class="project-logo" src="logo.png" alt="">
+        <div class="project-copy"><b>MIHU DESIGN OS</b><span>AI IMAGE STUDIO</span></div>
+      </div>
+      <div class="head-actions">
+        <button class="head-btn" id="priceLink" type="button" title="价格参考" aria-label="价格参考">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 12V5a2 2 0 0 1 2-2h7l9 9-9 9-9-9Z"/><circle cx="8" cy="8" r="1.35"/></svg>
+        </button>
+        <button class="head-btn" id="openSettings" type="button" title="接口设置" aria-label="接口设置">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.86 2.86-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21H9.55v-.1A1.7 1.7 0 0 0 8.5 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.86-2.86.06-.06A1.7 1.7 0 0 0 4.1 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H2.3V9.55h.1A1.7 1.7 0 0 0 4.1 8.5a1.7 1.7 0 0 0-.34-1.88l-.06-.06L6.56 3.7l.06.06A1.7 1.7 0 0 0 8.5 4.1a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1v-.1h4.05v.1a1.7 1.7 0 0 0 1.05 1.7 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.86 2.86-.06.06A1.7 1.7 0 0 0 19.4 8.5a1.7 1.7 0 0 0 .6 1 1.7 1.7 0 0 0 1.1.4h.1v4.05h-.1A1.7 1.7 0 0 0 19.4 15Z"/></svg>
+        </button>
+        <button class="head-btn" id="collapseSidebar" type="button" title="收起创作台" aria-label="收起创作台">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="sidebar-body" id="sidebarBody">
+      <div class="status generation-history-card" id="status" hidden>
+        <div class="generation-thumb"><span class="generation-spinner"></span></div>
+        <div class="generation-card-content">
+          <div class="generation-card-head"><span class="dot"></span><span class="generation-model" id="generationModelName">GPT Image 2</span><span class="status-elapsed" id="statusElapsed">00:00</span></div>
+          <p class="generation-prompt" id="generationPrompt">准备生成</p>
+          <div class="generation-progress-row"><span class="status-text">神经演算中</span><span class="status-percent" id="sidebarProgressPercent">0%</span></div>
+          <div class="sidebar-progress-track" aria-hidden="true"><div class="sidebar-progress-bar" id="sidebarProgressBar"></div></div>
+        </div>
+      </div>
+      <div class="history-loading" id="historyLoading" role="status" aria-live="polite">
+        <span class="history-loading-spinner" aria-hidden="true"></span>
+        <b>正在加载历史记录</b>
+      </div>
+      <div class="sidebar-empty" id="sidebarEmpty" style="display:none">
+        <div class="empty-orb"><span></span></div>
+        <b>开始一次视觉对话</b>
+        <span>选择模型并描述你的创意</span>
+      </div>
+      <div class="history-list" id="historyList" hidden></div>
+    </div>
+    <div class="sidebar-compose-slot"></div>
+  </aside>
+
+  <!-- 边栏收起时的展开按钮 -->
+  <button class="sidebar-expand" id="expandSidebar" title="展开创作台">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 6l-6 6 6 6"/></svg>
+  </button>
+
+  <!-- ===== 左侧画布主区域 ===== -->
+  <main class="main">
+
+
+    <!-- 结果面板 -->
+    <section class="result-panel">
+      <div class="result-body">
+        <div class="empty canvas-welcome" id="empty">
+          <span class="canvas-welcome-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l1.35 4.15L17.5 9l-4.15 1.65L12 15l-1.35-4.35L6.5 9l4.15-1.85L12 3Z"/><path d="M18.5 14.5 19.2 17l2.3.8-2.3.8-.7 2.4-.8-2.4-2.2-.8 2.2-.8.8-2.5Z"/></svg>
+          </span>
+          <span class="canvas-welcome-kicker">YOUR NEXT IMAGE STARTS HERE</span>
+          <b>把想象交给你</b>
+          <p>在右侧输入画面描述，选择一个模型，然后开始创作。<br>一个念头、一种氛围，或一句不完整的灵感，都可以成为第一张图。</p>
+          <span class="canvas-welcome-hint">从一句提示词开始</span>
+        </div>
+        <div class="loading" id="loading">
+          <div class="pixel-field" aria-hidden="true">
+            <span class="px px1"></span><span class="px px2"></span><span class="px px3"></span>
+            <span class="px px4"></span><span class="px px5"></span><span class="px px6"></span>
+            <span class="px px7"></span><span class="px px8"></span><span class="px px9"></span>
+            <span class="px px10"></span><span class="px px11"></span><span class="px px12"></span>
+            <span class="px px13"></span><span class="px px14"></span><span class="px px15"></span>
+            <span class="px px16"></span><span class="px px17"></span><span class="px px18"></span>
+          </div>
+          <svg class="drawing-loader" viewBox="0 0 112 82"><rect class="drawing-sheet" x="12" y="10" width="88" height="62" rx="9"/><path class="drawing-line" d="M25 54 C36 34 46 61 57 43 S77 31 88 49"/><g class="drawing-pencil"><path d="M27 51l6-3-3-3-3 6Z" fill="#61706c"/><path d="M30 45l3 3 7-7-3-3-7 7Z" fill="#dce7e3"/><path d="M37 38l3 3 30-30-3-3-30 30Z" fill="#61706c"/><path d="M64 11l3 3 5-5-3-3-5 5Z" fill="#dce7e3"/><path d="M69 6l3 3 4-4c1-1 1-2 0-3s-2-1-3 0l-4 4Z" fill="#e7aca3"/></g></svg>
+          <b>正在创作图片</b>
+          <div class="sub" id="loadingModelName">画面正在一点点成形</div>
+          <div class="generation-progress">
+            <div class="progress-track">
+              <div class="progress-bar" id="progressBar"></div>
+              <span class="progress-label" id="progressPercent">准备中…</span>
+            </div>
+          </div>
+        </div>
+        <div class="result-image" id="resultWrap">
+          <img class="result-backdrop" id="resultBackdrop" alt="" aria-hidden="true">
+          <img class="result-foreground" id="resultImage" alt="生成结果" role="button" tabindex="0" title="点击在新标签页打开">
+        </div>
+        <div class="canvas-layer" id="canvasLayer" aria-label="自由图片画布"></div>
+        <div class="canvas-toolbar" id="canvasToolbar" aria-label="画布图片工具栏">
+          <button class="canvas-tool-btn" id="uploadCanvasImage" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            <span>上传</span>
+          </button>
+          <button class="canvas-tool-btn" id="editCanvasImage" type="button" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m4 16-.8 4.8L8 20l11-11-4-4L4 16Z"/><path d="m13.5 6.5 4 4M3.5 20.5h17"/></svg>
+            <span>编辑</span>
+          </button>
+          <button class="canvas-tool-btn canvas-delete-btn" id="deleteCanvasImage" type="button" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg>
+            <span>删除</span>
+          </button>
+          <input id="canvasFileInput" type="file" accept="image/*" multiple hidden>
+        </div>
+        <div class="image-actions" id="actions"></div>
+      </div>
+    </section>
+
+  <div class="bottom-area">
+  <!-- 对话式输入卡片 -->
+    <section class="composer" id="composer">
+      <div class="composer-head">
+        <div><span class="composer-kicker">PROMPT</span><b>描述你的画面</b></div>
+        <span class="composer-shortcut">Ctrl / ⌘ + Enter</span>
+      </div>
+      <div class="error-msg" id="errorMsg"></div>
+
+      <!-- 参考图行 -->
+      <div class="ref-row" id="refRow"></div>
+
+      <!-- 提示词输入 -->
+      <textarea class="composer-input" id="promptInput" placeholder="描述你想生成的图片…" maxlength="3000"></textarea>
+
+      <!-- 底部参数栏 -->
+      <div class="composer-bar">
+        <button class="bar-btn ref-upload-btn" id="refBtn" title="添加参考图" aria-label="添加参考图">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <div class="bar-btn-wrap">
+          <button class="bar-btn model-icon-btn" id="modelBtn" title="模型与输出设置 · GPT Image 2" aria-label="模型与输出设置，当前 GPT Image 2">
+            <svg class="model-cube-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" aria-hidden="true"><path d="m12 2.8 8 4.6v9.2l-8 4.6-8-4.6V7.4l8-4.6Z"/><path d="m4.4 7.6 7.6 4.4 7.6-4.4M12 12v8.8"/></svg>
+            <span class="visually-hidden" id="modelBtnValue">GPT Image 2</span>
+          </button>
+          <!-- 模型选择弹层 -->
+          <div class="pop model-settings-pop" id="modelPop">
+            <div class="pop-title">模型与输出设置</div>
+            <div class="pop-section-label">生成模型</div>
+            <div class="model-tabs" role="tablist" aria-label="生成模型">
+              <button class="model-tab active" type="button" role="tab" aria-selected="true" data-model="gpt">
+                <svg viewBox="0 0 1024 1024" fill="currentColor" aria-hidden="true"><path d="M482.878 128c-84.345 0-156.575 52.808-185.68 126.983-60.887 8.128-115.29 43.622-146.595 97.837-42.163 72.994-32.556 161.882 17.137 224.158-23.38 56.748-19.853 121.597 11.424 175.782 42.18 73.024 124.095 109.152 202.937 97.235C419.585 898.621 477.51 928 540.121 928c84.346 0 156.576-52.808 185.68-126.983 60.888-8.128 115.291-43.622 146.596-97.837 42.163-72.994 32.556-161.882-17.137-224.158 23.38-56.748 19.853-121.597-11.424-175.782-42.18-73.024-124.095-109.152-202.937-97.235C603.415 157.379 545.49 128 482.879 128m0 61.538c35.593 0 68.972 13.99 94.223 37.74-1.928 1.031-3.925 1.845-5.832 2.946L434.594 309.13c-14.223 8.184-23.028 23.353-23.09 39.783l-0.841 183.594-65.722-38.341V327.399c0-76 61.895-137.86 137.937-137.86m197.706 75.902c44.186 3.142 86.154 27.435 109.917 68.57 17.794 30.797 22.38 66.692 14.43 100.42-1.879-1.169-3.6-2.491-5.531-3.605l-136.734-78.907a46.232 46.232 0 0 0-46-0.06l-159.463 91.106 0.36-76.022 144.492-83.413c24.694-14.25 52.017-19.974 78.53-18.09M283.67 320.849c-0.071 2.19-0.3 4.343-0.3 6.55v157.752a46.185 46.185 0 0 0 22.91 39.904l158.68 92.488-66.021 37.68-144.552-83.353c-65.852-38-88.47-122.526-50.448-188.341 17.783-30.78 46.556-52.689 79.731-62.68m340.393 79.927l144.552 83.354c65.852 38 88.47 122.526 50.448 188.341-17.783 30.78-46.556 52.689-79.731 62.68 0.071-2.19 0.3-4.343 0.3-6.55V570.849a46.185 46.185 0 0 0-22.91-39.904l-158.68-92.488zM511.801 464.84l54.537 31.79-0.3 63.222-54.839 31.31-54.537-31.85 0.3-63.162z m100.536 58.654l65.722 38.341v166.767c0 76-61.895 137.86-137.937 137.86-35.593 0-68.972-13.988-94.223-37.74 1.928-1.03 3.925-1.844 5.832-2.945l136.675-78.906c14.223-8.184 23.028-23.353 23.09-39.783z m-46.54 89.543l-0.36 76.022-144.492 83.413c-65.852 38-150.425 15.335-188.446-50.48-17.794-30.798-22.38-66.693-14.43-100.421 1.879 1.169 3.6 2.491 5.531 3.605l136.735 78.907a46.232 46.232 0 0 0 45.999 0.06z"/></svg>
+                <span>GPT 2</span>
+              </button>
+              <button class="model-tab" type="button" role="tab" aria-selected="false" data-model="nano">
+                <svg viewBox="0 0 1024 1024" fill="currentColor" aria-hidden="true"><path d="M968.923429 512.804571A486.985143 486.985143 0 0 0 512.731429 969.142857h-1.828572A486.692571 486.692571 0 0 0 54.857143 512.731429v-1.828572A486.692571 486.692571 0 0 0 511.049143 54.930286h1.901714A487.058286 487.058286 0 0 0 969.142857 511.268571v1.609143h-0.219428z"/></svg>
+                <span>NB2</span>
+              </button>
+              <button class="model-tab" type="button" role="tab" aria-selected="false" data-model="grok">
+                <svg viewBox="0 0 1024 1024" fill="currentColor" aria-hidden="true"><path d="M395.52 652.373333l340.394667-251.605333c16.682667-12.373333 40.533333-7.552 48.512 11.605333 41.813333 101.077333 23.125333 222.506667-60.16 305.877334-83.242667 83.370667-199.125333 101.632-305.024 59.989333l-115.669334 53.632c165.930667 113.536 367.402667 85.461333 493.312-40.661333 99.882667-100.010667 130.816-236.330667 101.888-359.253334l0.256 0.298667c-41.941333-180.565333 10.325333-252.757333 117.333334-400.341333 2.56-3.498667 5.12-6.997333 7.637333-10.581334l-140.842667 141.013334v-0.426667L395.392 652.458667m-70.144 61.056c-119.125333-113.92-98.56-290.176 3.029333-391.850667 75.136-75.221333 198.272-105.941333 305.749334-60.8l115.413333-53.333333a333.141333 333.141333 0 0 0-78.037333-42.666667A382.933333 382.933333 0 0 0 255.317333 248.746667c-108.074667 108.202667-142.08 274.602667-83.712 416.597333 43.605333 106.112-27.861333 181.162667-99.84 256.938667-25.557333 26.88-51.157333 53.717333-71.765333 82.133333l325.12-290.773333"/></svg>
+                <span>Grok</span>
+              </button>
+              <button class="model-tab" type="button" role="tab" aria-selected="false" data-model="mj">
+                <svg viewBox="0 0 1033 1024" fill="currentColor" aria-hidden="true"><path d="M948.8384 726.1696a18.3296 18.3296 0 0 1 13.4656 31.744c-53.6576 48.7424-122.0608 93.4912-207.104 136.0384l-13.312 6.4512 5.4272 2.7648c4.1984 1.792 8.192 2.9696 12.288 3.584l6.1952 0.4096a48.64 48.64 0 0 0 24.7808-7.168l0.8192-0.4608 0.768-0.4608a157.184 157.184 0 0 0 20.3776-15.0528l7.6288-6.4c12.544-10.4448 18.8416-15.0528 27.3408-19.968 14.0288-7.9872 28.0576-11.9808 43.0592-11.9808 14.9504 0 28.928 3.9936 43.1104 12.0832l0.9216 0.512c7.9872 4.608 14.1824 9.216 26.3168 19.3536l7.68 6.3488c9.216 7.68 14.336 11.52 20.0192 14.8992l1.1264 0.7168 0.6656 0.4096a48.8448 48.8448 0 0 0 23.9104 7.168h0.512a18.5344 18.5344 0 0 1 13.9264 4.864 18.432 18.432 0 0 1 4.352 20.7872 18.432 18.432 0 0 1-17.8176 10.9568c-15.0016 0-29.0304-3.9424-43.1104-12.032l-3.9424-2.3552-1.024-0.5632-1.1264-0.768-0.8192-0.512a233.984 233.984 0 0 1-21.3504-16.4352l-6.8096-5.7344a158.4128 158.4128 0 0 0-19.968-14.848l-0.8704-0.5632-1.024-0.5632a48.4864 48.4864 0 0 0-24.6784-7.1168 48.64 48.64 0 0 0-24.8832 7.168l-0.6144 0.3072-0.8704 0.512a157.4912 157.4912 0 0 0-20.3264 15.1552l-6.656 5.632c-7.0144 6.0928-14.4896 11.776-22.3232 17.0496l-1.0752 0.7168-4.8128 2.9184a84.992 84.992 0 0 1-43.2128 12.032 84.9408 84.9408 0 0 1-44.4928-12.9024l-2.56-1.536-0.7168-0.512-1.1776-0.6144-1.2288-0.8192a165.7344 165.7344 0 0 1-17.408-13.4656 15.1552 15.1552 0 0 1-6.144-4.9664l-4.352-3.584a159.3344 159.3344 0 0 0-20.0192-14.8992l-0.6656-0.512-1.1776-0.5632a48.4864 48.4864 0 0 0-24.6784-7.1168 48.7424 48.7424 0 0 0-24.8832 7.168l-0.6144 0.3072-0.8704 0.512a157.6448 157.6448 0 0 0-20.3264 15.2064l-6.656 5.5808c-7.168 6.144-14.592 11.8784-22.4256 17.1008l-5.8368 3.584a84.992 84.992 0 0 1-43.1616 12.032c-14.9504 0-28.9792-3.9936-43.008-12.032l-3.9936-2.4064-0.768-0.512-1.3824-0.768-0.768-0.512a233.3184 233.3184 0 0 1-21.3504-16.4352l-6.8096-5.7344a158.1056 158.1056 0 0 0-19.968-14.848l-0.7168-0.512-1.1776-0.6144a48.4864 48.4864 0 0 0-24.7296-7.1168 48.7936 48.7936 0 0 0-24.9344 7.2192l-1.3312 0.8192c-5.6832 3.3792-10.752 7.168-20.3776 15.1552l-6.656 5.5808c-7.1168 6.144-14.5408 11.8272-22.4256 17.1008l-0.8192 0.512-1.1264 0.768-3.84 2.304a85.0944 85.0944 0 0 1-45.3632 11.9296c-31.5392-3.84-57.0368-15.7696-83.2512-38.0928l-1.5872-1.3312a449.8432 449.8432 0 0 1-8.2944-7.5776l-8.448-7.7312-4.4544-4.1984-0.6656-0.5632a60.5184 60.5184 0 0 0-13.0048-9.9328l-1.792-0.7168-3.84 0.9216-4.3008 1.1264-3.6864 1.024a18.432 18.432 0 0 1-4.5056 3.584l-0.5632 0.3072c-2.3552 1.1776-4.9152 1.8944-5.2736 1.4336a236.8 236.8 0 0 0-32.3072 21.6064l-17.7152 13.824-2.3552 1.8944a288.256 288.256 0 0 1-14.1312 10.24c-14.3872 9.728-25.6512 14.336-37.376 14.336a18.432 18.432 0 0 1-17.152-18.0736 18.3808 18.3808 0 0 1 17.0496-18.5856c3.1744 0 8.7552-2.4576 16.2304-7.4752l1.6896-1.2288c3.5328-2.4576 7.168-5.12 11.3664-8.3456l16.384-12.8 2.56-1.9968c9.1136-6.9632 17.1008-12.6976 24.4736-17.4592l3.072-1.8944-24.7808-47.4112a18.5344 18.5344 0 0 1-1.8944-5.7344l-0.2048-3.072a18.432 18.432 0 0 1 17.152-17.92l865.5872-55.6544z m-54.1696 40.192l-781.0048 50.1248 12.4928 23.808 4.3008-1.3312 8.704-1.8432 2.048-0.2048 1.1776-0.0512a42.496 42.496 0 0 1 18.6368 4.4544c6.8096 3.2256 13.056 7.7824 21.8624 15.8208l0.7168 0.6656 3.8912 3.584 6.144 5.7344 4.1472 3.7888 6.7072 6.0928c20.8384 17.92 39.7312 27.0848 62.976 30.1056a48.64 48.64 0 0 0 23.552-6.656l0.8704-0.512 0.512-0.256 9.6768-6.4512c3.072-2.2528 6.656-5.12 11.6224-9.216l7.5776-6.4c12.5952-10.4448 18.944-15.0528 27.392-19.968a84.992 84.992 0 0 1 43.1104-11.9808c14.9504 0 28.928 3.9936 43.2128 12.1344l0.768 0.512c8.0896 4.6592 14.4896 9.3696 26.4704 19.3536l7.5264 6.2976c9.2672 7.68 14.4384 11.52 20.2752 15.0016l0.6144 0.512 1.024 0.512a48.128 48.128 0 0 0 24.7296 7.168 48.64 48.64 0 0 0 24.9344-7.168l0.4608-0.256 9.6768-6.5024a265.728 265.728 0 0 0 11.6736-9.216l7.5776-6.4c12.6464-10.496 18.944-15.104 27.392-19.968 14.0288-7.9872 28.0576-11.9808 43.008-11.9808 15.0016 0 28.9792 3.9936 43.264 12.0832l0.9216 0.6144c6.5536 3.84 11.9808 7.68 20.6848 14.6944l3.1232 2.56 20.992-10.0864c62.5664-30.72 115.8656-62.5664 160.768-96.2048l3.7888-2.9696zM162.2528 81.7152c105.7792 45.1584 217.7024 126.72 306.7392 224.512 107.9808 118.4768 176.9472 253.184 199.168 393.0112a18.432 18.432 0 0 1-24.8832 19.8144c-97.7408-39.3216-190.5664-53.4016-278.784-43.1616-71.68 8.2944-139.264 32.4096-203.3152 71.8848-17.408 10.752-36.7104-10.752-24.064-26.8288 76.6976-97.28 109.2608-207.872 98.9696-329.0112-8.0384-94.1056-41.9328-192.1536-96.768-284.1088a18.3296 18.3296 0 0 1 22.9376-26.112z m268.2368 102.4512l3.8912 0.8192c76.5952 23.3984 167.424 90.1632 248.9856 182.528 86.3744 97.8944 152.832 213.2992 186.5216 325.4784a18.3296 18.3296 0 0 1-24.064 22.3232l-0.8192-0.4096-16.4352-6.5536a456.448 456.448 0 0 0-12.2368-4.7104l-0.7168-0.256c-28.9792-10.5472-50.0736-11.776-79.9232-4.1472a18.432 18.432 0 0 1-22.2208-12.9024c-59.0336-214.6816-158.5152-374.6816-294.8608-468.7872-14.8992-10.3424-7.168-31.7952 8.192-33.3824h3.6864zM198.656 139.776l3.1744 6.144c39.5264 79.872 64 162.5088 70.8096 242.944 8.8064 103.936-11.776 201.0624-62.3616 289.3824l-2.048 3.3792 4.8128-2.2016c39.8848-17.408 81.0496-29.696 123.648-36.608l21.4016-3.072 2.304-0.2048c80.4352-9.3184 164.3008 0.1536 251.4944 29.0304l18.7904 6.5024-4.6592-1.6384-2.816-13.1072c-25.7024-108.5952-81.3056-213.4528-162.6624-308.48l-15.5648-17.664-2.9696-3.328c-69.0688-75.776-152.6784-141.7728-235.9296-187.136l-7.424-3.9424z m366.8992 163.84l7.7824 9.3696c73.3696 91.0848 130.4064 207.36 170.496 345.7536l0.4096 1.3312 7.4752-1.1776a149.0944 149.0944 0 0 1 63.8976 5.8368l7.1168 2.3552-5.0688-13.7216c-32.1024-82.944-82.0224-166.3488-143.6672-240.5376l-15.6672-18.3296-2.4576-2.7648a833.1776 833.1776 0 0 0-82.944-82.0736l-7.3728-6.0416z"/></svg>
+                <span>MJ</span>
+              </button>
+            </div>
+            <div class="model-settings-scroll">
+            <div class="model-output-section">
+              <div class="pop-section-label">宽高比</div>
+              <div class="ratio-pop-grid model-ratio-grid" id="modelRatioGrid"></div>
+            </div>
+            <div class="model-output-section" id="modelResolutionSection">
+              <div class="pop-section-label">分辨率</div>
+              <div class="setting-chip-grid" id="resPopList"></div>
+            </div>
+            <div class="model-output-section" id="modelQualitySection" hidden>
+              <div class="pop-section-label">质量</div>
+              <div class="setting-chip-grid cols-4" id="modelQualityGrid">
+                <button class="setting-chip" data-quality="0.25">0.25</button>
+                <button class="setting-chip" data-quality="0.5">0.5</button>
+                <button class="setting-chip active" data-quality="1">1</button>
+                <button class="setting-chip" data-quality="2">2</button>
+              </div>
+            </div>
+            <div class="mj-model-settings" id="mjModelSettings" hidden>
+              <div class="pop-section-label">Midjourney 高级参数</div>
+              <div class="more-section">
+                <div class="more-label">版本</div>
+                <div class="btn-grid cols-4" id="mjVersionGrid">
+                  <button class="opt-btn" data-version="6.1">v6.1</button>
+                  <button class="opt-btn" data-version="7">v7</button>
+                  <button class="opt-btn active" data-version="8.1">v8.1</button>
+                  <button class="opt-btn" data-version="8.2">v8.2</button>
+                </div>
+              </div>
+              <div class="more-section">
+                <div class="more-label">速度</div>
+                <div class="btn-grid" id="mjSpeedGrid">
+                  <button class="opt-btn active" data-speed="relax">Relax<small>默认</small></button>
+                  <button class="opt-btn" data-speed="fast">Fast<small>快速</small></button>
+                  <button class="opt-btn" data-speed="turbo">Turbo<small>极速</small></button>
+                </div>
+              </div>
+              <div class="more-section">
+                <div class="more-label">风格化 (--s)<span class="val" id="mjStylizeValue">100</span></div>
+                <div class="slider-row"><input type="range" id="mjStylizeSlider" min="0" max="1000" step="50" value="100"></div>
+              </div>
+              <div class="more-section">
+                <div class="more-label">混乱度 (--c)<span class="val" id="mjChaosValue">0</span></div>
+                <div class="slider-row"><input type="range" id="mjChaosSlider" min="0" max="100" step="5" value="0"></div>
+              </div>
+              <div class="more-section">
+                <div class="more-label">风格</div>
+                <div class="btn-grid cols-2" id="mjStyleGrid">
+                  <button class="opt-btn active" data-style="">默认</button>
+                  <button class="opt-btn" data-style="raw">Raw</button>
+                </div>
+              </div>
+              <div class="more-section" id="mjIwSection" hidden>
+                <div class="more-label">图片权重 (--iw)<span class="val" id="mjIwValue">1.0</span></div>
+                <div class="slider-row"><input type="range" id="mjIwSlider" min="0" max="3" step="0.1" value="1"></div>
+              </div>
+              <div class="more-section">
+                <div class="more-label">负面提示词 (--no)</div>
+                <input type="text" id="mjNegativePrompt" placeholder="例如：ugly, blurry, deformed">
+              </div>
+              <div class="more-section">
+                <div class="more-label">种子 (--seed)</div>
+                <input type="number" id="mjSeed" placeholder="留空随机">
+              </div>
+            </div>
+            </div>
+          </div>
+        </div>
+        <button id="resBtn" hidden aria-hidden="true"><span id="resBtnValue">1K</span></button>
+        <div id="resPop" hidden></div>
+        <button class="bar-btn" id="enhanceBtn" title="优化提示词">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.4 4.2L17.5 9l-4.1 1.6L12 15l-1.4-4.4L6.5 9l4.1-1.8L12 3Z"/><path d="M18.5 14l.7 2.3 2.3.7-2.3.7-.7 2.3-.7-2.3-2.3-.7 2.3-.7.7-2.3Z"/></svg>
+        </button>
+        <button class="bar-btn" id="restoreBtn" hidden title="恢复原提示词">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+        </button>
+        <button class="bar-btn clear-prompt-btn" id="clearPromptBtn" title="清空当前提示词" aria-label="清空当前提示词">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V5h6v2"/><path d="m7 7 1 13h8l1-13"/><path d="M10 11v5M14 11v5"/></svg>
+        </button>
+        <span class="char-counter"><span id="charCount">0</span>/3000</span>
+        <div class="bar-spacer"></div>
+        <button class="send-btn" id="sendBtn" title="Ctrl + Enter 生成" aria-label="生成图片"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.1 6.9L21 12l-6.9 2.1L12 21l-2.1-6.9L3 12l6.9-2.1L12 3Z"/></svg></button>
+      </div>
+
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- 画布图片编辑弹窗 -->
+<div class="modal-backdrop" id="canvasEditModal">
+  <div class="modal canvas-edit-modal" role="dialog" aria-modal="true" aria-labelledby="canvasEditTitle">
+    <div class="modal-head"><h2 id="canvasEditTitle">编辑画布图片</h2><button class="close" id="closeCanvasEdit" type="button" aria-label="关闭">×</button></div>
+    <div class="field">
+      <label>选择模型</label>
+      <div class="canvas-edit-models" id="canvasEditModels" role="radiogroup" aria-label="图生图模型">
+        <button class="canvas-edit-model active" type="button" data-model="gpt" role="radio" aria-checked="true">GPT 2</button>
+        <button class="canvas-edit-model" type="button" data-model="nano" role="radio" aria-checked="false">NB2</button>
+        <button class="canvas-edit-model" type="button" data-model="grok" role="radio" aria-checked="false">Grok</button>
+        <button class="canvas-edit-model" type="button" data-model="mj" role="radio" aria-checked="false">MJ</button>
+      </div>
+    </div>
+    <div class="field">
+      <div class="canvas-edit-label-row">
+        <label for="canvasEditPrompt">编辑提示词</label>
+        <button class="canvas-reverse-prompt" id="reverseCanvasPrompt" type="button" title="根据当前图片生成提示词">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.3-6L20 8.5M20 4v4.5h-4.5"/><path d="M20 12a8 8 0 0 1-13.3 6L4 15.5M4 20v-4.5h4.5"/><path d="m9 12 2 2 4-4"/></svg>
+          反推提示词
+        </button>
+      </div>
+      <textarea class="canvas-edit-prompt" id="canvasEditPrompt" maxlength="3000" placeholder="描述希望如何修改这张图片，例如：保持构图，把背景改为雨夜霓虹街道…"></textarea>
+    </div>
+    <p class="canvas-edit-note">当前画布图片将自动作为参考图，以图生图模式重新生成。</p>
+    <div class="modal-footer">
+      <button class="secondary" id="cancelCanvasEdit" type="button">取消</button>
+      <button class="primary" id="submitCanvasEdit" type="button">重新生成</button>
+    </div>
+  </div>
+</div>
+
+<!-- 隐藏的文件输入 -->
+<input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden>
+
+<!-- 接口设置弹窗 -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <div class="modal-head"><h2>接口设置</h2><button class="close" id="closeSettings">×</button></div>
+    <div class="field">
+      <label for="apiKey">API Key</label>
+      <div class="key-wrap">
+        <input id="apiKey" type="password" autocomplete="off" placeholder="输入你的 APIMart API Key">
+        <div class="key-actions">
+          <button class="mini" id="toggleKey">显示</button>
+          <button class="mini" id="clearKey">清空</button>
+        </div>
+      </div>
+      <div class="helper">仅保存在当前浏览器 localStorage 中。</div>
+    </div>
+    <div class="notice">浏览器会直接发起请求。请勿在公共电脑保存密钥。</div>
+    <a class="settings-recharge-link" href="https://apimart.ai/zh" target="_blank" rel="noopener">
+      <span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 10h8M8 14h8M12 7v10"/></svg>
+        前往 APIMart 充值
+      </span>
+      <svg class="settings-recharge-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M8 5h11v11M19 5 6 18"/></svg>
+    </a>
+    <div class="modal-footer">
+      <button class="secondary" id="cancelSettings">取消</button>
+      <button class="primary" id="saveSettings">保存设置</button>
+    </div>
+  </div>
+</div>
+
+<!-- 价格参考弹窗 -->
+<div class="modal-backdrop" id="priceModal">
+  <div class="modal price-modal">
+    <div class="modal-head"><h2>价格参考</h2><button class="close" id="closePrice">×</button></div>
+    <div class="price-list">
+      <div class="price-row">
+        <div class="price-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.4 4.2L17.5 9l-4.1 1.6L12 15l-1.4-4.4L6.5 9l4.1-1.8L12 3Z"/></svg>
+          <div><b>GPT Image 2</b><span>1K 分辨率</span></div>
+        </div>
+        <div class="price-value">0.0851 <small>Credits</small></div>
+      </div>
+      <div class="price-row">
+        <div class="price-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.4 4.2L17.5 9l-4.1 1.6L12 15l-1.4-4.4L6.5 9l4.1-1.8L12 3Z"/></svg>
+          <div><b>GPT Image 2</b><span>2K 分辨率</span></div>
+        </div>
+        <div class="price-value">0.14 <small>Credits</small></div>
+      </div>
+      <div class="price-row">
+        <div class="price-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.4 4.2L17.5 9l-4.1 1.6L12 15l-1.4-4.4L6.5 9l4.1-1.8L12 3Z"/></svg>
+          <div><b>GPT Image 2</b><span>4K 分辨率</span></div>
+        </div>
+        <div class="price-value">0.21 <small>Credits</small></div>
+      </div>
+      <div class="price-row">
+        <div class="price-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19c1.5-2 3.5-3 6-3s4.5 1 6 3"/><path d="M8 16V8l4-4 4 4v8"/><path d="M12 4v12"/></svg>
+          <div><b>Midjourney</b><span>标准模式</span></div>
+        </div>
+        <div class="price-value">0.45 <small>Credits</small></div>
+      </div>
+      <div class="price-row">
+        <div class="price-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4.5 15.5c2-4 5.5-8 10-9.5 1.5-.5 3.5-.5 5 .5-1 1-2 2-3 3.5-2 3-5 6-8 7.5-1.5.7-3 .5-4-2Z"/><path d="M15 5.5c.5-1 1-2 2-2.5"/></svg>
+          <div><b>NB2</b><span>nano-banana-2-ext</span></div>
+        </div>
+        <div class="price-value">0.3 <small>Credits</small></div>
+      </div>
+      <div class="price-row">
+        <div class="price-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>
+          <div><b>Grok Image</b><span>grok-imagine-1.5-ext</span></div>
+        </div>
+        <div class="price-value">0.15 <small>Credits</small></div>
+      </div>
+    </div>
+    <div class="price-note">
+      <div class="price-rate"><b>¥7</b> = <b>10</b> Credits（1 Credit ≈ ¥0.7）</div>
+      每次生成按所选模型与参数扣费，费用由 APIMart 收取。
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="shared.js?v=29"></script>
+<script src="core.js?v=2"></script>
+<script src="model-ui.js?v=1"></script>
+<script src="history-canvas.js?v=3"></script>
+<script src="workspace-ui.js?v=1"></script>
+<script src="generation.js?v=2"></script>
+<script src="app.js?v=3"></script>
+</body>
+</html>
