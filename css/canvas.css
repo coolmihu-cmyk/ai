@@ -60,6 +60,8 @@
 .canvas-tool-btn svg{width:14px;height:14px}
 .canvas-tool-btn:hover{background:#f0f2f3;color:#202427}
 .canvas-tool-btn:disabled{opacity:.38;cursor:not-allowed;background:transparent;color:#8e969b}
+.canvas-hd-btn:not(:disabled){color:#315f9e}
+.canvas-hd-btn:not(:disabled):hover{background:#edf4ff;color:#214f8e}
 .canvas-delete-btn:not(:disabled):hover{background:#fff0f0;color:#a34848}
 .canvas-edit-modal{max-width:500px;padding:26px}
 .canvas-edit-modal .modal-head{margin-bottom:22px}

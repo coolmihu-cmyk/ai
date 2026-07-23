@@ -57,7 +57,7 @@ const els={
   generationModelName:$('#generationModelName'),generationPrompt:$('#generationPrompt'),statusElapsed:$('#statusElapsed'),
   resultWrap:$('#resultWrap'),resultBackdrop:$('#resultBackdrop'),resultImage:$('#resultImage'),actions:$('#actions'),status:$('#status'),
   canvasLayer:$('#canvasLayer'),canvasToolbar:$('#canvasToolbar'),canvasFileInput:$('#canvasFileInput'),
-  uploadCanvasImage:$('#uploadCanvasImage'),editCanvasImage:$('#editCanvasImage'),deleteCanvasImage:$('#deleteCanvasImage'),
+  uploadCanvasImage:$('#uploadCanvasImage'),editCanvasImage:$('#editCanvasImage'),enhanceCanvasImage:$('#enhanceCanvasImage'),deleteCanvasImage:$('#deleteCanvasImage'),
   composer:$('#composer'),errorMsg:$('#errorMsg'),
   refRow:$('#refRow'),refBtn:$('#refBtn'),fileInput:$('#fileInput'),
   promptInput:$('#promptInput'),clearPromptBtn:$('#clearPromptBtn'),charCount:$('#charCount'),

@@ -118,6 +118,7 @@ function syncCanvasMode(){
   const hasItems=canvasItems.length>0;
   document.body.classList.toggle('canvas-preview-mode',hasItems);
   els.editCanvasImage.disabled=!getCanvasItem();
+  els.enhanceCanvasImage.disabled=!getCanvasItem();
   els.deleteCanvasImage.disabled=!getCanvasItem();
   if(hasItems){
     els.empty.style.display='none';els.loading.style.display='none';
@@ -133,6 +134,7 @@ function selectCanvasItem(id,raise=true){
     if(item)node.style.zIndex=item.z;
   });
   els.editCanvasImage.disabled=!getCanvasItem();
+  els.enhanceCanvasImage.disabled=!getCanvasItem();
   els.deleteCanvasImage.disabled=!getCanvasItem();
 }
 function positionCanvasNode(item){
@@ -269,6 +271,7 @@ els.canvasFileInput.onchange=async()=>{
 const canvasEditModal=$('#canvasEditModal');
 const CANVAS_EDIT_MODELS=new Set(['gpt','nano','grok']);
 const REVERSE_PROMPT_MODEL='gpt-5.6-luna';
+const ONE_CLICK_HD_PROMPT='基于提供的参考图像进行严格的超高分辨率4K增强。必须绝对忠实于原始画面部结构、比例和身份特征。在表情、视线、姿势、相机角度、画面构图和透视关系上保持零偏差。服装、头发、皮肤以及背景元素的结构、位置和设计都必须保持不变。恢复细微层级的细节，呈现自然写实效果。增强毛孔、细纹、发丝、睫毛、织物纹理、缝线以及材质边缘，但不得引入任何风格化处理。颜色科学、白平衡以及整体色调关系必须与原图完全一致。光线方向、强度、对比度以及阴影表现必须与原始图像精确匹配，只允许提升清晰度并扩展动态范围。禁止重新布光，禁止改变形体';
 function setCanvasEditModel(key){
   if(!CANVAS_EDIT_MODELS.has(key))key='gpt';
   canvasEditModel=key;
@@ -290,6 +293,36 @@ function openCanvasEdit(){
   requestAnimationFrame(()=>$('#canvasEditPrompt').focus());
 }
 els.editCanvasImage.onclick=openCanvasEdit;
+els.enhanceCanvasImage.onclick=async()=>{
+  const currentCanvasItem=getCanvasItem();
+  if(!currentCanvasItem){toast('请先选择一张画布图片');return}
+  if(modelState.gpt.generating){toast('Image 2 正在生成，请稍后再试');return}
+  if(!Settings.getKey()){Settings.openModal(els);toast('请先保存 API Key');return}
+
+  const source={...currentCanvasItem};
+  const sourceImg=els.canvasLayer.querySelector('[data-canvas-id="'+source.id+'"] img');
+  const sourceRatio=(sourceImg?.naturalWidth||1)/Math.max(sourceImg?.naturalHeight||1,1);
+  const ratio=MODEL_RATIOS.gpt.reduce((best,candidate)=>{
+    const [w,h]=candidate.split(':').map(Number);
+    const [bestW,bestH]=best.split(':').map(Number);
+    return Math.abs(Math.log(w/h/sourceRatio))<Math.abs(Math.log(bestW/bestH/sourceRatio))?candidate:best;
+  },MODEL_RATIOS.gpt[0]);
+
+  const state=modelState.gpt;
+  state.ratio=ratio;state.resolution='4k';state.promptText=ONE_CLICK_HD_PROMPT;state.originalPrompt=null;
+  if(activeModel!=='gpt')switchModel('gpt');
+  const manager=refManagers.gpt;manager.clear();
+  if(!manager.addRemote(source.url,'高清参考图')){toast('参考图片添加失败');return}
+  els.promptInput.value=ONE_CLICK_HD_PROMPT;els.promptInput.maxLength=MODEL_MAX_PROMPT.gpt;
+  els.restoreBtn.hidden=true;updateCharLimit();renderRefRow();renderResPop();renderRatioPop();updatePlaceholder();
+  pendingCanvasEditSource=source;
+  els.enhanceCanvasImage.disabled=true;
+  try{
+    await doGenerate({fromCanvasEdit:true,canvasItemId:source.id});
+  }finally{
+    els.enhanceCanvasImage.disabled=!getCanvasItem();
+  }
+};
 $('#closeCanvasEdit').onclick=closeCanvasEdit;
 $('#cancelCanvasEdit').onclick=closeCanvasEdit;
 canvasEditModal.addEventListener('click',e=>{if(e.target===canvasEditModal)closeCanvasEdit()});
