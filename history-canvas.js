@@ -78,9 +78,11 @@ function applyHistorySettings(item){
 }
 function selectHistory(item){
   if(!modelState[item.model]){toast('该历史记录对应的模型已移除');return}
+  historyReusePrompt=null;
   if(item.model!==activeModel)switchModel(item.model);
+  historyReusePrompt=item.prompt||'';
   applyHistorySettings(item);
-  const state=modelState[item.model];state.promptText=item.prompt||'';state.originalPrompt=null;
+  const state=modelState[item.model];state.promptText=historyReusePrompt.slice(0,MODEL_MAX_PROMPT[item.model]);state.originalPrompt=null;
   els.promptInput.value=state.promptText;els.promptInput.maxLength=MODEL_MAX_PROMPT[item.model];
   updateCharLimit();els.restoreBtn.hidden=true;
   const res=MODEL_RESOLUTIONS[item.model];

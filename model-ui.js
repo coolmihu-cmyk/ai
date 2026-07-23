@@ -27,7 +27,8 @@ function updateSendButton(){
 function switchModel(key){
   if(key===activeModel)return;
   // 保存当前模型的提示词
-  modelState[activeModel].promptText=els.promptInput.value;
+  const currentPrompt=els.promptInput.value;
+  modelState[activeModel].promptText=currentPrompt;
   activeModel=key;
   const modelSettingsScroll=$('#modelPop .model-settings-scroll');
   if(modelSettingsScroll)modelSettingsScroll.scrollTop=0;
@@ -40,6 +41,10 @@ function switchModel(key){
   els.modelBtn.title='模型与输出设置 · '+MODEL_NAMES[key];
   els.modelBtn.setAttribute('aria-label','模型与输出设置，当前 '+MODEL_NAMES[key]);
   // 恢复该模型的提示词
+  if(historyReusePrompt!==null){
+    historyReusePrompt=currentPrompt;
+    modelState[key].promptText=currentPrompt.slice(0,MODEL_MAX_PROMPT[key]);
+  }
   els.promptInput.value=modelState[key].promptText||'';
   els.promptInput.maxLength=MODEL_MAX_PROMPT[key];
   els.charCount.textContent=els.promptInput.value.length;
@@ -188,6 +193,7 @@ function renderRefRow(){
 els.promptInput.addEventListener('input',()=>{
   els.charCount.textContent=els.promptInput.value.length;
   modelState[activeModel].promptText=els.promptInput.value;
+  if(historyReusePrompt!==null)historyReusePrompt=els.promptInput.value;
 });
 els.clearPromptBtn.onclick=()=>{
   const state=modelState[activeModel];

@@ -130,7 +130,10 @@ body{background:#f2f3f4}
   cursor:pointer;transition:background-color .14s,border-color .14s,color .14s,box-shadow .14s;
 }
 .model-tab svg{width:19px;height:19px;flex-shrink:0;display:block;fill:currentColor;stroke:none}
-.model-tab span{overflow:hidden;max-width:100%;text-overflow:ellipsis;white-space:nowrap}
+.model-tab span{
+  overflow:hidden;max-width:100%;padding:1px 0 2px;
+  line-height:1.25;text-overflow:ellipsis;white-space:nowrap;
+}
 .model-tab:hover{background:#fff;color:var(--text)}
 .model-tab.active{
   background:#fff;border-color:#d9dee1;color:var(--text);

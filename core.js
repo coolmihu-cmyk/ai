@@ -27,6 +27,7 @@ const GROK_EDIT_SIZES={
 let activeModel='gpt';
 const sharedHistory=[];
 let historyLoading=true;
+let historyReusePrompt=null;
 let currentResultUrl=null,currentResultModel=null;
 let canvasEditModel='gpt',pendingCanvasEditSource=null;
 const canvasItems=[];
