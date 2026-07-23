@@ -20,7 +20,7 @@
     <div class="sidebar-head">
       <div class="project-brand sidebar-brand">
         <img class="project-logo" src="logo.png" alt="">
-        <div class="project-copy"><b>MIHU DESIGN OS</b><span>AI IMAGE STUDIO</span></div>
+        <div class="project-copy"><b>MIHU DESIGN OS</b><span>Pic.supmihu.cn</span></div>
       </div>
       <div class="head-actions">
         <button class="head-btn" id="priceLink" type="button" title="价格参考" aria-label="价格参考">
@@ -76,7 +76,7 @@
           </span>
           <span class="canvas-welcome-kicker">YOUR NEXT IMAGE STARTS HERE</span>
           <b>把想象交给你</b>
-          <p>在右侧输入画面描述，选择一个模型，然后开始创作。<br>一个念头、一种氛围，或一句不完整的灵感，都可以成为第一张图。</p>
+          <p>在右侧输入画面描述，选择一个模型，然后开始创作。</p>
           <span class="canvas-welcome-hint">从一句提示词开始</span>
         </div>
         <div class="loading" id="loading">
@@ -130,8 +130,10 @@
   <!-- 对话式输入卡片 -->
     <section class="composer" id="composer">
       <div class="composer-head">
-        <div><span class="composer-kicker">PROMPT</span><b>描述你的画面</b></div>
-        <span class="composer-shortcut">Ctrl / ⌘ + Enter</span>
+        <div><span class="composer-kicker">PROMPT</span></div>
+        <button class="composer-collapse-btn" id="collapseComposer" type="button" title="收起输入框" aria-label="收起输入框" aria-expanded="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
       </div>
       <div class="error-msg" id="errorMsg"></div>
 

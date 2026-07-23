@@ -58,7 +58,7 @@ const els={
   resultWrap:$('#resultWrap'),resultBackdrop:$('#resultBackdrop'),resultImage:$('#resultImage'),actions:$('#actions'),status:$('#status'),
   canvasLayer:$('#canvasLayer'),canvasToolbar:$('#canvasToolbar'),canvasFileInput:$('#canvasFileInput'),
   uploadCanvasImage:$('#uploadCanvasImage'),editCanvasImage:$('#editCanvasImage'),enhanceCanvasImage:$('#enhanceCanvasImage'),deleteCanvasImage:$('#deleteCanvasImage'),
-  composer:$('#composer'),errorMsg:$('#errorMsg'),
+  composer:$('#composer'),collapseComposer:$('#collapseComposer'),errorMsg:$('#errorMsg'),
   refRow:$('#refRow'),refBtn:$('#refBtn'),fileInput:$('#fileInput'),
   promptInput:$('#promptInput'),clearPromptBtn:$('#clearPromptBtn'),charCount:$('#charCount'),
   modelBtn:$('#modelBtn'),modelBtnValue:$('#modelBtnValue'),

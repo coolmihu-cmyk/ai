@@ -75,7 +75,7 @@ function updateCharLimit(){
 
 function updatePlaceholder(){
   const phs={
-    gpt:'描述你想生成的画面，例如：一间极简主义咖啡馆，清晨的柔和阳光，大片落地窗…',
+    gpt:'一个念头、一种氛围，或一句不完整的灵感...',
     nano:'描述你想生成的画面，NB2 支持 4K 输出、角色一致性…',
     mj:'描述你想生成的画面，支持 MJ 原生参数如 --ar 16:9 --v 7 --s 250',
     grok:'描述你想生成的画面，Grok 超写实图像生成…'
