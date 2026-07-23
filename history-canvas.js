@@ -250,7 +250,7 @@ els.canvasFileInput.onchange=async()=>{
 };
 const canvasEditModal=$('#canvasEditModal');
 const CANVAS_EDIT_MODELS=new Set(['gpt','nano','grok']);
-const REVERSE_PROMPT_MODEL='gpt-4o';
+const REVERSE_PROMPT_MODEL=ENHANCE_MODEL;
 function setCanvasEditModel(key){
   if(!CANVAS_EDIT_MODELS.has(key))key='gpt';
   canvasEditModel=key;
