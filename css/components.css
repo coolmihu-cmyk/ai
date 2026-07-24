@@ -50,19 +50,19 @@
 }
 .generation-history-card[hidden]{display:none!important}
 .generation-thumb{width:92px;height:86px;border-radius:9px;background:linear-gradient(135deg,#eef1f3,#e1e6e9);display:grid;place-items:center;overflow:hidden}
-.generation-spinner{width:23px;height:23px;border:2px solid rgba(79,134,255,.18);border-top-color:#4f86ff;border-radius:50%;animation:generationSpin .8s linear infinite}
+.generation-spinner{width:23px;height:23px;border:2px solid rgba(23,23,23,.16);border-top-color:var(--accent);border-radius:50%;animation:generationSpin .8s linear infinite}
 @keyframes generationSpin{to{transform:rotate(360deg)}}
 .generation-card-content{min-width:0;display:flex;flex-direction:column;gap:7px;padding:1px 0}
 .generation-card-head{display:flex;align-items:center;gap:6px;min-width:0}
-.generation-card-head .dot{width:7px;height:7px;border-radius:50%;background:#4f86ff;box-shadow:0 0 0 3px rgba(79,134,255,.12);flex-shrink:0}
-.generation-model{max-width:105px;padding:3px 6px;border-radius:5px;background:#292f33;color:#fff;font-size:7.5px;line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.status-elapsed{margin-left:auto;color:#92999e;font-size:8px;font-variant-numeric:tabular-nums}
-.generation-prompt{font-size:10.5px;line-height:1.35;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.generation-progress-row{margin-top:auto;display:flex;align-items:center;gap:8px;color:#727b81;font-size:8.5px}
+.generation-card-head .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px rgba(23,23,23,.1);flex-shrink:0}
+.generation-model{max-width:105px;padding:4px 7px;border-radius:5px;background:#292f33;color:#fff;font-size:10px;line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.status-elapsed{margin-left:auto;color:#7f888d;font-size:10px;font-variant-numeric:tabular-nums}
+.generation-prompt{font-size:12px;line-height:1.4;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.generation-progress-row{margin-top:auto;display:flex;align-items:center;gap:8px;color:#667076;font-size:10.5px}
 .generation-progress-row .status-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .generation-progress-row .status-percent{margin-left:auto;font-variant-numeric:tabular-nums}
 .sidebar-progress-track{width:100%;height:3px;border-radius:999px;background:#e3e7e9;overflow:hidden}
-.sidebar-progress-bar{width:0;height:100%;border-radius:inherit;background:#4f86ff;transition:width .45s ease}
+.sidebar-progress-bar{width:0;height:100%;border-radius:inherit;background:var(--accent);transition:width .45s ease}
 
 /* Midjourney 高级参数 */
 .mj-model-settings{padding-top:2px}

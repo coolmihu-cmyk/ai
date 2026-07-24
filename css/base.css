@@ -1,17 +1,17 @@
 /* ===== 基础 ===== */
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#f3f4f5;
+  --bg:#ffffff;
   --panel:#fff;
   --panel-strong:#fff;
-  --panel-low:#f6f7f8;
-  --border:#dfe3e6;
-  --border-soft:#e9ecee;
+  --panel-low:#f2f2f2;
+  --border:#e2e2e2;
+  --border-soft:#ededed;
   --highlight:#ffffff;
-  --text:#23272a;
-  --text-mid:#61686d;
-  --text-dim:#969da2;
-  --accent:#252a2e;
+  --text:#171717;
+  --text-mid:#626262;
+  --text-dim:#9a9a9a;
+  --accent:#171717;
   --radius-lg:16px;
   --radius-md:12px;
   --radius-sm:9px;
@@ -116,28 +116,28 @@ a{color:inherit;text-decoration:none}
 /* ===== 历史卡片 ===== */
 .history-list{display:flex;flex-direction:column;gap:10px}
 .history-item{
-  position:relative;min-height:104px;padding:9px;
+  position:relative;min-height:86px;padding:8px;
   border:1px solid #e4e7e9;border-radius:13px;
   background:#fff;overflow:hidden;
-  display:grid;grid-template-columns:92px minmax(0,1fr);gap:10px;
+  display:grid;grid-template-columns:72px minmax(0,1fr);gap:8px;
   cursor:pointer;transition:background-color .14s,border-color .14s;
   flex-shrink:0;
 }
 .history-item:hover{border-color:#d5dadd;background:#fafbfb}
 .history-item.active{border-color:#bfc7cc;background:#f8f9fa}
 .history-item img{width:100%;height:100%;object-fit:cover}
-.history-thumb{width:92px!important;height:86px!important;border-radius:9px;object-fit:cover;background:#edf0f1;align-self:start;cursor:zoom-in}
-.history-thumb:focus-visible{outline:2px solid #59646b;outline-offset:2px}
-.history-content{min-width:0;display:flex;flex-direction:column;gap:6px}
+.history-thumb{width:72px!important;height:68px!important;border-radius:8px;object-fit:cover;background:#edf0f1;align-self:start;cursor:zoom-in}
+.history-thumb:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.history-content{min-width:0;display:flex;flex-direction:column;gap:4px}
 .history-card-head{display:flex;align-items:center;gap:6px;min-width:0}
 .history-item .model-tag{
   position:static;top:5px;left:5px;display:inline-flex;max-width:76px;padding:3px 6px;
   border-radius:5px;background:#292f33;color:#fff;
-  font-size:7.5px;font-weight:550;line-height:1;
+  font-size:10px;font-weight:550;line-height:1;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;pointer-events:none;
 }
-.history-meta{margin-left:auto;color:#92999e;font-size:8px;line-height:1;white-space:nowrap;font-variant-numeric:tabular-nums}
-.history-prompt{font-size:10.5px;line-height:1.4;color:var(--text);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.history-meta{margin-left:auto;color:#7f888d;font-size:10px;line-height:1;white-space:nowrap;font-variant-numeric:tabular-nums}
+.history-prompt{font-size:12px;line-height:1.4;color:var(--text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .history-card-actions{margin-top:auto;display:flex;justify-content:flex-end;gap:4px}
 .history-action{
   position:static;bottom:5px;width:23px;height:23px;border-radius:7px;
@@ -148,7 +148,7 @@ a{color:inherit;text-decoration:none}
 .history-action.success{opacity:1;background:#3ba67c;font-weight:700}
 .history-action.failed{opacity:1;background:#c95858;font-weight:700}
 .history-item:hover .history-action,.history-action:focus-visible{opacity:1}
-.history-action:hover{background:#dfe4e6;color:#252a2e;transform:none}
+.history-action:hover{background:#ececec;color:var(--accent);transform:none}
 .history-action svg{width:11px;height:11px}
 
 /* 收起时的展开按钮 */
@@ -440,13 +440,13 @@ a{color:inherit;text-decoration:none}
 /* ===== 生成按钮 ===== */
 .send-btn{
   width:34px;height:34px;min-width:34px;padding:0;border-radius:50%;
-  background:#252a2e;color:#fff;border:1px solid #252a2e;box-shadow:none;
+  background:var(--accent);color:#fff;border:1px solid var(--accent);box-shadow:none;
   font-size:11px;font-weight:600;letter-spacing:0;
   display:flex;align-items:center;justify-content:center;
   transition:.15s;flex:0 0 34px;gap:0;
 }
 .send-btn svg{width:15px;height:15px}
-.send-btn:hover{background:#111518;box-shadow:none;transform:none}
+.send-btn:hover{background:#333;border-color:#333;box-shadow:none;transform:none}
 .send-btn.cancel{background:linear-gradient(180deg,#b95d5d,#8f3f3f);border:0;letter-spacing:.2px}
 .send-btn.cancel:hover{background:linear-gradient(180deg,#c86b6b,#823737)}
 .send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
@@ -539,7 +539,7 @@ a{color:inherit;text-decoration:none}
 }
 .opt-btn small{font-size:10px;color:var(--text-dim);margin-top:1px}
 .opt-btn:hover{background:#f7f8f9;border-color:var(--border)}
-.opt-btn.active{background:#252a2e;color:#fff;border-color:#252a2e;box-shadow:none}
+.opt-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:none}
 .opt-btn.active small{color:rgba(255,255,255,.7)}
 .slider-row{display:flex;align-items:center;gap:10px}
 .slider-row input[type=range]{flex:1;accent-color:var(--accent)}
@@ -642,8 +642,8 @@ a{color:inherit;text-decoration:none}
 }
 .modal-footer .secondary{background:#fff;border:1px solid var(--border);box-shadow:none;color:var(--text-mid)}
 .modal-footer .secondary:hover{background:#f1f3f4;border-color:var(--border)}
-.modal-footer .primary{background:#252a2e;border:1px solid #252a2e;box-shadow:none;color:#fff}
-.modal-footer .primary:hover{background:#111518}
+.modal-footer .primary{background:var(--accent);border:1px solid var(--accent);box-shadow:none;color:#fff}
+.modal-footer .primary:hover{background:#333;border-color:#333}
 
 /* 价格参考弹窗 */
 .price-modal{max-width:400px}

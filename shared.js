@@ -1,6 +1,6 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
-const DB_NAME='mihu-design-os',DB_VERSION=1,STORE_NAME='images';
+const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 
 function toast(text){const t=$('#toast');if(!t)return;t.textContent=text;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
@@ -14,6 +14,15 @@ function hideError(el){if(!el)return;el.style.display='none';el.textContent=''}
 const Settings={
   getKey(){return localStorage.getItem('apimart_api_key')||''},
   setKey(k){localStorage.setItem('apimart_api_key',k)},
+  getCurrentPage(){
+    const page=location.pathname.split('/').pop()||'index.html';
+    return /^(index|edit|assets)\.html$/.test(page)?page:'index.html';
+  },
+  openPage(){
+    if(location.pathname.endsWith('/settings.html'))return;
+    sessionStorage.setItem('mihu_settings_return',this.getCurrentPage());
+    location.href='settings.html';
+  },
   initModal(els){
     if(!els.modal)return;
     els.apiKey.value=this.getKey();
@@ -24,7 +33,7 @@ const Settings={
     $('#closeSettings').onclick=()=>this.closeModal(els);
     els.modal.addEventListener('click',e=>{if(e.target===els.modal)this.closeModal(els)});
   },
-  openModal(els){if(!els.modal)return;els.apiKey.value=this.getKey();els.modal.classList.add('open');els.modal.classList.add('show');setTimeout(()=>els.apiKey.focus(),30)},
+  openModal(){this.openPage()},
   closeModal(els){if(els.modal){els.modal.classList.remove('open');els.modal.classList.remove('show')}}
 };
 
@@ -102,7 +111,7 @@ const Apimart={
 };
 
 const History={
-  openDB(){return new Promise((resolve,reject)=>{if(!('indexedDB' in window)){reject(new Error('IndexedDB unavailable'));return}const req=indexedDB.open(DB_NAME,DB_VERSION);req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(STORE_NAME))db.createObjectStore(STORE_NAME,{keyPath:'id'})};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})},
+  openDB(){return new Promise((resolve,reject)=>{if(!('indexedDB' in window)){reject(new Error('IndexedDB unavailable'));return}const req=indexedDB.open(DB_NAME,DB_VERSION);req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(STORE_NAME))db.createObjectStore(STORE_NAME,{keyPath:'id'});if(!db.objectStoreNames.contains(JOB_STORE_NAME))db.createObjectStore(JOB_STORE_NAME,{keyPath:'id'})};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})},
   async save(item){try{const db=await this.openDB();await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite');tx.objectStore(STORE_NAME).put(item);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close();await this.trim()}catch(e){toast('历史记录保存失败')}},
   async trim(){const db=await this.openDB();const all=await new Promise((resolve,reject)=>{const req=db.transaction(STORE_NAME).objectStore(STORE_NAME).getAll();req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});const stale=all.sort((a,b)=>b.id-a.id).slice(20);if(stale.length)await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite');for(const item of stale)tx.objectStore(STORE_NAME).delete(item.id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()},
   async load(modelFilter){try{const db=await this.openDB();const all=await new Promise((resolve,reject)=>{const req=db.transaction(STORE_NAME).objectStore(STORE_NAME).getAll();req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});db.close();let recent=all.sort((a,b)=>b.id-a.id).slice(0,20);if(modelFilter)recent=recent.filter(x=>x.model===modelFilter);const checks=await Promise.all(recent.map(async item=>({item,available:await this.isAvailable(item.url)})));const valid=checks.filter(x=>x.available).map(x=>x.item);const staleIds=checks.filter(x=>!x.available).map(x=>x.item.id);if(staleIds.length){try{const db2=await this.openDB();await new Promise((resolve,reject)=>{const tx=db2.transaction(STORE_NAME,'readwrite');for(const id of staleIds)tx.objectStore(STORE_NAME).delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db2.close();console.log('[历史] 清理失效图片',staleIds.length,'条')}catch(e){}}return valid}catch(e){return[]}},
@@ -116,6 +125,40 @@ const History={
       img.onerror=()=>{clearTimeout(t);resolve(false)};
       img.src=url;
     });
+  }
+};
+
+const PendingGeneration={
+  async save(job){
+    const db=await History.openDB();
+    await new Promise((resolve,reject)=>{
+      const tx=db.transaction(JOB_STORE_NAME,'readwrite');
+      tx.objectStore(JOB_STORE_NAME).put(job);
+      tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);
+    });
+    db.close();return job;
+  },
+  async load(){
+    try{
+      const db=await History.openDB();
+      const jobs=await new Promise((resolve,reject)=>{
+        const req=db.transaction(JOB_STORE_NAME).objectStore(JOB_STORE_NAME).getAll();
+        req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
+      });
+      db.close();
+      return jobs.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt))[0]||null;
+    }catch(_){return null}
+  },
+  async delete(id){
+    try{
+      const db=await History.openDB();
+      await new Promise((resolve,reject)=>{
+        const tx=db.transaction(JOB_STORE_NAME,'readwrite');
+        tx.objectStore(JOB_STORE_NAME).delete(id);
+        tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);
+      });
+      db.close();return true;
+    }catch(_){return false}
   }
 };
 
@@ -210,3 +253,13 @@ function initCommonPage(els){
   ensureNotificationPermission();
   if(!Settings.getKey())setTimeout(()=>Settings.openModal(els),350);
 }
+
+/* 资产和设置工作区仅在实际滚动时显示滚动条 */
+document.querySelectorAll('.assets-shell,.settings-shell').forEach(shell=>{
+  let hideScrollbarTimer=0;
+  shell.addEventListener('scroll',()=>{
+    shell.classList.add('is-scrolling');
+    clearTimeout(hideScrollbarTimer);
+    hideScrollbarTimer=setTimeout(()=>shell.classList.remove('is-scrolling'),700);
+  },{passive:true});
+});

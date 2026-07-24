@@ -1,17 +1,15 @@
 /* ===================== 常量与状态 ===================== */
-const MODEL_NAMES={gpt:'Image 2',nano:'NB2',mj:'Midjourney',grok:'Grok Image'};
+const MODEL_NAMES={gpt:'Image 2',nano:'NB2',grok:'Grok Image'};
 const ENHANCE_MODEL='gpt-5.6-luna';
-const MODEL_MAX_PROMPT={gpt:3000,nano:2000,mj:2000,grok:4000};
+const MODEL_MAX_PROMPT={gpt:3000,nano:2000,grok:4000};
 const MODEL_RATIOS={
   gpt:['1:1','3:2','4:3','3:4','16:9','9:16'],
   nano:['1:1','3:2','4:3','3:4','2:3','16:9','9:16','4:5','5:4','21:9'],
-  mj:['1:1','16:9','9:16','3:2','2:3','4:3'],
   grok:['1:1','16:9','9:16','4:3','3:4','3:2','2:3']
 };
 const MODEL_RESOLUTIONS={
   gpt:[{v:'1k',l:'1K · 快速'},{v:'2k',l:'2K · 高清'},{v:'4k',l:'4K · 超清'}],
   nano:[{v:'0.5K',l:'0.5K · 预览'},{v:'1K',l:'1K · 标准'},{v:'2K',l:'2K · 高清'},{v:'4K',l:'4K · 超清'}],
-  mj:null,
   grok:null
 };
 const RATIO_ICON_SIZE={
@@ -37,7 +35,6 @@ const canvasResize={id:null,startX:0,startWidth:0,ratio:1,pointerId:null};
 const modelState={
   gpt:{ratio:'1:1',resolution:'1k',mode:'text',generating:false,originalPrompt:null,promptText:''},
   nano:{ratio:'1:1',resolution:'1K',mode:'text',generating:false,originalPrompt:null,promptText:''},
-  mj:{ratio:'1:1',generating:false,originalPrompt:null,promptText:'',version:'8.1',speed:'relax',quality:'1',stylize:100,chaos:0,style:'',iw:1,negativePrompt:'',seed:''},
   grok:{ratio:'1:1',mode:'text',generating:false,originalPrompt:null,promptText:''}
 };
 const refManagers={};
@@ -45,7 +42,7 @@ const refManagers={};
 /* 将输入工作台装入左侧对话栏，保留原有控件 ID 与事件绑定 */
 const sidebarComposeSlot=$('.sidebar-compose-slot');
 const bottomArea=$('.bottom-area');
-if(sidebarComposeSlot&&bottomArea)sidebarComposeSlot.appendChild(bottomArea);
+if(sidebarComposeSlot&&bottomArea&&!document.body.classList.contains('home-page'))sidebarComposeSlot.appendChild(bottomArea);
 
 /* ===================== DOM 引用 ===================== */
 const els={
@@ -59,17 +56,17 @@ const els={
   resultWrap:$('#resultWrap'),resultBackdrop:$('#resultBackdrop'),resultImage:$('#resultImage'),actions:$('#actions'),status:$('#status'),
   canvasLayer:$('#canvasLayer'),canvasToolbar:$('#canvasToolbar'),canvasFileInput:$('#canvasFileInput'),
   uploadCanvasImage:$('#uploadCanvasImage'),editCanvasImage:$('#editCanvasImage'),enhanceCanvasImage:$('#enhanceCanvasImage'),deleteCanvasImage:$('#deleteCanvasImage'),
-  composer:$('#composer'),collapseComposer:$('#collapseComposer'),errorMsg:$('#errorMsg'),
+  composer:$('#composer'),errorMsg:$('#errorMsg'),
   refRow:$('#refRow'),refBtn:$('#refBtn'),fileInput:$('#fileInput'),
   promptInput:$('#promptInput'),clearPromptBtn:$('#clearPromptBtn'),charCount:$('#charCount'),
-  modelBtn:$('#modelBtn'),modelBtnValue:$('#modelBtnValue'),
-  resBtn:$('#resBtn'),resBtnValue:$('#resBtnValue'),
-  enhanceBtn:$('#enhanceBtn'),restoreBtn:$('#restoreBtn'),sendBtn:$('#sendBtn'),
-  modelPop:$('#modelPop'),resPop:$('#resPop'),resPopList:$('#resPopList'),
-  modelRatioGrid:$('#modelRatioGrid'),
+  enhanceBtn:$('#enhanceBtn'),sendBtn:$('#sendBtn'),
+  creationModelSelect:$('#creationModelSelect'),creationModelIcon:$('#creationModelIcon'),
+  creationRatioSelect:$('#creationRatioSelect'),
+  creationResolutionControl:$('#creationResolutionControl'),creationResolutionSelect:$('#creationResolutionSelect'),
   modal:$('#modalBackdrop'),apiKey:$('#apiKey'),openSettings:$('#openSettings')
 };
 function syncSidebarHistoryState(){
+  if(!els.historyList||!els.historyLoading||!els.sidebarEmpty)return;
   const generationVisible=!els.status.hidden;
   els.historyLoading.hidden=!historyLoading||generationVisible;
   els.historyList.hidden=historyLoading;
@@ -77,21 +74,16 @@ function syncSidebarHistoryState(){
 }
 initCommonPage(els);
 
-/* ===================== 价格参考弹窗 ===================== */
-const priceModal=$('#priceModal');
-$('#priceLink').onclick=()=>{priceModal.classList.add('open','show')};
-$('#closePrice').onclick=()=>{priceModal.classList.remove('open','show')};
-priceModal.addEventListener('click',e=>{if(e.target===priceModal)priceModal.classList.remove('open','show')});
-
 /* ===================== 边栏收起/展开 ===================== */
 const SIDEBAR_KEY='mihu_sidebar_collapsed';
 function setSidebar(collapsed){
+  if(!els.sidebar)return;
   els.sidebar.classList.toggle('collapsed',collapsed);
   localStorage.setItem(SIDEBAR_KEY,collapsed?'1':'0');
 }
-els.collapseSidebar.onclick=()=>setSidebar(true);
-els.expandSidebar.onclick=()=>setSidebar(false);
-if(localStorage.getItem(SIDEBAR_KEY)==='1')setSidebar(true);
+if(els.collapseSidebar)els.collapseSidebar.onclick=()=>setSidebar(true);
+if(els.expandSidebar)els.expandSidebar.onclick=()=>setSidebar(false);
+if(els.sidebar&&localStorage.getItem(SIDEBAR_KEY)==='1')setSidebar(true);
 
 /* ===================== 弹层管理 ===================== */
 let openPop=null;
@@ -113,6 +105,4 @@ function togglePop(pop,anchorBtn){
 document.addEventListener('click',e=>{
   if(openPop&&!openPop.contains(e.target)&&!e.target.closest('.bar-btn'))closeAllPops();
 });
-
-els.modelBtn.onclick=()=>togglePop(els.modelPop,els.modelBtn);
 

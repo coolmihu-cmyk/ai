@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="color-scheme" content="light">
+<title>设置与价格 · MIHU DESIGN OS</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/pages.css">
+<link rel="stylesheet" href="css/modern-ui.css">
+</head>
+<body class="settings-page">
+
+<div class="fluid-background" aria-hidden="true">
+  <span class="fluid-orb fluid-orb-a"></span>
+  <span class="fluid-orb fluid-orb-b"></span>
+  <span class="fluid-orb fluid-orb-c"></span>
+  <span class="fluid-noise"></span>
+</div>
+
+<nav class="app-rail" aria-label="主要功能">
+  <a class="rail-brand" href="index.html" title="Pic.supmihu.cn"><img src="logo.png" alt=""></a>
+  <div class="rail-nav">
+    <a class="rail-item" href="index.html" title="创作">
+      <img class="rail-icon" src="icon/chuangzuo.svg" alt="" aria-hidden="true">
+      <span>创作</span>
+    </a>
+    <a class="rail-item" href="assets.html" title="资产">
+      <img class="rail-icon" src="icon/photo.svg" alt="" aria-hidden="true">
+      <span>资产</span>
+    </a>
+    <a class="rail-item" href="edit.html" title="编辑">
+      <img class="rail-icon" src="icon/edit.svg" alt="" aria-hidden="true">
+      <span>编辑</span>
+    </a>
+    <a class="rail-item active" href="settings.html" aria-current="page" title="设置">
+      <img class="rail-icon" src="icon/shezhi.svg" alt="" aria-hidden="true">
+      <span>设置</span>
+    </a>
+  </div>
+</nav>
+
+<main class="settings-shell">
+  <header class="settings-header">
+    <span>CALIBRATION / SERVICE</span>
+    <h1>设置与价格</h1>
+    <p>在同一处管理接口连接，并确认每次生成的 Credits 消耗。</p>
+  </header>
+
+  <div class="settings-ledger">
+    <section class="settings-connection" aria-labelledby="connectionTitle">
+      <div class="settings-section-head">
+        <div>
+          <span>APIMART CONNECTION</span>
+          <h2 id="connectionTitle">接口连接</h2>
+        </div>
+        <div class="connection-status" id="connectionStatus"><i></i><span>未配置</span></div>
+      </div>
+      <label class="settings-key-label" for="settingsApiKey">API Key</label>
+      <div class="settings-key-row">
+        <input id="settingsApiKey" type="password" autocomplete="off" placeholder="输入 APIMart API Key">
+        <button id="settingsToggleKey" type="button">显示</button>
+      </div>
+      <p class="settings-key-note">密钥只保存在当前浏览器的 localStorage 中，不会写入项目文件。</p>
+      <div class="settings-actions">
+        <button class="settings-save" id="settingsSave" type="button">保存设置</button>
+        <button class="settings-clear" id="settingsClear" type="button">清除密钥</button>
+      </div>
+      <a class="settings-provider-link" href="https://apimart.ai/zh" target="_blank" rel="noopener">
+        前往 APIMart 充值
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 5h11v11M19 5 6 18"/></svg>
+      </a>
+      <a class="settings-return-link" id="settingsReturnLink" href="index.html">返回创作页</a>
+    </section>
+
+    <section class="settings-pricing" aria-labelledby="pricingTitle">
+      <div class="settings-section-head">
+        <div>
+          <span>EXPOSURE COST</span>
+          <h2 id="pricingTitle">生成价格</h2>
+        </div>
+        <div class="credit-rate"><b>¥7</b><span>= 10 Credits</span></div>
+      </div>
+      <div class="settings-price-table">
+        <div class="settings-price-row"><div><b>Image 2</b><span>1K · 快速</span></div><strong>0.0851</strong><small>Credits</small></div>
+        <div class="settings-price-row"><div><b>Image 2</b><span>2K · 高清</span></div><strong>0.14</strong><small>Credits</small></div>
+        <div class="settings-price-row"><div><b>Image 2</b><span>4K · 超清</span></div><strong>0.21</strong><small>Credits</small></div>
+        <div class="settings-price-row"><div><b>NB2</b><span>nano-banana-2-ext</span></div><strong>0.30</strong><small>Credits</small></div>
+        <div class="settings-price-row"><div><b>Grok Image</b><span>grok-imagine-1.5-ext</span></div><strong>0.15</strong><small>Credits</small></div>
+      </div>
+      <p class="settings-price-note">实际扣费由 APIMart 按模型和参数结算，页面仅用于生成前参考。</p>
+    </section>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+<script src="shared.js"></script>
+<script src="settings-page.js"></script>
+</body>
+</html>

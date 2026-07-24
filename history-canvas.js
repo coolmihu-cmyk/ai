@@ -50,17 +50,15 @@ function renderHistory(){
     head.append(tag,meta);
     const prompt=document.createElement('p');prompt.className='history-prompt';prompt.textContent=item.prompt;
     const actions=document.createElement('div');actions.className='history-card-actions';
-    const copyBtn=document.createElement('button');copyBtn.className='history-action history-copy';copyBtn.title='复制提示词';copyBtn.appendChild(historyIcon(['M9 9h11v11H9z','M5 15V5a2 2 0 0 1 2-2h10']));
-    copyBtn.onclick=async e=>{e.stopPropagation();flashHistoryAction(copyBtn,await copyPrompt(item.prompt))};
-    const canvasBtn=document.createElement('button');canvasBtn.className='history-action history-canvas';canvasBtn.title='发送到画布';canvasBtn.setAttribute('aria-label','发送到画布中心');canvasBtn.appendChild(historyIcon(['M9 6 3 12l6 6','M3 12h13','M16 5h5v14h-5']));
-    canvasBtn.onclick=e=>{e.stopPropagation();sendHistoryToCanvas(item)};
+    const reuseBtn=document.createElement('button');reuseBtn.className='history-action history-reuse';reuseBtn.title='恢复提示词与生成参数';reuseBtn.setAttribute('aria-label','恢复提示词与生成参数');reuseBtn.appendChild(historyIcon(['M4 12a8 8 0 1 0 2.3-5.7','M4 4v5h5']));
+    reuseBtn.onclick=e=>{e.stopPropagation();selectHistory(item)};
     const openBtn=document.createElement('button');openBtn.className='history-action history-open';openBtn.title='打开原图';openBtn.appendChild(historyIcon(['M14 4h6v6','M20 4 11 13','M19 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h6']));
     openBtn.onclick=e=>{e.stopPropagation();openImage(item.url)};
     const deleteBtn=document.createElement('button');deleteBtn.className='history-action history-delete';deleteBtn.title='删除这条记录';deleteBtn.setAttribute('aria-label','删除这条历史记录');deleteBtn.appendChild(historyIcon(['M4 7h16','M9 7V5h6v2','M7 7l1 13h8l1-13','M10 11v5','M14 11v5']));
     deleteBtn.onclick=async e=>{e.stopPropagation();await deleteHistoryItem(item,deleteBtn)};
-    actions.append(copyBtn,canvasBtn,openBtn,deleteBtn);
+    actions.append(reuseBtn,openBtn,deleteBtn);
     content.append(head,prompt,actions);
-    el.onclick=()=>selectHistory(item);
+    el.onclick=()=>sendHistoryToCanvas(item);
     el.append(img,content);
     frag.appendChild(el);
   }
@@ -84,9 +82,7 @@ function selectHistory(item){
   applyHistorySettings(item);
   const state=modelState[item.model];state.promptText=historyReusePrompt.slice(0,MODEL_MAX_PROMPT[item.model]);state.originalPrompt=null;
   els.promptInput.value=state.promptText;els.promptInput.maxLength=MODEL_MAX_PROMPT[item.model];
-  updateCharLimit();els.restoreBtn.hidden=true;
-  const res=MODEL_RESOLUTIONS[item.model];
-  if(res){els.resBtn.style.display='';const rObj=res.find(r=>r.v===state.resolution);els.resBtnValue.textContent=rObj?rObj.l.split(' ')[0]:state.resolution}else els.resBtn.style.display='none';
+  updateCharLimit();
   renderResPop();renderRatioPop();syncMjControls();renderRefRow();updatePlaceholder();
   showResult(item.url,item.model,'历史记录');
   toast(item.settings?'已恢复提示词与生成参数':'已恢复提示词（旧记录无参数快照）');
@@ -196,7 +192,22 @@ function addCanvasItem(source,{silent=false,replaceId=null}={}){
   return getCanvasItem();
 }
 function sendHistoryToCanvas(item,{silent=false,replaceId=null}={}){
+  if(document.body.classList.contains('home-page')){
+    openImageEditor(item);
+    return item;
+  }
   return addCanvasItem(item,{silent,replaceId});
+}
+function openImageEditor(item){
+  if(!item?.url){toast('没有可编辑的图片');return}
+  try{
+    sessionStorage.setItem('mihu_edit_payload',JSON.stringify({
+      url:item.url,
+      prompt:item.prompt||'',
+      model:item.model||'gpt'
+    }));
+  }catch(_){}
+  window.location.href='edit.html';
 }
 function startCanvasResize(e,id){
   if(e.button!==0)return;
@@ -274,6 +285,53 @@ const canvasEditModal=$('#canvasEditModal');
 const CANVAS_EDIT_MODELS=new Set(['gpt','nano','grok']);
 const REVERSE_PROMPT_MODEL='gpt-5.6-luna';
 const ONE_CLICK_HD_PROMPT='基于提供的参考图像进行严格的超高分辨率4K增强。必须绝对忠实于原始画面部结构、比例和身份特征。在表情、视线、姿势、相机角度、画面构图和透视关系上保持零偏差。服装、头发、皮肤以及背景元素的结构、位置和设计都必须保持不变。恢复细微层级的细节，呈现自然写实效果。增强毛孔、细纹、发丝、睫毛、织物纹理、缝线以及材质边缘，但不得引入任何风格化处理。颜色科学、白平衡以及整体色调关系必须与原图完全一致。光线方向、强度、对比度以及阴影表现必须与原始图像精确匹配，只允许提升清晰度并扩展动态范围。禁止重新布光，禁止改变形体';
+let canvasEditDraftSettings={};
+function resetCanvasEditDraftSettings(){
+  canvasEditDraftSettings={};
+  for(const key of CANVAS_EDIT_MODELS){
+    canvasEditDraftSettings[key]={
+      ratio:modelState[key].ratio,
+      resolution:modelState[key].resolution||null
+    };
+  }
+}
+function renderCanvasEditSettings(){
+  const draft=canvasEditDraftSettings[canvasEditModel]||{
+    ratio:modelState[canvasEditModel].ratio,
+    resolution:modelState[canvasEditModel].resolution||null
+  };
+  canvasEditDraftSettings[canvasEditModel]=draft;
+  const ratioGrid=$('#canvasEditRatioGrid');
+  ratioGrid.innerHTML='';
+  for(const ratio of MODEL_RATIOS[canvasEditModel]){
+    const button=document.createElement('button');
+    button.type='button';button.className='canvas-edit-option'+(draft.ratio===ratio?' active':'');
+    button.textContent=ratio;
+    button.onclick=()=>{draft.ratio=ratio;renderCanvasEditSettings()};
+    ratioGrid.appendChild(button);
+  }
+  const resolutionGrid=$('#canvasEditResolutionGrid');
+  const resolutions=MODEL_RESOLUTIONS[canvasEditModel];
+  resolutionGrid.innerHTML='';
+  if(resolutions){
+    for(const resolution of resolutions){
+      const button=document.createElement('button');
+      button.type='button';button.className='canvas-edit-option'+(draft.resolution===resolution.v?' active':'');
+      button.textContent=resolution.l;
+      button.onclick=()=>{draft.resolution=resolution.v;renderCanvasEditSettings()};
+      resolutionGrid.appendChild(button);
+    }
+  }else{
+    const automatic=document.createElement('div');
+    automatic.className='canvas-edit-auto-resolution';
+    automatic.textContent='自动 · '+(GROK_EDIT_SIZES[draft.ratio]||'1024x1024');
+    resolutionGrid.appendChild(automatic);
+  }
+  const resolutionLabel=resolutions
+    ?(resolutions.find(item=>item.v===draft.resolution)?.l.split(' · ')[0]||draft.resolution||'自动')
+    :(GROK_EDIT_SIZES[draft.ratio]||'自动');
+  $('#canvasEditSettingsValue').textContent=draft.ratio+' · '+resolutionLabel;
+}
 function setCanvasEditModel(key){
   if(!CANVAS_EDIT_MODELS.has(key))key='gpt';
   canvasEditModel=key;
@@ -283,14 +341,17 @@ function setCanvasEditModel(key){
     button.setAttribute('aria-checked',String(selected));
   });
   $('#canvasEditPrompt').maxLength=MODEL_MAX_PROMPT[key];
+  renderCanvasEditSettings();
 }
 function closeCanvasEdit(){canvasEditModal.classList.remove('open','show')}
 function openCanvasEdit(){
   const currentCanvasItem=getCanvasItem();
   if(!currentCanvasItem){toast('请先选择一张画布图片');return}
   closeAllPops();
+  resetCanvasEditDraftSettings();
   setCanvasEditModel(CANVAS_EDIT_MODELS.has(currentCanvasItem.model)?currentCanvasItem.model:'gpt');
   $('#canvasEditPrompt').value=currentCanvasItem.prompt||'';
+  $('#canvasEditSettings').open=false;
   canvasEditModal.classList.add('open','show');
   requestAnimationFrame(()=>$('#canvasEditPrompt').focus());
 }
@@ -316,7 +377,7 @@ els.enhanceCanvasImage.onclick=async()=>{
   const manager=refManagers.gpt;manager.clear();
   if(!manager.addRemote(source.url,'高清参考图')){toast('参考图片添加失败');return}
   els.promptInput.value=ONE_CLICK_HD_PROMPT;els.promptInput.maxLength=MODEL_MAX_PROMPT.gpt;
-  els.restoreBtn.hidden=true;updateCharLimit();renderRefRow();renderResPop();renderRatioPop();updatePlaceholder();
+  updateCharLimit();renderRefRow();renderResPop();renderRatioPop();updatePlaceholder();
   pendingCanvasEditSource=source;
   els.enhanceCanvasImage.disabled=true;
   try{
@@ -386,16 +447,22 @@ $('#submitCanvasEdit').onclick=async()=>{
   if(modelState[canvasEditModel].generating){toast(MODEL_NAMES[canvasEditModel]+' 正在生成，请稍后再试');return}
   if(!Settings.getKey()){closeCanvasEdit();Settings.openModal(els);toast('请先保存 API Key');return}
   const source={...currentCanvasItem};
+  const draft=canvasEditDraftSettings[canvasEditModel];
+  const state=modelState[canvasEditModel];
+  state.ratio=draft.ratio;
+  if(MODEL_RESOLUTIONS[canvasEditModel])state.resolution=draft.resolution;
   if(canvasEditModel!==activeModel)switchModel(canvasEditModel);
   const manager=refManagers[canvasEditModel];manager.clear();
   if(!manager.addRemote(source.url,'画布图片')){toast('画布图片添加失败');return}
-  const state=modelState[canvasEditModel];state.promptText=prompt;state.originalPrompt=null;
+  state.promptText=prompt;state.originalPrompt=null;
   els.promptInput.value=prompt;els.promptInput.maxLength=MODEL_MAX_PROMPT[canvasEditModel];
-  els.restoreBtn.hidden=true;updateCharLimit();renderRefRow();updatePlaceholder();
+  updateCharLimit();renderRefRow();renderResPop();renderRatioPop();updatePlaceholder();
   pendingCanvasEditSource=source;closeCanvasEdit();
   await doGenerate({fromCanvasEdit:true,canvasItemId:source.id});
 };
 function showResult(url,model,statusText){
+  document.body.classList.add('home-has-result');
+  document.body.classList.remove('home-generating');
   els.resultImage.title='点击在新标签页打开';
   currentResultUrl=url;currentResultModel=model;
   els.resultImage.src=url;

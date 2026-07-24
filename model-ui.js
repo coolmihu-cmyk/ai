@@ -1,18 +1,123 @@
 /* ===================== 模型切换 ===================== */
-$$('#modelPop .model-tab[data-model]').forEach(item=>{
-  item.onclick=()=>{
-    switchModel(item.dataset.model);
-    renderModelSettings();
-  };
-});
+const CREATION_MODEL_ICONS={
+  gpt:'icon/model-image2.svg',
+  nano:'icon/model-nb2.svg',
+  grok:'icon/model-grok.svg'
+};
+function getRatioFrameSize(ratio){
+  const parts=ratio.split(':').map(Number);
+  const w=parts[0]||1,h=parts[1]||1;
+  const scale=Math.min(20/w,16/h);
+  return {width:Math.max(5,Math.round(w*scale)),height:Math.max(5,Math.round(h*scale))};
+}
 
-$$('#modelQualityGrid .setting-chip').forEach(button=>{
-  button.onclick=()=>{
-    modelState.mj.quality=button.dataset.quality;
-    syncMjControls();
-    renderModelSettings();
-  };
-});
+function makeCreationVisual(type,value){
+  if(type==='model'){
+    const img=document.createElement('img');
+    img.src=CREATION_MODEL_ICONS[value]||CREATION_MODEL_ICONS.gpt;
+    img.alt='';
+    return img;
+  }
+  if(type==='ratio'){
+    const frame=document.createElement('i');
+    const size=getRatioFrameSize(value);
+    frame.className='ratio-frame';
+    frame.style.width=size.width+'px';
+    frame.style.height=size.height+'px';
+    return frame;
+  }
+  const mark=document.createElement('span');
+  mark.textContent=(value||'1K').replace(/[^0-9.K]/g,'')||'1K';
+  return mark;
+}
+
+function closeCreationDropdowns(except){
+  document.querySelectorAll('.creation-dropdown.open').forEach(dropdown=>{
+    if(dropdown===except)return;
+    dropdown.classList.remove('open');
+    dropdown.querySelector('.creation-select-trigger')?.setAttribute('aria-expanded','false');
+  });
+}
+
+function syncCreationDropdown(dropdown){
+  if(!dropdown)return;
+  const type=dropdown.dataset.creationDropdown;
+  const select=dropdown.querySelector('select');
+  const current=select.options[select.selectedIndex]||select.options[0];
+  const currentLabel=current?.textContent||'';
+  const currentValue=current?.value||'';
+  dropdown.querySelector('[data-creation-current]').textContent=currentLabel;
+  const triggerVisual=dropdown.querySelector('[data-creation-visual]');
+  triggerVisual.innerHTML='';
+  const currentVisual=makeCreationVisual(type,currentValue);
+  if(type==='model'){
+    currentVisual.id='creationModelIcon';
+    els.creationModelIcon=currentVisual;
+  }
+  triggerVisual.appendChild(currentVisual);
+  triggerVisual.classList.toggle('creation-resolution-mark',type==='resolution');
+
+  const menu=dropdown.querySelector('.creation-select-menu');
+  menu.innerHTML='';
+  Array.from(select.options).forEach(option=>{
+    const button=document.createElement('button');
+    button.type='button';
+    button.className='creation-select-option';
+    button.setAttribute('role','option');
+    button.setAttribute('aria-selected',String(option.value===select.value));
+
+    const visual=document.createElement('span');
+    visual.className='creation-option-visual';
+    visual.appendChild(makeCreationVisual(type,option.value));
+
+    const copy=document.createElement('span');
+    copy.className='creation-option-copy';
+    const title=document.createElement('strong');
+    title.textContent=option.textContent;
+    copy.appendChild(title);
+
+    const check=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    check.setAttribute('class','creation-option-check');
+    check.setAttribute('viewBox','0 0 16 16');
+    check.setAttribute('fill','none');
+    check.innerHTML='<path d="m3.5 8.2 2.7 2.7 6.3-6.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>';
+    button.append(visual,copy,check);
+    button.onclick=()=>{
+      select.value=option.value;
+      syncCreationDropdown(dropdown);
+      closeCreationDropdowns();
+      select.dispatchEvent(new Event('change',{bubbles:true}));
+    };
+    menu.appendChild(button);
+  });
+}
+
+function initCreationDropdowns(){
+  document.querySelectorAll('.creation-dropdown').forEach(dropdown=>{
+    const trigger=dropdown.querySelector('.creation-select-trigger');
+    trigger.onclick=event=>{
+      event.stopPropagation();
+      const opening=!dropdown.classList.contains('open');
+      closeCreationDropdowns(dropdown);
+      dropdown.classList.toggle('open',opening);
+      trigger.setAttribute('aria-expanded',String(opening));
+      if(opening)syncCreationDropdown(dropdown);
+    };
+    syncCreationDropdown(dropdown);
+  });
+  document.addEventListener('click',()=>closeCreationDropdowns());
+  document.addEventListener('keydown',event=>{
+    if(event.key==='Escape')closeCreationDropdowns();
+  });
+}
+
+els.creationModelSelect.onchange=()=>switchModel(els.creationModelSelect.value);
+els.creationRatioSelect.onchange=()=>{
+  modelState[activeModel].ratio=els.creationRatioSelect.value;
+};
+els.creationResolutionSelect.onchange=()=>{
+  modelState[activeModel].resolution=els.creationResolutionSelect.value;
+};
 
 function updateSendButton(){
   const generating=modelState[activeModel].generating;
@@ -30,16 +135,8 @@ function switchModel(key){
   const currentPrompt=els.promptInput.value;
   modelState[activeModel].promptText=currentPrompt;
   activeModel=key;
-  const modelSettingsScroll=$('#modelPop .model-settings-scroll');
-  if(modelSettingsScroll)modelSettingsScroll.scrollTop=0;
-  $$('#modelPop .model-tab[data-model]').forEach(i=>{
-    const selected=i.dataset.model===key;
-    i.classList.toggle('active',selected);
-    i.setAttribute('aria-selected',String(selected));
-  });
-  els.modelBtnValue.textContent=MODEL_NAMES[key];
-  els.modelBtn.title='模型与输出设置 · '+MODEL_NAMES[key];
-  els.modelBtn.setAttribute('aria-label','模型与输出设置，当前 '+MODEL_NAMES[key]);
+  els.creationModelSelect.value=key;
+  syncCreationDropdown(els.creationModelSelect.closest('.creation-dropdown'));
   // 恢复该模型的提示词
   if(historyReusePrompt!==null){
     historyReusePrompt=currentPrompt;
@@ -49,23 +146,11 @@ function switchModel(key){
   els.promptInput.maxLength=MODEL_MAX_PROMPT[key];
   els.charCount.textContent=els.promptInput.value.length;
   updateCharLimit();
-  // 比例、分辨率与质量统一在模型窗口中维护
-  const res=MODEL_RESOLUTIONS[key];
-  if(res){
-    const rv=modelState[key].resolution;
-    const rObj=res.find(r=>r.v===rv);
-    els.resBtnValue.textContent=rObj?rObj.l.split(' ')[0]:rv;
-  }
   renderModelSettings();
-  // Midjourney 高级参数已集成在模型窗口中
-  $('#mjModelSettings').hidden=key!=='mj';
-  // 恢复优化按钮状态
-  els.restoreBtn.hidden=modelState[key].originalPrompt===null;
   // 恢复参考图行和当前模型参数弹层
   renderRefRow();
   renderResPop();
   renderRatioPop();
-  syncMjControls();
   // 恢复结果面板
   restoreResultFor(key);
   // 更新占位符和生成按钮状态
@@ -82,75 +167,45 @@ function updatePlaceholder(){
   const phs={
     gpt:'一个念头、一种氛围，或一句不完整的灵感...',
     nano:'描述你想生成的画面，NB2 支持 4K 输出、角色一致性…',
-    mj:'描述你想生成的画面，支持 MJ 原生参数如 --ar 16:9 --v 7 --s 250',
     grok:'描述你想生成的画面，Grok 超写实图像生成…'
   };
   els.promptInput.placeholder=phs[activeModel]||'描述你想生成的图片…';
 }
 
-/* ===================== 模型窗口输出设置 ===================== */
+/* ===================== 外置模型输出设置 ===================== */
 function renderModelSettings(){
-  const resolutionSection=$('#modelResolutionSection');
-  const qualitySection=$('#modelQualitySection');
-  const mjSettings=$('#mjModelSettings');
   const res=MODEL_RESOLUTIONS[activeModel];
-  els.resPopList.innerHTML='';
-  resolutionSection.hidden=!res;
-  qualitySection.hidden=activeModel!=='mj';
-  mjSettings.hidden=activeModel!=='mj';
-  els.modelPop.classList.toggle('has-mj-settings',activeModel==='mj');
+  els.creationResolutionSelect.innerHTML='';
+  els.creationResolutionControl.hidden=!res;
 
   if(res){
     for(const r of res){
-      const item=document.createElement('button');
-      item.className='setting-chip'+(modelState[activeModel].resolution===r.v?' active':'');
-      item.textContent=r.l;
-      item.onclick=e=>{
-        e.stopPropagation();
-        modelState[activeModel].resolution=r.v;
-        els.resBtnValue.textContent=r.l.split(' ')[0];
-        renderModelSettings();
-      };
-      els.resPopList.appendChild(item);
+      const option=document.createElement('option');
+      option.value=r.v;
+      option.textContent=r.l;
+      option.selected=modelState[activeModel].resolution===r.v;
+      els.creationResolutionSelect.appendChild(option);
     }
   }
-
-  $$('#modelQualityGrid .setting-chip').forEach(button=>{
-    button.classList.toggle('active',button.dataset.quality===String(modelState.mj.quality));
-  });
+  syncCreationDropdown(els.creationResolutionControl);
 }
 function renderResPop(){renderModelSettings()}
 
-/* ===================== 模型窗口内宽高比 ===================== */
+/* ===================== 外置宽高比 ===================== */
 function renderRatioPop(){
   const ratios=MODEL_RATIOS[activeModel];
-  els.modelRatioGrid.innerHTML='';
+  els.creationRatioSelect.innerHTML='';
   for(const r of ratios){
-    const [w,h]=RATIO_ICON_SIZE[r]||[20,20];
-    const item=document.createElement('button');
-    item.className='ratio-pop-item'+(modelState[activeModel].ratio===r?' active':'');
-    item.innerHTML='<i class="ratio-icon" style="width:'+w+'px;height:'+h+'px"></i><span>'+r+'</span>';
-    item.onclick=()=>{
-      modelState[activeModel].ratio=r;
-      renderRatioPop();
-    };
-    els.modelRatioGrid.appendChild(item);
+    const option=document.createElement('option');
+    option.value=r;
+    option.textContent=r;
+    option.selected=modelState[activeModel].ratio===r;
+    els.creationRatioSelect.appendChild(option);
   }
+  syncCreationDropdown(els.creationRatioSelect.closest('.creation-dropdown'));
 }
 
-function syncMjControls(){
-  const state=modelState.mj;
-  $$('#mjVersionGrid .opt-btn').forEach(b=>b.classList.toggle('active',b.dataset.version===state.version));
-  $$('#mjSpeedGrid .opt-btn').forEach(b=>b.classList.toggle('active',b.dataset.speed===state.speed));
-  $$('#mjQualityGrid .opt-btn').forEach(b=>b.classList.toggle('active',b.dataset.quality===String(state.quality)));
-  $$('#modelQualityGrid .setting-chip').forEach(b=>b.classList.toggle('active',b.dataset.quality===String(state.quality)));
-  $$('#mjStyleGrid .opt-btn').forEach(b=>b.classList.toggle('active',b.dataset.style===state.style));
-  $('#mjStylizeSlider').value=state.stylize;$('#mjStylizeValue').textContent=state.stylize;
-  $('#mjChaosSlider').value=state.chaos;$('#mjChaosValue').textContent=state.chaos;
-  $('#mjIwSlider').value=state.iw;$('#mjIwValue').textContent=Number(state.iw).toFixed(1);
-  $('#mjNegativePrompt').value=state.negativePrompt||'';
-  $('#mjSeed').value=state.seed||'';
-}
+initCreationDropdowns();
 
 /* ===================== 参考图管理 ===================== */
 els.refBtn.onclick=()=>els.fileInput.click();
@@ -184,9 +239,6 @@ function renderRefRow(){
       els.refRow.appendChild(add);
     }
   }
-  // MJ 的 iw section 根据参考图数量显隐
-  const iwSection=$('#mjIwSection');
-  if(iwSection)iwSection.hidden=!(activeModel==='mj'&&refs.length>0);
 }
 
 /* ===================== 提示词字符计数 ===================== */
@@ -199,7 +251,7 @@ els.clearPromptBtn.onclick=()=>{
   const state=modelState[activeModel];
   if(!els.promptInput.value&&!state.originalPrompt)return;
   els.promptInput.value='';state.promptText='';state.originalPrompt=null;
-  updateCharLimit();els.restoreBtn.hidden=true;hideComposerError();
+  updateCharLimit();hideComposerError();
   els.promptInput.focus();toast('当前提示词已清空');
 };
 
@@ -207,25 +259,21 @@ els.clearPromptBtn.onclick=()=>{
 const ENHANCE_SYSTEMS={
   gpt:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其结构清晰、具体且适合图片生成模型。不得改变核心意图、主体数量、人物身份和指定元素。只输出优化后的最终提示词，不要解释。',
   nano:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 NB2 (Gemini 3.1 Flash Image) 图片生成模型。只输出优化后的最终提示词，不要解释。',
-  mj:'你是一名 Midjourney 提示词优化专家。请优化用户提示词，使其更适合 Midjourney 生成。可以使用英文描述以获得更好效果，但保留用户的核心意图。只输出优化后的提示词，不要添加 --ar --v 等参数（这些由界面控件设置），不要解释。',
   grok:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 Grok Imagine (xAI) 超写实图片生成模型。强调细节、光线、材质和氛围的描述。只输出优化后的最终提示词，不要解释。'
 };
 
-els.enhanceBtn.onclick=async()=>{
+async function optimizeCurrentPrompt(){
   const state=modelState[activeModel];
   hideComposerError();
   const apiKey=Settings.getKey(),original=els.promptInput.value.trim();
-  if(!apiKey){Settings.openModal(els);toast('请先保存 API Key');return}
-  if(!original){showComposerError('请先填写需要优化的提示词。');return}
-  const before=els.promptInput.value;
+  if(!apiKey){Settings.openModal(els);toast('请先保存 API Key');return false}
+  if(!original){showComposerError('请先填写需要优化的提示词。');return false}
   els.enhanceBtn.disabled=true;
-  els.enhanceBtn.style.opacity='.5';
+  els.enhanceBtn.closest('.prompt-enhance-switch')?.classList.add('is-loading');
   try{
     const refCount=refManagers[activeModel]?refManagers[activeModel].count():0;
     let modeRule='';
-    if(activeModel==='mj'){
-      modeRule=refCount>0?'当前是图生图任务，有 '+refCount+' 张参考图，请保留主体描述。':'';
-    }else if(refCount>0){
+    if(refCount>0){
       modeRule='这是多参考图的图生图任务，当前共有 '+refCount+' 张参考图。必须保留参考图中的主体身份、人物外貌、姿势、构图和产品结构，只优化用户明确要求修改的部分。';
     }else{
       modeRule='这是文生图任务。可在不改变核心创意的前提下补充构图、镜头、光线、色彩、材质与氛围。';
@@ -239,7 +287,7 @@ els.enhanceBtn.onclick=async()=>{
           {role:'system',content:ENHANCE_SYSTEMS[activeModel]},
           {role:'user',content:modeRule+'\n原始提示词：\n'+original}
         ],
-        temperature:activeModel==='mj'?.45:.35,
+        temperature:.35,
         stream:false
       })
     });
@@ -256,30 +304,20 @@ els.enhanceBtn.onclick=async()=>{
     }
     const json=await res.json(),enhanced=json.choices?.[0]?.message?.content?.trim();
     if(!enhanced)throw new Error('接口未返回优化结果');
-    if(state.originalPrompt===null)state.originalPrompt=before;
     els.promptInput.value=enhanced.slice(0,MODEL_MAX_PROMPT[activeModel]);
     els.charCount.textContent=els.promptInput.value.length;
     modelState[activeModel].promptText=els.promptInput.value;
-    els.restoreBtn.hidden=false;
     toast('提示词已优化');
+    return true;
   }catch(e){
     showComposerError(e.message.includes('Failed to fetch')?'无法连接接口，可能是网络或跨域限制。':e.message);
+    return false;
   }finally{
     els.enhanceBtn.disabled=false;
-    els.enhanceBtn.style.opacity='';
+    els.enhanceBtn.closest('.prompt-enhance-switch')?.classList.remove('is-loading');
   }
-};
-
-els.restoreBtn.onclick=()=>{
-  const state=modelState[activeModel];
-  if(state.originalPrompt===null)return;
-  els.promptInput.value=state.originalPrompt;
-  els.charCount.textContent=els.promptInput.value.length;
-  modelState[activeModel].promptText=els.promptInput.value;
-  state.originalPrompt=null;
-  els.restoreBtn.hidden=true;
-  toast('已恢复原提示词');
-};
+}
+window.optimizeCurrentPrompt=optimizeCurrentPrompt;
 
 /* ===================== 错误提示 ===================== */
 function showComposerError(msg){els.errorMsg.textContent=msg;els.errorMsg.classList.add('show')}
