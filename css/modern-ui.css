@@ -999,6 +999,18 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .assets-generation-visual img{width:100%;height:100%;display:block;object-fit:cover}
 .assets-generation.is-failed .assets-generation-visual{opacity:.55}
 .assets-generation.is-failed .assets-generation-visual img{filter:grayscale(1)}
+.assets-generation-error-actions{margin-left:10px;display:inline-flex;gap:6px}
+.assets-generation-error-actions button{
+  padding:5px 9px;
+  border:1px solid var(--ui-line-strong);
+  border-radius:8px;
+  background:#fff;
+  color:var(--ui-ink);
+  font-size:11px;
+  font-weight:650;
+}
+.assets-generation-error-actions button:hover{background:var(--ui-soft)}
+.assets-generation-error-actions button:disabled{opacity:.5;cursor:wait}
 .assets-generation-model{border-radius:8px;background:var(--ui-ink);color:#fff}
 .assets-generation-track{height:6px;background:var(--ui-soft-strong)}
 .assets-generation-track > div{background:var(--ui-ink)}

@@ -1,6 +1,8 @@
 "use strict";
 
-const ASSET_MODEL_NAMES={gpt:'Image 2',nano:'NB2',mj:'Midjourney',grok:'Grok Image'};
+const ASSET_MODEL_NAMES=Object.fromEntries(
+  Object.entries(MODEL_CONFIG).map(([key,config])=>[key,config.name])
+);
 const assetsEls={
   grid:$('#assetsGrid'),loading:$('#assetsLoading'),empty:$('#assetsEmpty'),count:$('#assetsCount'),
   generation:$('#assetsGeneration'),generationModel:$('#assetsGenerationModel'),
@@ -112,6 +114,7 @@ function showGeneration(job){
   assetsEls.generationPercent.textContent='0%';
   assetsEls.generationBar.style.width='0%';
   assetsEls.generationError.hidden=true;
+  assetsEls.generationError.replaceChildren();
   const startedAt=new Date(job.createdAt||Date.now()).getTime();
   clearInterval(generationElapsedTimer);
   const updateElapsed=()=>assetsEls.generationElapsed.textContent=formatDuration(Date.now()-startedAt);
@@ -129,6 +132,39 @@ function updateGeneration(status,progress,retryMessage){
   assetsEls.generationPercent.textContent=numeric>0?Math.round(numeric)+'%':'处理中';
   assetsEls.generationBar.style.width=numeric>0?numeric+'%':'28%';
 }
+function showGenerationFailure(job,message){
+  assetsEls.generation.classList.remove('is-running','is-complete');
+  assetsEls.generation.classList.add('is-failed');
+  assetsEls.generationStatus.textContent='生成失败';
+  assetsEls.generationPercent.textContent='—';
+  assetsEls.generationError.hidden=false;
+  assetsEls.generationError.replaceChildren();
+
+  const text=document.createElement('span');
+  text.textContent=message;
+  const actions=document.createElement('span');
+  actions.className='assets-generation-error-actions';
+  const retry=document.createElement('button');
+  retry.type='button';retry.textContent='重试';
+  const cancel=document.createElement('button');
+  cancel.type='button';cancel.textContent='取消任务';
+  retry.onclick=async()=>{
+    retry.disabled=true;cancel.disabled=true;
+    delete job.failedAt;delete job.lastError;
+    await PendingGeneration.save(job);
+    showGeneration(job);
+    runPendingGeneration(job);
+  };
+  cancel.onclick=async()=>{
+    retry.disabled=true;cancel.disabled=true;
+    await PendingGeneration.delete(job.id);
+    assetsEls.generation.hidden=true;
+    clearInterval(generationElapsedTimer);
+    syncAssetsSummary();
+  };
+  actions.append(retry,cancel);
+  assetsEls.generationError.append(text,actions);
+}
 async function runPendingGeneration(job){
   const apiKey=Settings.getKey();
   if(!apiKey){
@@ -140,7 +176,6 @@ async function runPendingGeneration(job){
     assetsEls.generationError.innerHTML='尚未配置 API Key。<a href="settings.html">前往设置</a>';
     clearInterval(generationElapsedTimer);return;
   }
-  await ensureNotificationPermission();
   const controller=new AbortController(),timeoutId=setTimeout(()=>controller.abort(),300000);
   const startedAt=performance.now();
   try{
@@ -175,13 +210,11 @@ async function runPendingGeneration(job){
     notifyGenerated(ASSET_MODEL_NAMES[item.model]||item.model);
     setTimeout(()=>{assetsEls.generation.hidden=true;syncAssetsSummary()},3500);
   }catch(error){
-    await PendingGeneration.delete(job.id);
-    assetsEls.generation.classList.remove('is-running','is-complete');
-    assetsEls.generation.classList.add('is-failed');
-    assetsEls.generationStatus.textContent='生成失败';
-    assetsEls.generationPercent.textContent='—';
-    assetsEls.generationError.hidden=false;
-    assetsEls.generationError.textContent=error?.name==='AbortError'?'请求超时，请返回创作页重试。':(error?.message||'生成失败，请返回创作页重试。');
+    const message=error?.name==='AbortError'?'请求超时，可以重试当前任务。':(error?.message||'生成失败，请重试。');
+    job.failedAt=new Date().toISOString();
+    job.lastError=message;
+    await PendingGeneration.save(job);
+    showGenerationFailure(job,message);
     clearInterval(generationElapsedTimer);
   }finally{
     clearTimeout(timeoutId);
@@ -195,10 +228,8 @@ requestAnimationFrame(async()=>{
   finally{
     assetsEls.loading.hidden=true;renderAssets();
   }
-  if(pendingJob)runPendingGeneration(pendingJob);
+  if(pendingJob){
+    if(pendingJob.failedAt)showGenerationFailure(pendingJob,pendingJob.lastError||'上次生成未完成。');
+    else runPendingGeneration(pendingJob);
+  }
 });
-
-document.addEventListener('keydown',event=>{
-  if((event.ctrlKey||event.metaKey)&&(['+','-','=','0'].includes(event.key)||['NumpadAdd','NumpadSubtract','Numpad0'].includes(event.code)))event.preventDefault();
-},{capture:true});
-window.addEventListener('wheel',event=>{if(event.ctrlKey||event.metaKey)event.preventDefault()},{passive:false});

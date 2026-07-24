@@ -1,12 +1,10 @@
 /* ===================== 生成任务交接 ===================== */
 let preparingGeneration=false;
 
-function setStatusVisible(){
-  if(els.status)els.status.hidden=true;
-}
-
-function cancelGeneration(){
-  if(preparingGeneration)toast('正在准备生成任务，请稍候');
+function snapshotCreationState(model){
+  const state=modelState[model],snapshot={ratio:state.ratio};
+  if(state.resolution)snapshot.resolution=state.resolution;
+  return snapshot;
 }
 
 async function buildPendingGeneration(){
@@ -17,19 +15,19 @@ async function buildPendingGeneration(){
 
   if(key==='gpt'){
     endpoint='/images/generations';
-    body={model:'gpt-image-2',prompt,size:state.ratio,resolution:state.resolution,n:1};
+    body={model:MODEL_CONFIG.gpt.generationModel,prompt,size:state.ratio,resolution:state.resolution,n:1};
     if(refCount>0)body.image_urls=await refMgr.getDataURIs();
   }else if(key==='nano'){
     endpoint='/images/generations';
-    body={model:'nano-banana-2-ext',prompt,size:state.ratio,resolution:state.resolution,n:1};
+    body={model:MODEL_CONFIG.nano.generationModel,prompt,size:state.ratio,resolution:state.resolution,n:1};
     if(refCount>0)body.image_urls=await refMgr.getDataURIs();
   }else if(key==='grok'){
     endpoint='/images/generations';
     const isEdit=refCount>0;
     body={
-      model:isEdit?'grok-imagine-1.5-edit-ext':'grok-imagine-1.5-ext',
+      model:isEdit?MODEL_CONFIG.grok.editModel:MODEL_CONFIG.grok.generationModel,
       prompt,
-      size:isEdit?(GROK_EDIT_SIZES[state.ratio]||'1024x1024'):state.ratio,
+      size:isEdit?(MODEL_CONFIG.grok.editSizes[state.ratio]||'1024x1024'):state.ratio,
       n:1
     };
     if(isEdit)body.image_urls=await refMgr.getDataURIs();
@@ -48,11 +46,12 @@ async function doGenerate(){
   if(preparingGeneration)return;
   hideComposerError();
   const apiKey=Settings.getKey(),initialPrompt=els.promptInput.value.trim();
-  if(!apiKey){Settings.openModal();toast('请先保存 API Key');return}
+  if(!apiKey){Settings.openPage();toast('请先保存 API Key');return}
   if(!initialPrompt){showComposerError('请填写提示词。');return}
 
   preparingGeneration=true;
   els.sendBtn.disabled=true;
+  ensureNotificationPermission();
   try{
     const existingJob=await PendingGeneration.load();
     if(existingJob){
@@ -85,9 +84,3 @@ els.promptInput.addEventListener('keydown',event=>{
     event.preventDefault();doGenerate();
   }
 });
-document.addEventListener('keydown',event=>{
-  if(event.key!=='Escape')return;
-  if(openPop){event.preventDefault();closeAllPops()}
-});
-
-setStatusVisible(false);

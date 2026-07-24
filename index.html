@@ -14,13 +14,6 @@
 </head>
 <body class="home-page">
 
-<div class="fluid-background" aria-hidden="true">
-  <span class="fluid-orb fluid-orb-a"></span>
-  <span class="fluid-orb fluid-orb-b"></span>
-  <span class="fluid-orb fluid-orb-c"></span>
-  <span class="fluid-noise"></span>
-</div>
-
 <nav class="app-rail" aria-label="主要功能">
   <a class="rail-brand" href="index.html" title="Pic.supmihu.cn"><img src="logo.png" alt=""></a>
   <div class="rail-nav">
@@ -49,58 +42,6 @@
       <h1 id="homeIntroTitle" aria-label="把想象，交给你">
         <span id="homeTypingText" data-text="把想象，交给你">把想象，交给你</span><i class="home-typing-caret" aria-hidden="true"></i>
       </h1>
-    </section>
-    <div class="status generation-history-card home-generation-status" id="status" hidden>
-      <div class="generation-thumb"><span class="generation-spinner"></span></div>
-      <div class="generation-card-content">
-        <div class="generation-card-head"><span class="dot"></span><span class="generation-model" id="generationModelName">Image 2</span><span class="status-elapsed" id="statusElapsed">00:00</span></div>
-        <p class="generation-prompt" id="generationPrompt">准备生成</p>
-        <div class="generation-progress-row"><span class="status-text">神经演算中</span><span class="status-percent" id="sidebarProgressPercent">0%</span></div>
-        <div class="sidebar-progress-track" aria-hidden="true"><div class="sidebar-progress-bar" id="sidebarProgressBar"></div></div>
-      </div>
-    </div>
-    <!-- 结果面板 -->
-    <section class="result-panel">
-      <div class="result-body">
-        <div class="empty canvas-welcome" id="empty">
-          <span class="canvas-welcome-mark" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l1.35 4.15L17.5 9l-4.15 1.65L12 15l-1.35-4.35L6.5 9l4.15-1.85L12 3Z"/><path d="M18.5 14.5 19.2 17l2.3.8-2.3.8-.7 2.4-.8-2.4-2.2-.8 2.2-.8.8-2.5Z"/></svg>
-          </span>
-          <span class="canvas-welcome-kicker">YOUR NEXT IMAGE STARTS HERE</span>
-          <b>把想象交给你</b>
-          <p>在右侧输入画面描述，选择一个模型，然后开始创作。</p>
-          <span class="canvas-welcome-hint">从一句提示词开始</span>
-        </div>
-        <div class="loading" id="loading">
-          <div class="pixel-field" aria-hidden="true">
-            <span class="px px1"></span><span class="px px2"></span><span class="px px3"></span>
-            <span class="px px4"></span><span class="px px5"></span><span class="px px6"></span>
-            <span class="px px7"></span><span class="px px8"></span><span class="px px9"></span>
-            <span class="px px10"></span><span class="px px11"></span><span class="px px12"></span>
-            <span class="px px13"></span><span class="px px14"></span><span class="px px15"></span>
-            <span class="px px16"></span><span class="px px17"></span><span class="px px18"></span>
-          </div>
-          <svg class="drawing-loader" viewBox="0 0 112 82"><rect class="drawing-sheet" x="12" y="10" width="88" height="62" rx="9"/><path class="drawing-line" d="M25 54 C36 34 46 61 57 43 S77 31 88 49"/><g class="drawing-pencil"><path d="M27 51l6-3-3-3-3 6Z" fill="#61706c"/><path d="M30 45l3 3 7-7-3-3-7 7Z" fill="#dce7e3"/><path d="M37 38l3 3 30-30-3-3-30 30Z" fill="#61706c"/><path d="M64 11l3 3 5-5-3-3-5 5Z" fill="#dce7e3"/><path d="M69 6l3 3 4-4c1-1 1-2 0-3s-2-1-3 0l-4 4Z" fill="#e7aca3"/></g></svg>
-          <b>正在创作图片</b>
-          <div class="sub" id="loadingModelName">画面正在一点点成形</div>
-          <div class="generation-progress">
-            <div class="progress-track">
-              <div class="progress-bar" id="progressBar"></div>
-              <span class="progress-label" id="progressPercent">准备中…</span>
-            </div>
-          </div>
-        </div>
-        <div class="result-image" id="resultWrap">
-          <img class="result-backdrop" id="resultBackdrop" alt="" aria-hidden="true">
-          <img class="result-foreground" id="resultImage" alt="生成结果" role="button" tabindex="0" title="点击在新标签页打开">
-        </div>
-        <div class="image-actions" id="actions">
-          <button class="icon-btn result-edit-btn" id="openResultEditor" type="button" title="在编辑页打开">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 16-.8 4.8L8 20l11-11-4-4L4 16Z"/><path d="m13.5 6.5 4 4"/></svg>
-            <span>编辑</span>
-          </button>
-        </div>
-      </div>
     </section>
 
   <div class="bottom-area">
@@ -180,8 +121,6 @@
 <script src="shared.js"></script>
 <script src="core.js"></script>
 <script src="model-ui.js"></script>
-<script src="home-history.js"></script>
-<script src="workspace-ui.js"></script>
 <script src="generation.js"></script>
 <script src="app.js"></script>
 </body>

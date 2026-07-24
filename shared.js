@@ -1,11 +1,35 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
+const HISTORY_RETENTION_MS=72*60*60*1000;
+const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
+const MODEL_CONFIG={
+  gpt:{
+    name:'Image 2',icon:'icon/model-image2.svg',promptLimit:3000,
+    ratios:['1:1','3:2','4:3','3:4','16:9','9:16'],
+    resolutions:[{v:'1k',l:'1K · 快速'},{v:'2k',l:'2K · 高清'},{v:'4k',l:'4K · 超清'}],
+    defaultResolution:'1k',generationModel:'gpt-image-2',editModel:'gpt-image-2'
+  },
+  nano:{
+    name:'NB2',icon:'icon/model-nb2.svg',promptLimit:2000,
+    ratios:['1:1','3:2','4:3','3:4','2:3','16:9','9:16','4:5','5:4','21:9'],
+    resolutions:[{v:'0.5K',l:'0.5K · 预览'},{v:'1K',l:'1K · 标准'},{v:'2K',l:'2K · 高清'},{v:'4K',l:'4K · 超清'}],
+    defaultResolution:'1K',generationModel:'nano-banana-2-ext',editModel:'nano-banana-2-ext'
+  },
+  grok:{
+    name:'Grok',icon:'icon/model-grok.svg',promptLimit:4000,
+    ratios:['1:1','16:9','9:16','4:3','3:4','3:2','2:3'],resolutions:null,
+    generationModel:'grok-imagine-1.5-ext',editModel:'grok-imagine-1.5-edit-ext',
+    editSizes:{
+      '1:1':'1024x1024','16:9':'1280x720','4:3':'1792x1024','3:2':'1792x1024',
+      '9:16':'720x1280','3:4':'1024x1792','2:3':'1024x1792'
+    }
+  }
+};
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 
 function toast(text){const t=$('#toast');if(!t)return;t.textContent=text;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
 function formatDuration(ms){const t=Math.max(0,Math.floor(ms/1000)),m=Math.floor(t/60),s=t%60;return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
-function fileToBase64(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result).split(',')[1]);r.onerror=reject;r.readAsDataURL(file)})}
 function fileToDataURI(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)})}
 function openImage(url){if(!url)return;const w=window.open(url,'_blank');if(w)w.opener=null;else toast('浏览器拦截了弹出窗口，请允许后重试')}
 function showError(el,msg){if(!el)return;el.textContent=msg;el.style.display='block'}
@@ -23,21 +47,31 @@ const Settings={
     sessionStorage.setItem('mihu_settings_return',this.getCurrentPage());
     location.href='settings.html';
   },
-  initModal(els){
-    if(!els.modal)return;
-    els.apiKey.value=this.getKey();
-    $('#toggleKey').onclick=()=>{const show=els.apiKey.type==='password';els.apiKey.type=show?'text':'password';$('#toggleKey').textContent=show?'隐藏':'显示'};
-    $('#clearKey').onclick=()=>{els.apiKey.value='';this.setKey('');toast('密钥已清除')};
-    $('#saveSettings').onclick=()=>{const k=els.apiKey.value.trim();if(!k){toast('请填写 API Key');return}this.setKey(k);this.closeModal(els);toast('API Key 已保存')};
-    $('#cancelSettings').onclick=()=>this.closeModal(els);
-    $('#closeSettings').onclick=()=>this.closeModal(els);
-    els.modal.addEventListener('click',e=>{if(e.target===els.modal)this.closeModal(els)});
-  },
-  openModal(){this.openPage()},
-  closeModal(els){if(els.modal){els.modal.classList.remove('open');els.modal.classList.remove('show')}}
+  openModal(){this.openPage()}
 };
 
 const Apimart={
+  async chat(apiKey,{messages,model=PROMPT_ANALYSIS_MODEL,temperature=.35,signal}){
+    const res=await fetch(APIMART_BASE+'/chat/completions',{
+      method:'POST',signal,
+      headers:{'Authorization':'Bearer '+apiKey,'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({model,messages,temperature,stream:false})
+    });
+    if(!res.ok){
+      let detail='';
+      try{
+        const data=await res.json();
+        detail=data.error?.message||data.message||'';
+      }catch(_){try{detail=await res.text()}catch(__){}}
+      const error=new Error('聊天请求失败（HTTP '+res.status+'）'+(detail?': '+detail.slice(0,180):''));
+      error.status=res.status;
+      throw error;
+    }
+    const json=await res.json();
+    const content=(json.choices||json.data?.choices)?.[0]?.message?.content?.trim();
+    if(!content)throw new Error('接口未返回文本内容');
+    return content;
+  },
   async submitTask(apiKey,body,endpoint,signal){
     const url=endpoint?APIMART_BASE+endpoint:APIMART_BASE+'/images/generations';
     const res=await fetch(url,{method:'POST',signal,headers:{'Authorization':'Bearer '+apiKey,'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(body)});
@@ -113,8 +147,52 @@ const Apimart={
 const History={
   openDB(){return new Promise((resolve,reject)=>{if(!('indexedDB' in window)){reject(new Error('IndexedDB unavailable'));return}const req=indexedDB.open(DB_NAME,DB_VERSION);req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(STORE_NAME))db.createObjectStore(STORE_NAME,{keyPath:'id'});if(!db.objectStoreNames.contains(JOB_STORE_NAME))db.createObjectStore(JOB_STORE_NAME,{keyPath:'id'})};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})},
   async save(item){try{const db=await this.openDB();await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite');tx.objectStore(STORE_NAME).put(item);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close();await this.trim()}catch(e){toast('历史记录保存失败')}},
-  async trim(){const db=await this.openDB();const all=await new Promise((resolve,reject)=>{const req=db.transaction(STORE_NAME).objectStore(STORE_NAME).getAll();req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});const stale=all.sort((a,b)=>b.id-a.id).slice(20);if(stale.length)await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite');for(const item of stale)tx.objectStore(STORE_NAME).delete(item.id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()},
-  async load(modelFilter){try{const db=await this.openDB();const all=await new Promise((resolve,reject)=>{const req=db.transaction(STORE_NAME).objectStore(STORE_NAME).getAll();req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});db.close();let recent=all.sort((a,b)=>b.id-a.id).slice(0,20);if(modelFilter)recent=recent.filter(x=>x.model===modelFilter);const checks=await Promise.all(recent.map(async item=>({item,available:await this.isAvailable(item.url)})));const valid=checks.filter(x=>x.available).map(x=>x.item);const staleIds=checks.filter(x=>!x.available).map(x=>x.item.id);if(staleIds.length){try{const db2=await this.openDB();await new Promise((resolve,reject)=>{const tx=db2.transaction(STORE_NAME,'readwrite');for(const id of staleIds)tx.objectStore(STORE_NAME).delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db2.close();console.log('[历史] 清理失效图片',staleIds.length,'条')}catch(e){}}return valid}catch(e){return[]}},
+  itemTime(item){
+    const createdAt=new Date(item?.createdAt||0).getTime();
+    if(Number.isFinite(createdAt)&&createdAt>0)return createdAt;
+    const idTime=Number(item?.id);
+    return Number.isFinite(idTime)?idTime:0;
+  },
+  async deleteMany(ids){
+    if(!ids.length)return;
+    const db=await this.openDB();
+    await new Promise((resolve,reject)=>{
+      const tx=db.transaction(STORE_NAME,'readwrite');
+      for(const id of ids)tx.objectStore(STORE_NAME).delete(id);
+      tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);
+    });
+    db.close();
+  },
+  async trim(){
+    const db=await this.openDB();
+    const all=await new Promise((resolve,reject)=>{
+      const req=db.transaction(STORE_NAME).objectStore(STORE_NAME).getAll();
+      req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
+    });
+    db.close();
+    const cutoff=Date.now()-HISTORY_RETENTION_MS;
+    const staleIds=all.filter(item=>this.itemTime(item)<cutoff).map(item=>item.id);
+    await this.deleteMany(staleIds);
+  },
+  async load(modelFilter){
+    try{
+      const db=await this.openDB();
+      const all=await new Promise((resolve,reject)=>{
+        const req=db.transaction(STORE_NAME).objectStore(STORE_NAME).getAll();
+        req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
+      });
+      db.close();
+      const cutoff=Date.now()-HISTORY_RETENTION_MS;
+      const expiredIds=all.filter(item=>this.itemTime(item)<cutoff).map(item=>item.id);
+      let recent=all.filter(item=>this.itemTime(item)>=cutoff).sort((a,b)=>b.id-a.id);
+      if(modelFilter)recent=recent.filter(item=>item.model===modelFilter);
+      const checks=await Promise.all(recent.map(async item=>({item,available:await this.isAvailable(item.url)})));
+      const valid=checks.filter(entry=>entry.available).map(entry=>entry.item);
+      const staleIds=[...expiredIds,...checks.filter(entry=>!entry.available).map(entry=>entry.item.id)];
+      if(staleIds.length)await this.deleteMany([...new Set(staleIds)]);
+      return valid;
+    }catch(_){return[]}
+  },
   async clear(){try{const db=await this.openDB();await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite');tx.objectStore(STORE_NAME).clear();tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(e){}},
   async delete(id){try{const db=await this.openDB();await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite');tx.objectStore(STORE_NAME).delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close();return true}catch(e){return false}},
   async isAvailable(url){
@@ -164,25 +242,6 @@ const PendingGeneration={
 
 async function ensureNotificationPermission(){if(!('Notification' in window)||Notification.permission!=='default'||localStorage.getItem('apimart_notification_asked')==='1')return;localStorage.setItem('apimart_notification_asked','1');try{await Notification.requestPermission()}catch(e){}}
 function notifyGenerated(modelName){if(!('Notification' in window)||Notification.permission!=='granted')return;try{const n=new Notification('图片生成完成',{body:modelName+' 已完成生成，点击查看结果。',tag:'mdos-image-ready',renotify:true});n.onclick=()=>{window.focus();n.close()}}catch(e){}}
-
-const Progress={
-  timer:null,
-  setBars(els,p,label){
-    const value=Math.max(0,Math.min(100,Number(p)||0));
-    if(els.progressBar)els.progressBar.style.width=value+'%';
-    if(els.progressPercent&&label)els.progressPercent.textContent=label;
-    if(els.sidebarProgressBar)els.sidebarProgressBar.style.width=value+'%';
-    if(els.sidebarProgressPercent)els.sidebarProgressPercent.textContent=Math.round(value)+'%';
-  },
-  start(els,state){state.progressStartedAt=performance.now();state.useRealProgress=false;state.realProgress=0;state.progressStatus='preparing';this.show(els,state)},
-  show(els,state){this.stop();if(els.progressBar){els.progressBar.style.transition='none';void els.progressBar.offsetWidth;els.progressBar.style.transition='width .45s ease'}this.render(els,state);if(!state.useRealProgress)this.timer=setInterval(()=>this.render(els,state),1000)},
-  render(els,state){if(state.useRealProgress){const p=Math.max(0,Math.min(100,Number(state.realProgress)||0));const phase=state.progressStatus==='queued'||state.progressStatus==='pending'?'等待算力接入':p>=95?'视觉矩阵成形':'链路回传';this.setBars(els,p,phase+' · '+p+'%');return}const p=this.estimate(performance.now()-(state.progressStartedAt||performance.now()));this.setBars(els,p,'神经演算 · '+p+'%')},
-  updateReal(els,state,percent,status){state.useRealProgress=true;state.realProgress=Math.max(0,Math.min(100,Number(percent)||0));state.progressStatus=status||'processing';this.stop();this.render(els,state)},
-  estimate(ms){const s=ms/1000;if(s<=10)return Math.floor(4+s/10*16);if(s<=60)return Math.floor(20+(s-10)/50*40);if(s<=180)return Math.floor(60+(s-60)/120*28);return Math.min(96,Math.floor(88+(1-Math.exp(-(s-180)/120))*8))},
-  finish(els,state,success){this.stop();const duration=state.progressStartedAt?performance.now()-state.progressStartedAt:0;if(success){state.useRealProgress=true;state.realProgress=100;state.progressStatus='completed';this.setBars(els,100,'视觉矩阵已固化 · 100%')}else this.setBars(els,0,'准备中…');return duration},
-  reset(els){this.stop();this.setBars(els,0,'准备中…')},
-  stop(){if(this.timer){clearInterval(this.timer);this.timer=null}}
-};
 
 function createReferenceManager(els,maxFiles=10,maxBytes=10*1024*1024,maxTotal=50*1024*1024){
   const types=new Set(['image/jpeg','image/png','image/webp']);
@@ -246,13 +305,26 @@ function createReferenceManager(els,maxFiles=10,maxBytes=10*1024*1024,maxTotal=5
   };
 }
 
-function initCommonPage(els){
-  Settings.initModal(els);
-  if(els.openSettings)els.openSettings.onclick=()=>Settings.openModal(els);
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')Settings.closeModal(els)});
-  ensureNotificationPermission();
-  if(!Settings.getKey())setTimeout(()=>Settings.openModal(els),350);
+function initCommonPage(){
+  if(!Settings.getKey())setTimeout(()=>Settings.openPage(),350);
 }
+
+function lockPageZoom(){
+  if(window.__mihuZoomLocked)return;
+  window.__mihuZoomLocked=true;
+  const prevent=event=>event.preventDefault();
+  window.addEventListener('wheel',event=>{
+    if(event.ctrlKey||event.metaKey)event.preventDefault();
+  },{passive:false});
+  document.addEventListener('keydown',event=>{
+    if(!(event.ctrlKey||event.metaKey))return;
+    if(['+','-','=','0'].includes(event.key)||['NumpadAdd','NumpadSubtract','Numpad0'].includes(event.code))event.preventDefault();
+  },{capture:true});
+  document.addEventListener('gesturestart',prevent,{passive:false});
+  document.addEventListener('gesturechange',prevent,{passive:false});
+  document.addEventListener('gestureend',prevent,{passive:false});
+}
+lockPageZoom();
 
 /* 资产和设置工作区仅在实际滚动时显示滚动条 */
 document.querySelectorAll('.assets-shell,.settings-shell').forEach(shell=>{

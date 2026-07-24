@@ -1,9 +1,11 @@
 /* ===================== 模型切换 ===================== */
-const CREATION_MODEL_ICONS={
-  gpt:'icon/model-image2.svg',
-  nano:'icon/model-nb2.svg',
-  grok:'icon/model-grok.svg'
-};
+const CREATION_MODEL_ICONS=Object.fromEntries(
+  Object.entries(MODEL_CONFIG).map(([key,config])=>[key,config.icon])
+);
+const sharedReferenceManager=createReferenceManager({
+  dropzone:null,fileInput:null,grid:null,count:null,error:els.errorMsg
+});
+for(const key of ['gpt','nano','grok'])refManagers[key]=sharedReferenceManager;
 function getRatioFrameSize(ratio){
   const parts=ratio.split(':').map(Number);
   const w=parts[0]||1,h=parts[1]||1;
@@ -119,16 +121,6 @@ els.creationResolutionSelect.onchange=()=>{
   modelState[activeModel].resolution=els.creationResolutionSelect.value;
 };
 
-function updateSendButton(){
-  const generating=modelState[activeModel].generating;
-  els.sendBtn.innerHTML=generating
-    ?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/></svg>'
-    :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.1 6.9L21 12l-6.9 2.1L12 21l-2.1-6.9L3 12l6.9-2.1L12 3Z"/></svg>';
-  els.sendBtn.title=generating?'停止等待并取消本页任务':'Ctrl + Enter 生成';
-  els.sendBtn.setAttribute('aria-label',generating?'取消生成':'生成图片');
-  els.sendBtn.classList.toggle('cancel',generating);
-}
-
 function switchModel(key){
   if(key===activeModel)return;
   // 保存当前模型的提示词
@@ -137,13 +129,8 @@ function switchModel(key){
   activeModel=key;
   els.creationModelSelect.value=key;
   syncCreationDropdown(els.creationModelSelect.closest('.creation-dropdown'));
-  // 恢复该模型的提示词
-  if(historyReusePrompt!==null){
-    historyReusePrompt=currentPrompt;
-    modelState[key].promptText=currentPrompt.slice(0,MODEL_MAX_PROMPT[key]);
-  }
   els.promptInput.value=modelState[key].promptText||'';
-  els.promptInput.maxLength=MODEL_MAX_PROMPT[key];
+  els.promptInput.maxLength=MODEL_CONFIG[key].promptLimit;
   els.charCount.textContent=els.promptInput.value.length;
   updateCharLimit();
   renderModelSettings();
@@ -151,16 +138,13 @@ function switchModel(key){
   renderRefRow();
   renderResPop();
   renderRatioPop();
-  // 恢复结果面板
-  restoreResultFor(key);
-  // 更新占位符和生成按钮状态
+  // 更新占位符
   updatePlaceholder();
-  updateSendButton();
 }
 
 function updateCharLimit(){
   els.charCount.textContent=els.promptInput.value.length;
-  els.charCount.parentElement.lastChild.textContent='/'+MODEL_MAX_PROMPT[activeModel];
+  els.charCount.parentElement.lastChild.textContent='/'+MODEL_CONFIG[activeModel].promptLimit;
 }
 
 function updatePlaceholder(){
@@ -174,7 +158,7 @@ function updatePlaceholder(){
 
 /* ===================== 外置模型输出设置 ===================== */
 function renderModelSettings(){
-  const res=MODEL_RESOLUTIONS[activeModel];
+  const res=MODEL_CONFIG[activeModel].resolutions;
   els.creationResolutionSelect.innerHTML='';
   els.creationResolutionControl.hidden=!res;
 
@@ -193,7 +177,7 @@ function renderResPop(){renderModelSettings()}
 
 /* ===================== 外置宽高比 ===================== */
 function renderRatioPop(){
-  const ratios=MODEL_RATIOS[activeModel];
+  const ratios=MODEL_CONFIG[activeModel].ratios;
   els.creationRatioSelect.innerHTML='';
   for(const r of ratios){
     const option=document.createElement('option');
@@ -245,12 +229,11 @@ function renderRefRow(){
 els.promptInput.addEventListener('input',()=>{
   els.charCount.textContent=els.promptInput.value.length;
   modelState[activeModel].promptText=els.promptInput.value;
-  if(historyReusePrompt!==null)historyReusePrompt=els.promptInput.value;
 });
 els.clearPromptBtn.onclick=()=>{
   const state=modelState[activeModel];
-  if(!els.promptInput.value&&!state.originalPrompt)return;
-  els.promptInput.value='';state.promptText='';state.originalPrompt=null;
+  if(!els.promptInput.value)return;
+  els.promptInput.value='';state.promptText='';
   updateCharLimit();hideComposerError();
   els.promptInput.focus();toast('当前提示词已清空');
 };
@@ -266,7 +249,7 @@ async function optimizeCurrentPrompt(){
   const state=modelState[activeModel];
   hideComposerError();
   const apiKey=Settings.getKey(),original=els.promptInput.value.trim();
-  if(!apiKey){Settings.openModal(els);toast('请先保存 API Key');return false}
+  if(!apiKey){Settings.openPage();toast('请先保存 API Key');return false}
   if(!original){showComposerError('请先填写需要优化的提示词。');return false}
   els.enhanceBtn.disabled=true;
   els.enhanceBtn.closest('.prompt-enhance-switch')?.classList.add('is-loading');
@@ -278,39 +261,24 @@ async function optimizeCurrentPrompt(){
     }else{
       modeRule='这是文生图任务。可在不改变核心创意的前提下补充构图、镜头、光线、色彩、材质与氛围。';
     }
-    const res=await fetch(APIMART_BASE+'/chat/completions',{
-      method:'POST',
-      headers:{'Authorization':'Bearer '+apiKey,'Content-Type':'application/json','Accept':'application/json'},
-      body:JSON.stringify({
-        model:ENHANCE_MODEL,
+    const enhanced=await Apimart.chat(apiKey,{
+        model:PROMPT_ANALYSIS_MODEL,
         messages:[
           {role:'system',content:ENHANCE_SYSTEMS[activeModel]},
           {role:'user',content:modeRule+'\n原始提示词：\n'+original}
         ],
-        temperature:.35,
-        stream:false
-      })
+        temperature:.35
     });
-    if(!res.ok){
-      let detail='';
-      try{
-        const errorData=await res.json();
-        detail=errorData.error?.message||errorData.message||'';
-      }catch(_){
-        try{detail=await res.text()}catch(__){}
-      }
-      if(res.status===402)throw new Error('提示词优化失败：APIMart 余额或该模型可用额度不足，请充值后重试。');
-      throw new Error('提示词优化失败（HTTP '+res.status+'）'+(detail?': '+detail.slice(0,180):''));
-    }
-    const json=await res.json(),enhanced=json.choices?.[0]?.message?.content?.trim();
-    if(!enhanced)throw new Error('接口未返回优化结果');
-    els.promptInput.value=enhanced.slice(0,MODEL_MAX_PROMPT[activeModel]);
+    els.promptInput.value=enhanced.slice(0,MODEL_CONFIG[activeModel].promptLimit);
     els.charCount.textContent=els.promptInput.value.length;
     modelState[activeModel].promptText=els.promptInput.value;
     toast('提示词已优化');
     return true;
   }catch(e){
-    showComposerError(e.message.includes('Failed to fetch')?'无法连接接口，可能是网络或跨域限制。':e.message);
+    const message=e.status===402
+      ?'提示词优化失败：APIMart 余额或该模型可用额度不足，请充值后重试。'
+      :(e.message.includes('Failed to fetch')?'无法连接接口，可能是网络或跨域限制。':e.message);
+    showComposerError(message);
     return false;
   }finally{
     els.enhanceBtn.disabled=false;

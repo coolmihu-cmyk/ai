@@ -1,21 +1,5 @@
 "use strict";
 
-const EDIT_MODEL_NAMES={gpt:'Image 2',nano:'NB2',grok:'Grok'};
-const EDIT_MODEL_LIMITS={gpt:3000,nano:2000,grok:4000};
-const EDIT_RATIOS={
-  gpt:['1:1','3:2','4:3','3:4','16:9','9:16'],
-  nano:['1:1','3:2','4:3','3:4','2:3','16:9','9:16','4:5','5:4','21:9'],
-  grok:['1:1','16:9','9:16','4:3','3:4','3:2','2:3']
-};
-const EDIT_RESOLUTIONS={
-  gpt:[{v:'1k',l:'1K · 快速'},{v:'2k',l:'2K · 高清'},{v:'4k',l:'4K · 超清'}],
-  nano:[{v:'0.5K',l:'0.5K · 预览'},{v:'1K',l:'1K · 标准'},{v:'2K',l:'2K · 高清'},{v:'4K',l:'4K · 超清'}],
-  grok:null
-};
-const EDIT_GROK_SIZES={
-  '1:1':'1024x1024','16:9':'1280x720','4:3':'1792x1024','3:2':'1792x1024',
-  '9:16':'720x1280','3:4':'1024x1792','2:3':'1024x1792'
-};
 const EDIT_HD_PROMPT='基于提供的参考图像进行严格的超高分辨率4K增强。必须绝对忠实于原始画面部结构、比例和身份特征。在表情、视线、姿势、相机角度、画面构图和透视关系上保持零偏差。服装、头发、皮肤以及背景元素的结构、位置和设计都必须保持不变。恢复细微层级的细节，呈现自然写实效果。增强毛孔、细纹、发丝、睫毛、织物纹理、缝线以及材质边缘，但不得引入任何风格化处理。颜色科学、白平衡以及整体色调关系必须与原图完全一致。光线方向、强度、对比度以及阴影表现必须与原始图像精确匹配，只允许提升清晰度并扩展动态范围。禁止重新布光，禁止改变形体';
 
 const editorEls={
@@ -25,20 +9,17 @@ const editorEls={
   settings:$('#editorSettings'),settingsValue:$('#editorSettingsValue'),
   ratioGrid:$('#editorRatioGrid'),resolutionGrid:$('#editorResolutionGrid'),
   progress:$('#editorProgress'),progressText:$('#editorProgressText'),
-  progressValue:$('#editorProgressValue'),progressBar:$('#editorProgressBar'),
-  apiModal:$('#modalBackdrop'),apiKey:$('#apiKey'),openSettings:null
+  progressValue:$('#editorProgressValue'),progressBar:$('#editorProgressBar')
 };
 
-initCommonPage({modal:editorEls.apiModal,apiKey:editorEls.apiKey,openSettings:editorEls.openSettings});
+initCommonPage();
 
 const editorItems=[];
 let editorSelectedId=null,editorCounter=0,editorTopZ=1,editorGenerating=false;
 let editorModel='gpt';
-let editorDrafts={
-  gpt:{ratio:'1:1',resolution:'1k'},
-  nano:{ratio:'1:1',resolution:'1K'},
-  grok:{ratio:'1:1',resolution:null}
-};
+let editorDrafts=Object.fromEntries(Object.entries(MODEL_CONFIG).map(([key,config])=>[
+  key,{ratio:config.ratios[0],resolution:config.defaultResolution||null}
+]));
 const editorDrag={id:null,pointerId:null,startX:0,startY:0,originX:0,originY:0};
 const editorResize={id:null,pointerId:null,startX:0,startWidth:0,ratio:1};
 
@@ -184,25 +165,25 @@ editorEls.delete.onclick=()=>{
 };
 
 function setEditorModel(key){
-  if(!EDIT_MODEL_NAMES[key])key='gpt';
+  if(!MODEL_CONFIG[key])key='gpt';
   editorModel=key;
   $$('#editorModels .canvas-edit-model').forEach(button=>{
     const selected=button.dataset.model===key;
     button.classList.toggle('active',selected);button.setAttribute('aria-checked',String(selected));
   });
-  editorEls.prompt.maxLength=EDIT_MODEL_LIMITS[key];renderEditorSettings();
+  editorEls.prompt.maxLength=MODEL_CONFIG[key].promptLimit;renderEditorSettings();
 }
 function renderEditorSettings(){
   const draft=editorDrafts[editorModel];
   editorEls.ratioGrid.innerHTML='';
-  for(const ratio of EDIT_RATIOS[editorModel]){
+  for(const ratio of MODEL_CONFIG[editorModel].ratios){
     const button=document.createElement('button');
     button.type='button';button.className='canvas-edit-option'+(ratio===draft.ratio?' active':'');
     button.textContent=ratio;button.onclick=()=>{draft.ratio=ratio;renderEditorSettings()};
     editorEls.ratioGrid.appendChild(button);
   }
   editorEls.resolutionGrid.innerHTML='';
-  const resolutions=EDIT_RESOLUTIONS[editorModel];
+  const resolutions=MODEL_CONFIG[editorModel].resolutions;
   if(resolutions){
     for(const resolution of resolutions){
       const button=document.createElement('button');
@@ -213,12 +194,12 @@ function renderEditorSettings(){
   }else{
     const automatic=document.createElement('div');
     automatic.className='canvas-edit-auto-resolution';
-    automatic.textContent='自动 · '+(EDIT_GROK_SIZES[draft.ratio]||'1024x1024');
+    automatic.textContent='自动 · '+(MODEL_CONFIG.grok.editSizes[draft.ratio]||'1024x1024');
     editorEls.resolutionGrid.appendChild(automatic);
   }
   const resolutionLabel=resolutions
     ?(resolutions.find(item=>item.v===draft.resolution)?.l.split(' · ')[0]||'自动')
-    :(EDIT_GROK_SIZES[draft.ratio]||'自动');
+    :(MODEL_CONFIG.grok.editSizes[draft.ratio]||'自动');
   editorEls.settingsValue.textContent=draft.ratio+' · '+resolutionLabel;
 }
 function openEditorModal(){
@@ -226,7 +207,7 @@ function openEditorModal(){
   editorDrafts={
     gpt:{...editorDrafts.gpt},nano:{...editorDrafts.nano},grok:{...editorDrafts.grok}
   };
-  setEditorModel(EDIT_MODEL_NAMES[item.model]?item.model:'gpt');
+  setEditorModel(MODEL_CONFIG[item.model]?item.model:'gpt');
   editorEls.prompt.value=item.prompt||'';editorEls.settings.open=false;
   editorEls.modal.classList.add('open','show');requestAnimationFrame(()=>editorEls.prompt.focus());
 }
@@ -245,18 +226,18 @@ function setEditorProgress(show,percent=0,text='正在生成'){
 }
 async function generateEditorImage({model,prompt,ratio,resolution,source}){
   const apiKey=Settings.getKey();
-  if(!apiKey){Settings.openModal({modal:editorEls.apiModal,apiKey:editorEls.apiKey});toast('请先保存 API Key');return}
+  if(!apiKey){Settings.openPage();toast('请先保存 API Key');return}
   if(editorGenerating){toast('图片正在生成，请稍后');return}
-  editorGenerating=true;syncEditor();setEditorProgress(true,2,EDIT_MODEL_NAMES[model]+' 正在生成');
+  editorGenerating=true;syncEditor();setEditorProgress(true,2,MODEL_CONFIG[model].name+' 正在生成');
   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),300000);
   try{
     let body;
     if(model==='gpt'){
-      body={model:'gpt-image-2',prompt,size:ratio,resolution,n:1,image_urls:[source.url]};
+      body={model:MODEL_CONFIG.gpt.editModel,prompt,size:ratio,resolution,n:1,image_urls:[source.url]};
     }else if(model==='nano'){
-      body={model:'nano-banana-2-ext',prompt,size:ratio,resolution,n:1,image_urls:[source.url]};
+      body={model:MODEL_CONFIG.nano.editModel,prompt,size:ratio,resolution,n:1,image_urls:[source.url]};
     }else{
-      body={model:'grok-imagine-1.5-edit-ext',prompt,size:EDIT_GROK_SIZES[ratio]||'1024x1024',n:1,image_urls:[source.url]};
+      body={model:MODEL_CONFIG.grok.editModel,prompt,size:MODEL_CONFIG.grok.editSizes[ratio]||'1024x1024',n:1,image_urls:[source.url]};
     }
     const started=performance.now();
     const url=await Apimart.generate({
@@ -295,7 +276,7 @@ editorEls.hd.onclick=async()=>{
   const source=getEditorItem();if(!source)return;
   const image=editorEls.layer.querySelector('[data-editor-id="'+source.id+'"] img');
   const sourceRatio=(image?.naturalWidth||1)/Math.max(image?.naturalHeight||1,1);
-  const ratio=EDIT_RATIOS.gpt.reduce((best,candidate)=>{
+  const ratio=MODEL_CONFIG.gpt.ratios.reduce((best,candidate)=>{
     const [w,h]=candidate.split(':').map(Number),[bw,bh]=best.split(':').map(Number);
     return Math.abs(Math.log(w/h/sourceRatio))<Math.abs(Math.log(bw/bh/sourceRatio))?candidate:best;
   },'1:1');
@@ -305,27 +286,19 @@ editorEls.hd.onclick=async()=>{
 $('#editorReverse').onclick=async()=>{
   const source=getEditorItem();if(!source)return;
   const apiKey=Settings.getKey();
-  if(!apiKey){Settings.openModal({modal:editorEls.apiModal,apiKey:editorEls.apiKey});toast('请先保存 API Key');return}
+  if(!apiKey){Settings.openPage();toast('请先保存 API Key');return}
   const button=$('#editorReverse'),original=button.innerHTML;
   button.disabled=true;button.textContent='正在反推…';
   try{
-    const response=await fetch(APIMART_BASE+'/chat/completions',{
-      method:'POST',
-      headers:{'Authorization':'Bearer '+apiKey,'Content-Type':'application/json','Accept':'application/json'},
-      body:JSON.stringify({
-        model:'gpt-5.6-luna',
+    const prompt=await Apimart.chat(apiKey,{
+        model:PROMPT_ANALYSIS_MODEL,
         messages:[
           {role:'system',content:'你是一名专业的 AI 图像提示词分析师。忠实识别图片主体，并用中文描述主体、姿态、服装、构图、镜头、光线、色彩、材质、风格和氛围。禁止添加不存在的内容。只输出最终提示词。'},
           {role:'user',content:[{type:'text',text:'请反推一条可直接用于重新生成相似画面的提示词。'},{type:'image_url',image_url:{url:source.url,detail:'high'}}]}
         ],
-        temperature:.35,stream:false
-      })
+        temperature:.35
     });
-    if(!response.ok)throw new Error('反推提示词失败（HTTP '+response.status+'）');
-    const json=await response.json();
-    const prompt=(json.choices||json.data?.choices)?.[0]?.message?.content?.trim();
-    if(!prompt)throw new Error('接口未返回提示词');
-    editorEls.prompt.value=prompt.slice(0,EDIT_MODEL_LIMITS[editorModel]);editorEls.prompt.focus();toast('已生成反推提示词');
+    editorEls.prompt.value=prompt.slice(0,MODEL_CONFIG[editorModel].promptLimit);editorEls.prompt.focus();toast('已生成反推提示词');
   }catch(error){toast(error.message||'反推提示词失败')}
   finally{button.disabled=false;button.innerHTML=original}
 };
@@ -345,12 +318,11 @@ document.addEventListener('keydown',event=>{
   if((event.key==='Delete'||event.key==='Backspace')&&getEditorItem()&&!editorEls.modal.classList.contains('open')&&!event.target.closest('input,textarea')){
     event.preventDefault();editorEls.delete.click();
   }
-  if((event.ctrlKey||event.metaKey)&&(['+','-','=','0'].includes(event.key)||['NumpadAdd','NumpadSubtract','Numpad0'].includes(event.code)))event.preventDefault();
 },{capture:true});
-window.addEventListener('wheel',event=>{if(event.ctrlKey||event.metaKey)event.preventDefault()},{passive:false});
 
 try{
   const payload=JSON.parse(sessionStorage.getItem('mihu_edit_payload')||'null');
+  sessionStorage.removeItem('mihu_edit_payload');
   if(payload?.url)addEditorItem(payload);
 }catch(_){}
 syncEditor();setEditorModel('gpt');

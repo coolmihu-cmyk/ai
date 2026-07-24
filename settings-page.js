@@ -34,6 +34,4 @@ if(returnPath&&/^(?:index|edit|assets)\.html$/.test(returnPath)){
 
 document.addEventListener('keydown',event=>{
   if((event.ctrlKey||event.metaKey)&&event.key==='Enter')$('#settingsSave').click();
-  if((event.ctrlKey||event.metaKey)&&(['+','-','=','0'].includes(event.key)||['NumpadAdd','NumpadSubtract','Numpad0'].includes(event.code)))event.preventDefault();
 },{capture:true});
-window.addEventListener('wheel',event=>{if(event.ctrlKey||event.metaKey)event.preventDefault()},{passive:false});
