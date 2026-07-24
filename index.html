@@ -1,16 +1,22 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="color-scheme" content="light">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>创作 · MIHU DESIGN OS</title>
 <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/layout.css">
-  <link rel="stylesheet" href="css/components.css">
-  <link rel="stylesheet" href="css/pages.css">
-  <link rel="stylesheet" href="css/modern-ui.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/base.css?v=20260724-14">
+  <link rel="stylesheet" href="css/layout.css?v=20260724-14">
+  <link rel="stylesheet" href="css/components.css?v=20260724-14">
+  <link rel="stylesheet" href="css/pages.css?v=20260724-14">
+  <link rel="stylesheet" href="css/modern-ui.css?v=20260724-14">
 </head>
 <body class="home-page">
 
@@ -39,9 +45,8 @@
 <div class="app">
   <main class="main">
     <section class="home-intro" aria-labelledby="homeIntroTitle">
-      <h1 id="homeIntroTitle" aria-label="把想象，交给你">
-        <span id="homeTypingText" data-text="把想象，交给你">把想象，交给你</span><i class="home-typing-caret" aria-hidden="true"></i>
-      </h1>
+      <h1 id="homeIntroTitle"><span>MIHU DESIGN <strong>OS</strong></span></h1>
+      <img class="home-mascot" src="image/cat.png?v=20260724-14" alt="拿着画笔的黑猫">
     </section>
 
   <div class="bottom-area">
@@ -113,15 +118,18 @@
   </main>
 </div>
 
+<footer class="home-site-address">PIC.SUPMIHU.CN</footer>
+<button class="home-help-button" type="button" aria-label="帮助功能即将开放" title="帮助功能即将开放">?</button>
+
 <!-- 隐藏的文件输入 -->
 <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden>
 
 <div class="toast" id="toast"></div>
 
-<script src="shared.js"></script>
-<script src="core.js"></script>
-<script src="model-ui.js"></script>
-<script src="generation.js"></script>
-<script src="app.js"></script>
+<script src="shared.js?v=20260724-14"></script>
+<script src="core.js?v=20260724-14"></script>
+<script src="model-ui.js?v=20260724-14"></script>
+<script src="generation.js?v=20260724-14"></script>
+<script src="app.js?v=20260724-14"></script>
 </body>
 </html>

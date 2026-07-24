@@ -102,12 +102,19 @@ function showGeneration(job){
   const reference=references.find(url=>typeof url==='string'&&url);
   assetsEls.generation.classList.toggle('has-reference',!!reference);
   assetsEls.generationVisual.hidden=!reference;
+  assetsEls.generationReference.hidden=!reference;
   assetsEls.generationReference.onerror=()=>{
     assetsEls.generationVisual.hidden=true;
+    assetsEls.generationReference.hidden=true;
+    assetsEls.generationReference.removeAttribute('src');
     assetsEls.generation.classList.remove('has-reference');
   };
-  if(reference)assetsEls.generationReference.src=reference;
-  else assetsEls.generationReference.removeAttribute('src');
+  if(reference){
+    assetsEls.generationReference.hidden=false;
+    assetsEls.generationReference.src=reference;
+  }else{
+    assetsEls.generationReference.removeAttribute('src');
+  }
   assetsEls.generationModel.textContent=ASSET_MODEL_NAMES[job.model]||job.model||'生成任务';
   assetsEls.generationPrompt.textContent=job.prompt||'正在生成图片';
   assetsEls.generationStatus.textContent=job.taskId?'正在恢复任务':'正在提交任务';

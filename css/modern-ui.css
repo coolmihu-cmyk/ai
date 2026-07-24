@@ -239,20 +239,33 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   z-index:2;
   width:min(920px,100%);
   margin:0;
-  text-align:center;
+  padding:0 clamp(20px,4vw,56px);
+  display:flex;
+  align-items:center;
+  gap:18px;
+  text-align:left;
   pointer-events:none;
 }
+.home-mascot{
+  width:clamp(150px,16vw,220px);
+  height:auto;
+  margin:0 0 0 auto;
+  object-fit:contain;
+  transform:translateX(22px) translateY(clamp(74px,6vw,92px));
+  user-select:none;
+}
 .home-intro h1{
-  width:7.2em;
-  margin:0 auto;
-  color:var(--ui-ink);
-  font-family:Inter,-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
-  font-size:clamp(36px,4.6vw,64px);
-  font-weight:760;
-  line-height:.96;
-  letter-spacing:.035em;
-  text-align:center;
+  width:auto;
+  margin:0;
+  color:#141313;
+  font-family:"Montserrat",Inter,-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  font-size:clamp(22px,2.6vw,34px);
+  font-weight:740;
+  line-height:1;
+  letter-spacing:.1em;
+  text-align:left;
   text-transform:none;
+  transform:translateY(clamp(68px,5.5vw,82px));
   white-space:nowrap;
 }
 .home-intro h1 > span{
@@ -261,7 +274,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   min-height:.96em;
   display:inline-block;
   overflow:visible;
-  color:var(--ui-ink);
+  color:inherit;
   opacity:1;
   border-right:0;
   white-space:nowrap;
@@ -269,6 +282,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   transform:none;
   animation:none;
 }
+.home-intro h1 strong{font-weight:900}
 .home-typing-caret{display:none}
 .home-page .main > .bottom-area{
   position:relative;
@@ -279,6 +293,43 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   gap:12px;
   flex:0 0 auto;
 }
+.home-intro,
+.home-page .main > .bottom-area{transform:translateY(-42px)}
+.home-site-address{
+  position:fixed;
+  left:50%;
+  bottom:22px;
+  z-index:20;
+  color:#a1a5a9;
+  font-family:"Montserrat",Inter,-apple-system,BlinkMacSystemFont,sans-serif;
+  font-size:10px;
+  font-weight:650;
+  line-height:1;
+  letter-spacing:.18em;
+  transform:translateX(-50%);
+  pointer-events:none;
+  user-select:none;
+}
+.home-help-button{
+  position:fixed;
+  right:24px;
+  bottom:20px;
+  z-index:70;
+  width:36px;
+  height:36px;
+  display:grid;
+  place-items:center;
+  border:1px solid var(--ui-line-strong);
+  border-radius:50%;
+  background:#fff;
+  color:#777d82;
+  box-shadow:0 7px 20px rgba(17,19,21,.08);
+  font-size:16px;
+  font-weight:700;
+  line-height:1;
+  transition:border-color .16s,color .16s,transform .16s;
+}
+.home-help-button:hover{border-color:#aeb2b5;color:#141313;transform:translateY(-1px)}
 .home-page .composer{
   width:100%;
   padding:22px 24px 16px;
@@ -996,6 +1047,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   border-radius:16px;
   background:var(--ui-soft);
 }
+.assets-generation-visual[hidden],
+.assets-generation-visual img[hidden]{display:none!important}
 .assets-generation-visual img{width:100%;height:100%;display:block;object-fit:cover}
 .assets-generation.is-failed .assets-generation-visual{opacity:.55}
 .assets-generation.is-failed .assets-generation-visual img{filter:grayscale(1)}
@@ -1114,6 +1167,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 
 @media(max-width:720px){
   body{overflow:auto}
+  .home-intro,
+  .home-page .main > .bottom-area{transform:translateY(-22px)}
+  .home-site-address{bottom:98px}
+  .home-help-button{right:16px;bottom:92px}
   .app-rail{
     inset:auto 10px 10px;
     width:auto;
@@ -1198,7 +1255,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 }
 
 @media(max-width:430px){
-  .home-intro h1{font-size:30px}
+  .home-intro{padding:0 14px;gap:10px}
+  .home-mascot{width:120px;transform:translateX(8px) translateY(66px)}
+  .home-intro h1{font-size:17px;letter-spacing:.07em;transform:translateY(70px)}
   .home-page .composer-input{min-height:96px}
   .home-page .prompt-char-counter{display:flex}
   .assets-generation{grid-template-columns:48px minmax(0,1fr)}
