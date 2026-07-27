@@ -111,6 +111,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 }
 .rail-item svg,.rail-icon{width:21px;height:21px;flex:0 0 21px}
 .rail-icon{display:block;object-fit:contain;filter:none;opacity:.72;transition:filter .18s,opacity .18s}
+.rail-icon[src$="video.svg"]{width:18px;height:18px;flex-basis:18px}
 .rail-icon[src$="photo.svg"]{width:17px;height:17px;flex-basis:17px}
 .rail-item:hover{background:#fff;color:var(--ui-ink);transform:translateY(-1px)}
 .rail-item:hover .rail-icon{filter:none;opacity:1}
