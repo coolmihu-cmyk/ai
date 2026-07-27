@@ -9,16 +9,16 @@
 <meta http-equiv="Expires" content="0">
 <title>图片 · MIHU DESIGN OS</title>
 <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/base.css?v=20260727-12">
-  <link rel="stylesheet" href="css/layout.css?v=20260727-12">
-  <link rel="stylesheet" href="css/components.css?v=20260727-12">
-  <link rel="stylesheet" href="css/pages.css?v=20260727-12">
-  <link rel="stylesheet" href="css/modern-ui.css?v=20260727-12">
+  <link rel="preload" href="fonts/montserrat-latin-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/base.css?v=20260727-30">
+  <link rel="stylesheet" href="css/layout.css?v=20260727-30">
+  <link rel="stylesheet" href="css/components.css?v=20260727-30">
+  <link rel="stylesheet" href="css/pages.css?v=20260727-30">
+  <link rel="stylesheet" href="css/modern-ui.css?v=20260727-30">
 </head>
 <body class="home-page">
+
+<canvas class="shapegrid-background" id="homeShapeGrid" aria-hidden="true"></canvas>
 
 <nav class="app-rail" aria-label="主要功能">
   <a class="rail-brand" href="index.html" title="Pic.supmihu.cn"><img src="logo.png" alt=""></a>
@@ -31,9 +31,9 @@
       <img class="rail-icon" src="icon/video.svg" alt="" aria-hidden="true">
       <span>视频</span>
     </a>
-    <a class="rail-item" href="assets.html" title="资产">
+    <a class="rail-item" href="assets.html" title="历史">
       <img class="rail-icon" src="icon/photo.svg" alt="" aria-hidden="true">
-      <span>资产</span>
+      <span>历史</span>
     </a>
     <a class="rail-item" href="edit.html" title="编辑">
       <img class="rail-icon" src="icon/edit.svg" alt="" aria-hidden="true">
@@ -50,7 +50,7 @@
   <main class="main">
     <section class="home-intro" aria-labelledby="homeIntroTitle">
       <h1 id="homeIntroTitle"><span>MIHU DESIGN <strong>OS</strong></span></h1>
-      <img class="home-mascot" src="image/cat.png?v=20260727-12" alt="拿着画笔的黑猫">
+      <img class="home-mascot" src="image/cat.png?v=20260727-30" alt="拿着画笔的黑猫">
     </section>
 
   <div class="bottom-area">
@@ -130,10 +130,11 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="shared.js?v=20260727-12"></script>
-<script src="core.js?v=20260727-12"></script>
-<script src="model-ui.js?v=20260727-12"></script>
-<script src="generation.js?v=20260727-12"></script>
-<script src="app.js?v=20260727-12"></script>
+<script src="shape-grid.js?v=20260727-30"></script>
+<script src="shared.js?v=20260727-30"></script>
+<script src="core.js?v=20260727-30"></script>
+<script src="model-ui.js?v=20260727-30"></script>
+<script src="generation.js?v=20260727-30"></script>
+<script src="app.js?v=20260727-30"></script>
 </body>
 </html>

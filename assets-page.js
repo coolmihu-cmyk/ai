@@ -112,12 +112,12 @@ function renderAssets(){
       const editText=document.createElement('span');editText.textContent='编辑';edit.appendChild(editText);
       edit.onclick=()=>openAssetEditor(item);actions.appendChild(edit);
     }
-    const remove=document.createElement('button');remove.type='button';remove.className='asset-delete';remove.title='删除资产';
+    const remove=document.createElement('button');remove.type='button';remove.className='asset-delete';remove.title='删除记录';
     remove.appendChild(assetIcon(['M4 7h16','M9 7V5h6v2','M7 7l1 13h8l1-13','M10 11v5','M14 11v5']));
     remove.onclick=async()=>{
       remove.disabled=true;
       if(!await History.delete(item.id)){remove.disabled=false;toast('删除失败');return}
-      assetItems=assetItems.filter(asset=>asset.id!==item.id);renderAssets();toast('已删除资产');
+      assetItems=assetItems.filter(asset=>asset.id!==item.id);renderAssets();toast('已删除记录');
     };
     actions.appendChild(remove);card.append(media,meta,actions);dayGrid.appendChild(card);
   }

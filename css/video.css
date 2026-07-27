@@ -53,7 +53,7 @@
   align-items:center;
   gap:11px;
   border:1px solid var(--ui-line);
-  border-radius:15px;
+  border-radius:9px;
   background:var(--ui-soft);
 }
 .video-model-badge span{
@@ -72,7 +72,7 @@
 }
 .video-creator,.video-output{
   border:1px solid var(--ui-line);
-  border-radius:24px;
+  border-radius:14px;
   background:#fff;
   box-shadow:var(--ui-shadow-soft);
 }
@@ -98,7 +98,7 @@
   margin-top:16px;
   padding:15px 16px;
   border:1px solid var(--ui-line);
-  border-radius:17px;
+  border-radius:10px;
   background:var(--ui-soft);
 }
 .video-prompt-wrap textarea{
@@ -245,7 +245,7 @@
   justify-content:center;
   gap:4px;
   border:1px dashed var(--ui-line-strong);
-  border-radius:16px;
+  border-radius:10px;
   background:#fff;
   color:var(--ui-muted);
   transition:border-color .16s,background-color .16s;
@@ -293,7 +293,7 @@
   justify-content:center;
   gap:5px;
   border:1px dashed var(--ui-line-strong);
-  border-radius:16px;
+  border-radius:10px;
   background:#fff;
 }
 .video-frame-slot > span{font-size:20px}
@@ -455,7 +455,7 @@
   display:grid;
   place-items:center;
   border:1px solid var(--ui-line);
-  border-radius:28px;
+  border-radius:14px;
   background:var(--ui-soft);
 }
 .video-empty-mark span{
@@ -486,7 +486,7 @@
   width:100%;
   max-height:520px;
   display:block;
-  border-radius:17px;
+  border-radius:10px;
   background:#111;
   box-shadow:0 18px 42px rgba(17,19,21,.12);
 }
@@ -513,7 +513,7 @@
     height:calc(100dvh - 104px);
     margin:10px 10px 94px;
     padding:24px 15px 34px;
-    border-radius:22px;
+    border-radius:14px;
   }
   .video-header{margin-bottom:22px;align-items:flex-start}
   .video-header h1{font-size:42px}
@@ -521,7 +521,7 @@
   .video-model-badge{min-width:0;padding:8px}
   .video-model-badge span{width:34px;height:34px}
   .video-model-badge strong{display:none}
-  .video-creator,.video-output{padding:17px;border-radius:19px}
+  .video-creator,.video-output{padding:17px;border-radius:11px}
   .video-parameter-grid{grid-template-columns:1fr}
   .video-reference-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
   .video-advanced-content{grid-template-columns:1fr}
