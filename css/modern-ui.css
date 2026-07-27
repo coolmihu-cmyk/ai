@@ -233,6 +233,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   transform:translateX(22px) translateY(clamp(74px,6vw,92px));
   user-select:none;
 }
+.home-title-block{
+  min-width:0;
+  transform:translateY(clamp(68px,5.5vw,82px));
+}
 .home-intro h1{
   width:auto;
   margin:0;
@@ -244,7 +248,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   letter-spacing:.1em;
   text-align:left;
   text-transform:none;
-  transform:translateY(clamp(68px,5.5vw,82px));
+  transform:none;
   white-space:nowrap;
 }
 .home-intro h1 > span{
@@ -262,6 +266,25 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   animation:none;
 }
 .home-intro h1 strong{font-weight:900}
+.home-artist-quote{
+  min-height:20px;
+  max-width:520px;
+  margin:12px 0 0;
+  color:#7c8185;
+  font-size:12px;
+  font-weight:450;
+  line-height:1.6;
+  letter-spacing:.025em;
+  opacity:0;
+  transition:opacity .3s ease;
+}
+.home-artist-quote.is-ready{opacity:1}
+.home-artist-quote cite{
+  margin-left:7px;
+  color:#a0a4a7;
+  font-style:normal;
+  white-space:nowrap;
+}
 .home-typing-caret{display:none}
 .home-page .main > .bottom-area{
   position:relative;
@@ -1237,7 +1260,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 @media(max-width:430px){
   .home-intro{padding:0 14px;gap:10px}
   .home-mascot{width:120px;transform:translateX(8px) translateY(66px)}
-  .home-intro h1{font-size:17px;letter-spacing:.07em;transform:translateY(70px)}
+  .home-title-block{transform:translateY(70px)}
+  .home-intro h1{font-size:17px;letter-spacing:.07em;transform:none}
+  .home-artist-quote{max-width:280px;margin-top:8px;font-size:10px;line-height:1.5}
   .home-page .composer-input{min-height:96px}
   .home-page .prompt-char-counter{display:flex}
   .assets-generation{grid-template-columns:48px minmax(0,1fr)}
