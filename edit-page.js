@@ -1,10 +1,11 @@
 "use strict";
 
 const EDIT_HD_PROMPT='基于提供的参考图像进行严格的超高分辨率4K增强。必须绝对忠实于原始画面部结构、比例和身份特征。在表情、视线、姿势、相机角度、画面构图和透视关系上保持零偏差。服装、头发、皮肤以及背景元素的结构、位置和设计都必须保持不变。恢复细微层级的细节，呈现自然写实效果。增强毛孔、细纹、发丝、睫毛、织物纹理、缝线以及材质边缘，但不得引入任何风格化处理。颜色科学、白平衡以及整体色调关系必须与原图完全一致。光线方向、强度、对比度以及阴影表现必须与原始图像精确匹配，只允许提升清晰度并扩展动态范围。禁止重新布光，禁止改变形体';
+const EDITOR_JOB_ID='editor-generation';
 
 const editorEls={
   layer:$('#editorCanvasLayer'),empty:$('#editorEmpty'),upload:$('#editorUpload'),fileInput:$('#editorFileInput'),
-  edit:$('#editorEdit'),hd:$('#editorHD'),delete:$('#editorDelete'),
+  edit:$('#editorEdit'),hd:$('#editorHD'),open:$('#editorOpen'),delete:$('#editorDelete'),
   modal:$('#editorEditModal'),prompt:$('#editorPrompt'),models:$('#editorModels'),
   settings:$('#editorSettings'),settingsValue:$('#editorSettingsValue'),
   ratioGrid:$('#editorRatioGrid'),resolutionGrid:$('#editorResolutionGrid'),
@@ -16,6 +17,7 @@ initCommonPage();
 
 const editorItems=[];
 let editorSelectedId=null,editorCounter=0,editorTopZ=1,editorGenerating=false;
+let editorGenerationController=null;
 let editorModel='gpt';
 let editorDrafts=Object.fromEntries(Object.entries(MODEL_CONFIG).map(([key,config])=>[
   key,{ratio:config.ratios[0],resolution:config.defaultResolution||null}
@@ -30,6 +32,7 @@ function syncEditor(){
   editorEls.empty.hidden=editorItems.length>0;
   editorEls.edit.disabled=!selected||editorGenerating;
   editorEls.hd.disabled=!selected||editorGenerating;
+  editorEls.open.disabled=!selected;
   editorEls.delete.disabled=!selected||editorGenerating;
 }
 function editorLimits(){
@@ -224,42 +227,100 @@ function setEditorProgress(show,percent=0,text='正在生成'){
   editorEls.progressBar.style.width=value+'%';editorEls.progressValue.textContent=Math.round(value)+'%';
   editorEls.progressText.textContent=text;
 }
+function buildEditorRequest(model,prompt,ratio,resolution,sourceUrl){
+  if(model==='gpt'){
+    return {model:MODEL_CONFIG.gpt.editModel,prompt,size:ratio,resolution,n:1,image_urls:[sourceUrl]};
+  }
+  if(model==='nano'){
+    return {model:MODEL_CONFIG.nano.editModel,prompt,size:ratio,resolution,n:1,image_urls:[sourceUrl]};
+  }
+  return {
+    model:MODEL_CONFIG.grok.editModel,prompt,
+    size:MODEL_CONFIG.grok.editSizes[ratio]||'1024x1024',
+    n:1,image_urls:[sourceUrl]
+  };
+}
+
+async function runEditorJob(job){
+  const apiKey=Settings.getKey();
+  if(!apiKey){Settings.openPage();toast('请先保存 API Key');return}
+  if(editorGenerating){toast('图片正在生成，请稍后');return}
+  const model=job.model,prompt=job.prompt,ratio=job.ratio,resolution=job.resolution;
+  editorGenerating=true;syncEditor();
+  setEditorProgress(true,job.taskId?8:2,job.taskId?'正在恢复生成任务':MODEL_CONFIG[model].name+' 正在生成');
+  const controller=new AbortController();
+  editorGenerationController=controller;
+  const timeout=setTimeout(()=>controller.abort(),300000);
+  try{
+    if(!job.taskId){
+      job.taskId=await Apimart.submitTask(apiKey,job.body,job.endpoint,controller.signal);
+      await PendingGeneration.save(job);
+      setEditorProgress(true,5,'任务已提交');
+    }
+    const url=await Apimart.pollTask(
+      apiKey,job.taskId,
+      (status,progress)=>{
+        setEditorProgress(true,progress||8,status==='queued'?'等待算力接入':'正在生成图片');
+      },
+      controller.signal
+    );
+    let source=getEditorItem(job.source?.id);
+    if(source&&source.url!==job.source?.url)source=null;
+    if(!source&&job.source?.url){
+      source=addEditorItem(job.source);
+      job.source={...job.source,id:source.id};
+    }
+    const item=addEditorItem({url,prompt,model},{replaceId:source?.id||null});
+    const historyItem={
+      id:Date.now(),url,prompt,model,settings:{ratio,...(resolution?{resolution}:{})},
+      createdAt:new Date().toISOString(),
+      durationMs:Math.max(0,Date.now()-new Date(job.createdAt||Date.now()).getTime())
+    };
+    await History.save(historyItem);
+    await PendingGeneration.delete(job.id);
+    selectEditorItem(item.id);setEditorProgress(true,100,'图片生成完成');
+    setTimeout(()=>setEditorProgress(false),700);toast('画布图片已更新');
+  }catch(error){
+    const message=error.message||'生成失败';
+    const terminal=message.startsWith('生成失败：')||message==='任务已取消';
+    if(terminal){
+      await PendingGeneration.delete(job.id);
+      setEditorProgress(false);
+      toast(message);
+    }else{
+      setEditorProgress(true,8,error.name==='AbortError'?'等待已暂停，重新进入编辑页将继续':'查询暂时中断，重新进入编辑页将继续');
+      toast(error.name==='AbortError'?'生成任务仍在进行，可稍后返回查看':'生成任务已保留，可重新进入编辑页继续');
+    }
+  }finally{
+    clearTimeout(timeout);
+    if(editorGenerationController===controller)editorGenerationController=null;
+    editorGenerating=false;syncEditor();
+  }
+}
+
 async function generateEditorImage({model,prompt,ratio,resolution,source}){
   const apiKey=Settings.getKey();
   if(!apiKey){Settings.openPage();toast('请先保存 API Key');return}
   if(editorGenerating){toast('图片正在生成，请稍后');return}
-  editorGenerating=true;syncEditor();setEditorProgress(true,2,MODEL_CONFIG[model].name+' 正在生成');
-  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),300000);
-  try{
-    let body;
-    if(model==='gpt'){
-      body={model:MODEL_CONFIG.gpt.editModel,prompt,size:ratio,resolution,n:1,image_urls:[source.url]};
-    }else if(model==='nano'){
-      body={model:MODEL_CONFIG.nano.editModel,prompt,size:ratio,resolution,n:1,image_urls:[source.url]};
-    }else{
-      body={model:MODEL_CONFIG.grok.editModel,prompt,size:MODEL_CONFIG.grok.editSizes[ratio]||'1024x1024',n:1,image_urls:[source.url]};
-    }
-    const started=performance.now();
-    const url=await Apimart.generate({
-      apiKey,body,endpoint:'/images/generations',signal:controller.signal,
-      onProgress:(status,progress,retryMessage)=>{
-        if(retryMessage){setEditorProgress(true,Math.max(2,progress||0),retryMessage);return}
-        setEditorProgress(true,progress||8,status==='queued'?'等待算力接入':'正在生成图片');
-      }
-    });
-    const item=addEditorItem({url,prompt,model},{replaceId:source.id});
-    const historyItem={
-      id:Date.now(),url,prompt,model,settings:{ratio,...(resolution?{resolution}:{})},
-      createdAt:new Date().toISOString(),durationMs:Math.round(performance.now()-started)
-    };
-    await History.save(historyItem);selectEditorItem(item.id);setEditorProgress(true,100,'图片生成完成');
-    setTimeout(()=>setEditorProgress(false),700);toast('画布图片已更新');
-  }catch(error){
-    setEditorProgress(false);
-    toast(error.name==='AbortError'?'请求超时，请稍后重试':(error.message||'生成失败'));
-  }finally{
-    clearTimeout(timeout);editorGenerating=false;syncEditor();
+  const existing=await PendingGeneration.loadById(EDITOR_JOB_ID);
+  if(existing){
+    toast('正在恢复上一次编辑任务');
+    await runEditorJob(existing);
+    return;
   }
+  const job={
+    id:EDITOR_JOB_ID,scope:'editor',
+    body:buildEditorRequest(model,prompt,ratio,resolution,source.url),
+    endpoint:'/images/generations',model,prompt,ratio,resolution,
+    source:{...source},createdAt:new Date().toISOString(),taskId:null
+  };
+  try{
+    await PendingGeneration.save(job);
+  }catch(_){
+    toast('无法保存生成任务，请检查浏览器存储权限');
+    return;
+  }
+  await runEditorJob(job);
 }
 
 $('#editorEditSubmit').onclick=async()=>{
@@ -282,6 +343,10 @@ editorEls.hd.onclick=async()=>{
   },'1:1');
   editorDrafts.gpt.ratio=ratio;editorDrafts.gpt.resolution='4k';
   await generateEditorImage({model:'gpt',prompt:EDIT_HD_PROMPT,ratio,resolution:'4k',source:{...source}});
+};
+editorEls.open.onclick=()=>{
+  const source=getEditorItem();
+  if(source?.url)openImage(source.url);
 };
 $('#editorReverse').onclick=async()=>{
   const source=getEditorItem();if(!source)return;
@@ -326,3 +391,26 @@ try{
   if(payload?.url)addEditorItem(payload);
 }catch(_){}
 syncEditor();setEditorModel('gpt');
+
+requestAnimationFrame(async()=>{
+  const pending=await PendingGeneration.loadById(EDITOR_JOB_ID);
+  if(!pending)return;
+  let source=getEditorItem(pending.source?.id);
+  if(source&&source.url!==pending.source?.url)source=null;
+  if(!source&&pending.source?.url){
+    source=addEditorItem(pending.source);
+    pending.source={...pending.source,id:source.id};
+    await PendingGeneration.save(pending);
+  }
+  await runEditorJob(pending);
+});
+
+window.addEventListener('pagehide',()=>editorGenerationController?.abort());
+window.addEventListener('pageshow',event=>{
+  if(!event.persisted)return;
+  setTimeout(async()=>{
+    if(editorGenerating)return;
+    const pending=await PendingGeneration.loadById(EDITOR_JOB_ID);
+    if(pending)await runEditorJob(pending);
+  },0);
+});

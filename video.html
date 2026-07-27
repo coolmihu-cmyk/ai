@@ -1,0 +1,231 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="color-scheme" content="light">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>视频 · MIHU DESIGN OS</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="stylesheet" href="css/base.css?v=20260727-12">
+<link rel="stylesheet" href="css/pages.css?v=20260727-12">
+<link rel="stylesheet" href="css/modern-ui.css?v=20260727-12">
+<link rel="stylesheet" href="css/video.css?v=20260727-12">
+</head>
+<body class="video-page">
+
+<nav class="app-rail" aria-label="主要功能">
+  <a class="rail-brand" href="index.html" title="Pic.supmihu.cn"><img src="logo.png" alt=""></a>
+  <div class="rail-nav">
+    <a class="rail-item" href="index.html" title="图片">
+      <img class="rail-icon" src="icon/chuangzuo.svg" alt="" aria-hidden="true">
+      <span>图片</span>
+    </a>
+    <a class="rail-item active" href="video.html" aria-current="page" title="视频">
+      <img class="rail-icon" src="icon/video.svg" alt="" aria-hidden="true">
+      <span>视频</span>
+    </a>
+    <a class="rail-item" href="assets.html" title="资产">
+      <img class="rail-icon" src="icon/photo.svg" alt="" aria-hidden="true">
+      <span>资产</span>
+    </a>
+    <a class="rail-item" href="edit.html" title="编辑">
+      <img class="rail-icon" src="icon/edit.svg" alt="" aria-hidden="true">
+      <span>编辑</span>
+    </a>
+    <a class="rail-item" href="settings.html" title="设置">
+      <img class="rail-icon" src="icon/shezhi.svg" alt="" aria-hidden="true">
+      <span>设置</span>
+    </a>
+  </div>
+</nav>
+
+<main class="video-shell">
+  <header class="video-header">
+    <div>
+      <span class="video-kicker">MOTION LAB</span>
+      <h1>视频</h1>
+      <p>用 Seedance 2.0 把静止的念头变成一段完整镜头。</p>
+    </div>
+    <div class="video-model-badge"><span>SD2</span><strong>Seedance 2.0</strong></div>
+  </header>
+
+  <div class="video-workspace">
+    <section class="video-creator" aria-labelledby="videoCreateTitle">
+      <div class="video-section-heading">
+        <div><span>DIRECT</span><h2 id="videoCreateTitle">描述镜头</h2></div>
+        <small><b id="videoPromptCount">0</b>/4000</small>
+      </div>
+
+      <div class="video-prompt-wrap">
+        <textarea id="videoPrompt" maxlength="4000" placeholder="描述主体、动作、镜头运动、环境与声音，例如：雨夜街头，镜头低位跟随一只黑猫穿过霓虹倒影，电影感，浅景深…"></textarea>
+      </div>
+
+      <div class="video-parameter-grid">
+        <label class="video-field">
+          <span>时长</span>
+          <div class="video-duration-control">
+            <input id="videoDuration" type="range" min="5" max="15" value="5">
+            <output id="videoDurationValue" for="videoDuration">5 秒</output>
+          </div>
+        </label>
+        <div class="video-field">
+          <span>宽高比</span>
+          <div class="creation-select creation-ratio-select creation-dropdown video-parameter-select" data-video-dropdown="ratio">
+            <select id="videoSize" aria-label="视频宽高比">
+              <option value="16:9">16:9 · 横屏</option>
+              <option value="9:16" selected>9:16 · 竖屏</option>
+              <option value="1:1">1:1 · 方形</option>
+              <option value="4:3">4:3 · 传统横屏</option>
+              <option value="3:4">3:4 · 传统竖屏</option>
+              <option value="21:9">21:9 · 超宽屏</option>
+              <option value="adaptive">自适应</option>
+            </select>
+            <button class="creation-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+              <span class="creation-select-copy"><strong data-video-current>9:16 · 竖屏</strong></span>
+              <span class="creation-select-visual" data-video-visual aria-hidden="true"></span>
+              <svg class="creation-select-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4.5 6.5 3.5 3 3.5-3"/></svg>
+            </button>
+            <div class="creation-select-menu creation-ratio-menu" role="listbox" aria-label="选择视频宽高比"></div>
+          </div>
+        </div>
+        <div class="video-field">
+          <span>分辨率</span>
+          <div class="creation-select creation-resolution-select creation-dropdown video-parameter-select" data-video-dropdown="resolution">
+            <select id="videoResolution" aria-label="视频分辨率">
+              <option value="480p">480P · 标清</option>
+              <option value="720p" selected>720P · 高清</option>
+              <option value="1080p">1080P · 全高清</option>
+              <option value="4k">4K · 超高清</option>
+            </select>
+            <button class="creation-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+              <span class="creation-select-copy"><strong data-video-current>720P · 高清</strong></span>
+              <span class="creation-select-visual creation-resolution-mark" data-video-visual aria-hidden="true">720P</span>
+              <svg class="creation-select-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4.5 6.5 3.5 3 3.5-3"/></svg>
+            </button>
+            <div class="creation-select-menu" role="listbox" aria-label="选择视频分辨率"></div>
+          </div>
+        </div>
+      </div>
+
+      <section class="video-materials" aria-labelledby="videoMaterialsTitle">
+        <div class="video-section-heading compact">
+          <div><span>REFERENCE</span><h2 id="videoMaterialsTitle">参考素材</h2></div>
+          <small>可选</small>
+        </div>
+        <div class="video-mode-tabs" role="tablist" aria-label="参考图模式">
+          <button class="active" type="button" role="tab" aria-selected="true" data-video-mode="reference">参考图</button>
+          <button type="button" role="tab" aria-selected="false" data-video-mode="frames">首尾帧</button>
+        </div>
+
+        <div class="video-upload-panel" data-video-panel="reference">
+          <button class="video-dropzone" id="videoReferenceButton" type="button">
+            <span class="video-dropzone-icon">＋</span>
+            <strong>添加参考图</strong>
+            <small>最多9张 · JPG、PNG、WebP、GIF · 单张不超过20MB</small>
+          </button>
+          <div class="video-reference-grid" id="videoReferenceGrid"></div>
+          <input id="videoReferenceInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden>
+        </div>
+
+        <div class="video-upload-panel" data-video-panel="frames" hidden>
+          <div class="video-frame-grid">
+            <button class="video-frame-slot" id="videoFirstFrameButton" type="button">
+              <span>＋</span><strong>首帧图</strong><small>视频起始画面</small>
+            </button>
+            <button class="video-frame-slot" id="videoLastFrameButton" type="button">
+              <span>＋</span><strong>尾帧图</strong><small>视频结束画面</small>
+            </button>
+          </div>
+          <input id="videoFirstFrameInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+          <input id="videoLastFrameInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+        </div>
+      </section>
+
+      <details class="video-advanced">
+        <summary>高级设置 <span>展开</span></summary>
+        <div class="video-advanced-content">
+          <label class="video-field">
+            <span>随机种子</span>
+            <input id="videoSeed" type="number" inputmode="numeric" placeholder="随机">
+          </label>
+          <div class="video-switch-list">
+            <label><span><strong>生成音频</strong><small>输出带配套声音的视频</small></span><input id="videoGenerateAudio" type="checkbox" checked><i></i></label>
+            <label><span><strong>返回尾帧</strong><small>便于继续生成下一段视频</small></span><input id="videoReturnLastFrame" type="checkbox"><i></i></label>
+            <label><span><strong>联网搜索</strong><small>生成时参考网络信息</small></span><input id="videoWebSearch" type="checkbox"><i></i></label>
+          </div>
+          <div class="video-url-grid">
+            <label class="video-field">
+              <span>参考视频 URL</span>
+              <textarea id="videoReferenceUrls" placeholder="每行一个 URL，最多3个"></textarea>
+              <small>总时长1.8–15.2秒，分辨率480P–720P，不可出现真人。</small>
+            </label>
+            <label class="video-field">
+              <span>参考音频 URL</span>
+              <textarea id="videoAudioUrls" placeholder="每行一个 URL，最多3个"></textarea>
+              <small>总时长不超过15秒，必须同时使用参考图片或参考视频。</small>
+            </label>
+          </div>
+        </div>
+      </details>
+
+      <div class="video-error" id="videoError" role="alert" hidden></div>
+      <div class="video-submit-row">
+        <div class="video-submit-info">
+          <div class="video-credit-estimate">
+            <span>参考积分</span>
+            <strong id="videoCreditEstimate">7.10 Credits</strong>
+            <small id="videoCreditNote">按生成时长估算</small>
+          </div>
+          <p>生成结果链接仅保存72小时，请及时下载。</p>
+        </div>
+        <button class="video-generate-button" id="videoGenerateButton" type="button">
+          <span>生成视频</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.1 6.9L21 12l-6.9 2.1L12 21l-2.1-6.9L3 12l6.9-2.1L12 3Z"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <section class="video-output" aria-labelledby="videoOutputTitle">
+      <div class="video-output-heading">
+        <div><span>SCREENING</span><h2 id="videoOutputTitle">放映</h2></div>
+        <small id="videoOutputMeta">等待创作</small>
+      </div>
+
+      <div class="video-empty-state" id="videoEmptyState">
+        <div class="video-empty-mark"><span></span></div>
+        <strong>镜头会在这里出现</strong>
+        <p>输入提示词，也可以加入参考图或首尾帧。</p>
+      </div>
+
+      <div class="video-progress-state" id="videoProgressState" hidden>
+        <div class="video-progress-visual"><i></i><i></i><i></i></div>
+        <span id="videoProgressStatus">正在提交任务</span>
+        <strong id="videoProgressPercent">0%</strong>
+        <div class="video-progress-track"><i id="videoProgressBar"></i></div>
+        <small id="videoProgressTime">通常需要30–120秒</small>
+        <button id="videoStopWaiting" type="button">停止等待</button>
+      </div>
+
+      <div class="video-result-state" id="videoResultState" hidden>
+        <video id="videoResult" controls playsinline preload="metadata"></video>
+        <div class="video-result-actions">
+          <a id="videoOpenResult" href="#" target="_blank" rel="noopener">新标签页打开</a>
+          <a id="videoDownloadResult" href="#" download>下载视频</a>
+        </div>
+        <figure class="video-last-frame" id="videoLastFrameResult" hidden>
+          <img alt="生成视频的尾帧">
+          <figcaption>返回的尾帧</figcaption>
+        </figure>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+<script src="shared.js?v=20260727-12"></script>
+<script src="video-page.js?v=20260727-12"></script>
+</body>
+</html>

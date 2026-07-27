@@ -102,6 +102,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 }
 .rail-item svg,.rail-icon{width:21px;height:21px;flex:0 0 21px}
 .rail-icon{display:block;object-fit:contain;opacity:.72;transition:filter .18s,opacity .18s}
+.rail-icon[src$="photo.svg"]{width:17px;height:17px;flex-basis:17px}
 .rail-item:hover{background:#fff;color:var(--ui-ink);transform:translateY(-1px)}
 .rail-item:hover .rail-icon{opacity:1}
 .rail-item.active{
@@ -846,14 +847,14 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .edit-page:not(.canvas-preview-mode) #editorUpload{
   height:46px;
   padding:0 18px;
-  font-size:14px;
+  font-size:12px;
 }
 .edit-page .canvas-tool-btn{
   min-height:40px;
   padding:0 13px;
   border-radius:11px;
   color:var(--ui-muted);
-  font-size:13px;
+  font-size:11px;
   font-weight:600;
 }
 .edit-page .canvas-tool-btn:hover{background:var(--ui-soft);color:var(--ui-ink)}
@@ -1086,8 +1087,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   box-shadow:0 16px 36px rgba(17,19,21,.11);
 }
 .asset-media{background:#e9ebec}
-.asset-media img{filter:none;transition:transform .28s}
-.asset-card:hover .asset-media img{filter:none;transform:scale(1.025)}
+.asset-media img,.asset-media video{filter:none;transition:transform .28s}
+.asset-card:hover .asset-media img,.asset-card:hover .asset-media video{filter:none;transform:scale(1.025)}
 .asset-model{
   padding:6px 8px;
   border:0;
@@ -1098,7 +1099,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   font-weight:650;
 }
 .asset-actions{padding-bottom:10px}
-.asset-actions button{border-radius:11px;background:rgba(255,255,255,.94);color:var(--ui-ink)}
+.asset-actions button,.asset-actions a{border-radius:11px;background:rgba(255,255,255,.94);color:var(--ui-ink)}
 
 /* Settings */
 .settings-shell{padding:38px 40px 58px}
@@ -1185,11 +1186,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   }
   .rail-brand{display:none}
   .rail-nav{margin:0;flex:1;flex-direction:row;justify-content:space-around;gap:4px}
-  .rail-item{width:68px;min-height:54px;padding:6px 4px;gap:5px;border-radius:14px;font-size:12px}
+  .rail-item{width:auto;min-width:0;min-height:54px;flex:1;padding:6px 2px;gap:5px;border-radius:14px;font-size:11px}
   .rail-item svg,.rail-icon{width:19px;height:19px;flex-basis:19px}
   .rail-item[href="settings.html"]{
     position:static;
-    width:68px;
+    width:auto;
+    flex:1;
     height:auto;
     min-height:54px;
     padding:6px 4px;

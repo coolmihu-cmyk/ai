@@ -40,7 +40,7 @@ const Settings={
   setKey(k){localStorage.setItem('apimart_api_key',k)},
   getCurrentPage(){
     const page=location.pathname.split('/').pop()||'index.html';
-    return /^(index|edit|assets)\.html$/.test(page)?page:'index.html';
+    return /^(index|video|edit|assets)\.html$/.test(page)?page:'index.html';
   },
   openPage(){
     if(location.pathname.endsWith('/settings.html'))return;
@@ -186,7 +186,9 @@ const History={
       const expiredIds=all.filter(item=>this.itemTime(item)<cutoff).map(item=>item.id);
       let recent=all.filter(item=>this.itemTime(item)>=cutoff).sort((a,b)=>b.id-a.id);
       if(modelFilter)recent=recent.filter(item=>item.model===modelFilter);
-      const checks=await Promise.all(recent.map(async item=>({item,available:await this.isAvailable(item.url)})));
+      const checks=await Promise.all(recent.map(async item=>({
+        item,available:await this.isAvailable(item.url,item.type)
+      })));
       const valid=checks.filter(entry=>entry.available).map(entry=>entry.item);
       const staleIds=[...expiredIds,...checks.filter(entry=>!entry.available).map(entry=>entry.item.id)];
       if(staleIds.length)await this.deleteMany([...new Set(staleIds)]);
@@ -195,8 +197,26 @@ const History={
   },
   async clear(){try{const db=await this.openDB();await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite');tx.objectStore(STORE_NAME).clear();tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(e){}},
   async delete(id){try{const db=await this.openDB();await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite');tx.objectStore(STORE_NAME).delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close();return true}catch(e){return false}},
-  async isAvailable(url){
-    if(!url||url.startsWith('data:image/'))return!!url;
+  async isAvailable(url,type='image'){
+    if(!url||url.startsWith('data:'))return!!url;
+    if(type==='video'){
+      return new Promise(resolve=>{
+        const video=document.createElement('video');
+        const finish=available=>{
+          clearTimeout(timer);
+          video.onloadedmetadata=null;
+          video.onerror=null;
+          video.removeAttribute('src');
+          video.load();
+          resolve(available);
+        };
+        const timer=setTimeout(()=>finish(false),12000);
+        video.preload='metadata';
+        video.onloadedmetadata=()=>finish(video.duration>0);
+        video.onerror=()=>finish(false);
+        video.src=url;
+      });
+    }
     return new Promise(resolve=>{
       const img=new Image(),t=setTimeout(()=>{img.src='';resolve(false)},12000);
       img.onload=()=>{clearTimeout(t);resolve(img.naturalWidth>0)};
@@ -224,7 +244,19 @@ const PendingGeneration={
         req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
       });
       db.close();
-      return jobs.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt))[0]||null;
+      return jobs
+        .filter(job=>job.scope!=='editor')
+        .sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt))[0]||null;
+    }catch(_){return null}
+  },
+  async loadById(id){
+    try{
+      const db=await History.openDB();
+      const job=await new Promise((resolve,reject)=>{
+        const req=db.transaction(JOB_STORE_NAME).objectStore(JOB_STORE_NAME).get(id);
+        req.onsuccess=()=>resolve(req.result||null);req.onerror=()=>reject(req.error);
+      });
+      db.close();return job;
     }catch(_){return null}
   },
   async delete(id){
@@ -327,7 +359,7 @@ function lockPageZoom(){
 lockPageZoom();
 
 /* 资产和设置工作区仅在实际滚动时显示滚动条 */
-document.querySelectorAll('.assets-shell,.settings-shell').forEach(shell=>{
+document.querySelectorAll('.assets-shell,.settings-shell,.video-shell').forEach(shell=>{
   let hideScrollbarTimer=0;
   shell.addEventListener('scroll',()=>{
     shell.classList.add('is-scrolling');
