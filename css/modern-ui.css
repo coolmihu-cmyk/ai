@@ -187,8 +187,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   z-index:0;
   background-color:#fff;
   background-image:
-    linear-gradient(to right,#eef0f1 1px,transparent 1px),
-    linear-gradient(to bottom,#eef0f1 1px,transparent 1px);
+    linear-gradient(to right,#f4f5f6 1px,transparent 1px),
+    linear-gradient(to bottom,#f4f5f6 1px,transparent 1px);
   background-size:35px 35px;
   background-position:center;
   pointer-events:none;
