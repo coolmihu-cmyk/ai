@@ -4,23 +4,24 @@
   const VIDEO_MODEL='doubao-seedance-2.0';
   const VIDEO_JOB_KEY='mihu_seedance_video_job';
   const REVIEW_JOB_KEY='mihu_seedance_review_job';
+  const MATERIAL_LIBRARY_KEY='mihu_seedance_material_library_v1';
   const MAX_IMAGE_BYTES=20*1024*1024;
   const MAX_REFERENCES=9;
   const MAX_WAIT_MS=15*60*1000;
   const POLL_INTERVAL=2500;
   const ALLOWED_IMAGE_TYPES=new Set(['image/jpeg','image/png','image/webp','image/gif']);
-  // APIMart 2026-07-28 公开定价：1 Credit = $0.10，标准版按生成秒数计费。
-  const VIDEO_CREDITS_PER_SECOND={
-    '480p':0.83,
-    '720p':1.79
-  };
-
   const el={
     prompt:$('#videoPrompt'),promptCount:$('#videoPromptCount'),
+    mentionMenu:$('#videoMentionMenu'),mentionList:$('#videoMentionList'),mentionEmpty:$('#videoMentionEmpty'),
     duration:$('#videoDuration'),durationValue:$('#videoDurationValue'),
     size:$('#videoSize'),resolution:$('#videoResolution'),seed:$('#videoSeed'),
     generateAudio:$('#videoGenerateAudio'),returnLastFrame:$('#videoReturnLastFrame'),webSearch:$('#videoWebSearch'),
     referenceUrls:$('#videoReferenceUrls'),audioUrls:$('#videoAudioUrls'),
+    virtualImageUrls:$('#videoVirtualImageUrls'),virtualVideoUrls:$('#videoVirtualVideoUrls'),
+    virtualAudioUrls:$('#videoVirtualAudioUrls'),
+    materialPicker:$('#videoMaterialPicker'),materialPickerTrigger:$('#videoMaterialPickerTrigger'),
+    materialPickerMenu:$('#videoMaterialPickerMenu'),materialPickerList:$('#videoMaterialPickerList'),
+    materialPickerEmpty:$('#videoMaterialPickerEmpty'),materialPickerCount:$('#videoMaterialPickerCount'),
     referenceButton:$('#videoReferenceButton'),referenceInput:$('#videoReferenceInput'),referenceGrid:$('#videoReferenceGrid'),
     firstButton:$('#videoFirstFrameButton'),firstInput:$('#videoFirstFrameInput'),
     lastButton:$('#videoLastFrameButton'),lastInput:$('#videoLastFrameInput'),
@@ -30,17 +31,23 @@
     progressBar:$('#videoProgressBar'),progressTime:$('#videoProgressTime'),stop:$('#videoStopWaiting'),
     result:$('#videoResult'),openResult:$('#videoOpenResult'),downloadResult:$('#videoDownloadResult'),
     lastFrame:$('#videoLastFrameResult'),outputMeta:$('#videoOutputMeta'),
-    creditEstimate:$('#videoCreditEstimate'),creditNote:$('#videoCreditNote'),
     reviewAssetType:$('#videoReviewAssetType'),reviewProject:$('#videoReviewProject'),
     reviewGroupName:$('#videoReviewGroupName'),reviewGroupDescription:$('#videoReviewGroupDescription'),
-    reviewGroupId:$('#videoReviewGroupId'),reviewAssets:$('#videoReviewAssets'),
+    reviewNewGroup:$('#videoReviewNewGroup'),reviewAppendMode:$('#videoReviewAppendMode'),
+    reviewAppendName:$('#videoReviewAppendName'),reviewAppendId:$('#videoReviewAppendId'),
+    reviewAppendDescription:$('#videoReviewAppendDescription'),reviewAppendCancel:$('#videoReviewAppendCancel'),
+    reviewAssets:$('#videoReviewAssets'),
+    reviewLocalBlock:$('#videoReviewLocalBlock'),reviewLocalButton:$('#videoReviewLocalButton'),
+    reviewLocalInput:$('#videoReviewLocalInput'),reviewLocalGrid:$('#videoReviewLocalGrid'),
     reviewAssetCount:$('#videoReviewAssetCount'),reviewError:$('#videoReviewError'),
     reviewSubmit:$('#videoReviewSubmit'),reviewEmpty:$('#videoReviewEmpty'),
     reviewProgress:$('#videoReviewProgress'),reviewResults:$('#videoReviewResults'),
     reviewProgressStatus:$('#videoReviewProgressStatus'),reviewProgressPercent:$('#videoReviewProgressPercent'),
     reviewProgressBar:$('#videoReviewProgressBar'),reviewProgressDetail:$('#videoReviewProgressDetail'),
     reviewStop:$('#videoReviewStop'),reviewMeta:$('#videoReviewMeta'),
-    reviewSummary:$('#videoReviewSummary'),reviewResultList:$('#videoReviewResultList')
+    reviewSummary:$('#videoReviewSummary'),reviewResultList:$('#videoReviewResultList'),
+    materialHistoryList:$('#videoMaterialHistoryList'),materialHistoryEmpty:$('#videoMaterialHistoryEmpty'),
+    materialHistoryCount:$('#videoMaterialHistoryCount')
   };
 
   const state={
@@ -50,8 +57,13 @@
     lastFrame:null,
     controller:null,
     workspace:'generation',
-    reviewGroupMode:'new',
-    reviewController:null
+    appendGroup:null,
+    reviewController:null,
+    reviewFiles:[],
+    materials:[],
+    mentionGroups:[],
+    mentionIndex:0,
+    mentionRange:null
   };
 
   function setError(message=''){
@@ -76,6 +88,29 @@
     return message?`请求失败（HTTP ${status}）：${String(message).slice(0,260)}`:`请求失败（HTTP ${status}）`;
   }
 
+  function isNetworkError(error){
+    return error?.code==='NETWORK_ERROR'
+      ||(error instanceof TypeError&&/fetch|network|load/i.test(error.message||''));
+  }
+
+  async function fetchApi(url,options,stage){
+    try{
+      return await fetch(url,options);
+    }catch(error){
+      if(error?.name==='AbortError')throw error;
+      const offline=typeof navigator!=='undefined'&&navigator.onLine===false;
+      const submitWarning=stage==='提交素材审核'
+        ?' 请求可能已经到达服务端，请勿连续点击提交；可稍等后再确认。'
+        :'';
+      const wrapped=new Error(offline
+        ?`${stage}失败：当前设备已离线。`
+        :`${stage}失败：浏览器未能连接到 APIMart。请检查网络、代理或 Clash TUN。${submitWarning}`);
+      wrapped.code='NETWORK_ERROR';
+      wrapped.original=error;
+      throw wrapped;
+    }
+  }
+
   function validateImage(file){
     if(!file)return '没有选择图片。';
     if(!ALLOWED_IMAGE_TYPES.has(file.type))return '仅支持 JPG、PNG、WebP 或 GIF 图片。';
@@ -92,8 +127,18 @@
     return urls;
   }
 
+  function parseVirtualAssetList(value,label,limit){
+    const urls=value.split(/\r?\n|,/).map(item=>item.trim()).filter(Boolean);
+    if(urls.length>limit)throw new Error(`${label}最多填写 ${limit} 个。`);
+    for(const url of urls){
+      if(!/^asset:\/\//i.test(url))throw new Error(`${label}必须使用审核通过的 asset:// 地址。`);
+    }
+    return [...new Set(urls)];
+  }
+
   function setWorkspace(workspace){
     state.workspace=workspace;
+    if(workspace!=='generation'&&el.materialPicker)setMaterialPicker(false);
     document.querySelectorAll('[data-video-workspace]').forEach(button=>{
       const active=button.dataset.videoWorkspace===workspace;
       button.classList.toggle('active',active);
@@ -104,16 +149,21 @@
     });
   }
 
-  function setReviewGroupMode(mode){
-    state.reviewGroupMode=mode;
-    document.querySelectorAll('[data-review-group-mode]').forEach(button=>{
-      const active=button.dataset.reviewGroupMode===mode;
-      button.classList.toggle('active',active);
-      button.setAttribute('aria-selected',String(active));
-    });
-    document.querySelectorAll('[data-review-group-panel]').forEach(panel=>{
-      panel.hidden=panel.dataset.reviewGroupPanel!==mode;
-    });
+  function setAppendGroup(group){
+    state.appendGroup=group?.id?{
+      id:String(group.id),
+      name:group.name||'未命名素材组',
+      description:group.description||'',
+      projectName:group.projectName||''
+    }:null;
+    el.reviewAppendMode.hidden=!state.appendGroup;
+    el.reviewNewGroup.hidden=!!state.appendGroup;
+    el.reviewProject.disabled=!!state.appendGroup;
+    if(!state.appendGroup)return;
+    el.reviewProject.value=state.appendGroup.projectName;
+    el.reviewAppendName.textContent=state.appendGroup.name;
+    el.reviewAppendId.textContent=state.appendGroup.id;
+    el.reviewAppendDescription.textContent=state.appendGroup.description||'暂无素材组说明';
   }
 
   function defaultReviewGroupName(){
@@ -135,7 +185,6 @@
 
   function parseReviewAssets(){
     const lines=el.reviewAssets.value.split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
-    if(!lines.length)throw new Error('请至少填写一个公网素材 URL。');
     if(lines.length>20)throw new Error('每次最多审核 20 个素材。');
     const seen=new Set();
     return lines.map((line,index)=>{
@@ -147,6 +196,68 @@
       seen.add(url);
       return {url,name:(suppliedName||deriveAssetName(url,index)).slice(0,80)};
     });
+  }
+
+  function reviewLocalCount(){
+    return el.reviewAssetType.value==='Image'?state.reviewFiles.length:0;
+  }
+
+  function updateReviewAssetCount(){
+    const urlCount=el.reviewAssets.value.split(/\r?\n/).filter(line=>line.trim()).length;
+    const count=urlCount+reviewLocalCount();
+    el.reviewAssetCount.textContent=count;
+    el.reviewAssetCount.parentElement.classList.toggle('is-over-limit',count>20);
+  }
+
+  function renderReviewFiles(){
+    el.reviewLocalGrid.replaceChildren();
+    state.reviewFiles.forEach((entry,index)=>{
+      const item=document.createElement('div');
+      item.className='video-review-local-item';
+      const image=document.createElement('img');
+      image.src=entry.preview;
+      image.alt=entry.file.name||`本地图片 ${index+1}`;
+      const name=document.createElement('span');
+      name.textContent=entry.file.name;
+      const remove=document.createElement('button');
+      remove.type='button';
+      remove.setAttribute('aria-label',`移除 ${entry.file.name}`);
+      remove.textContent='×';
+      remove.onclick=()=>{
+        releaseEntry(entry);
+        state.reviewFiles.splice(index,1);
+        renderReviewFiles();
+      };
+      item.append(image,name,remove);
+      el.reviewLocalGrid.appendChild(item);
+    });
+    el.reviewLocalGrid.hidden=!state.reviewFiles.length;
+    el.reviewLocalButton.textContent=state.reviewFiles.length?`继续添加（${state.reviewFiles.length}）`:'选择图片';
+    updateReviewAssetCount();
+  }
+
+  function addReviewFiles(files){
+    setReviewError();
+    const urlCount=el.reviewAssets.value.split(/\r?\n/).filter(line=>line.trim()).length;
+    for(const file of files){
+      if(state.reviewFiles.length+urlCount>=20){
+        setReviewError('本地图片与公网 URL 合计最多 20 个。');
+        break;
+      }
+      const error=validateImage(file);
+      if(error){
+        setReviewError(error);
+        continue;
+      }
+      state.reviewFiles.push(makeFileEntry(file));
+    }
+    renderReviewFiles();
+  }
+
+  function syncReviewLocalVisibility(){
+    const imageMode=el.reviewAssetType.value==='Image';
+    el.reviewLocalBlock.hidden=!imageMode;
+    updateReviewAssetCount();
   }
 
   function reviewStatusLabel(status){
@@ -177,46 +288,40 @@
     el.reviewMeta.textContent='审核中';
   }
 
-  function appendReviewedUrl(field,url,label){
+  function appendReviewedUrl(field,url,label,limit){
     const urls=field.value.split(/\r?\n|,/).map(value=>value.trim()).filter(Boolean);
     if(urls.includes(url)){
-      toast(`${label}已在参考素材中`);
+      toast(`${label}已加入素材`);
+      setWorkspace('generation');
+      setMode('virtual');
       return;
     }
-    if(urls.length>=3){
-      setError(`${label}最多添加 3 个，请先移除一个。`);
+    if(urls.length>=limit){
+      setError(`${label}最多添加 ${limit} 个，请先移除一个。`);
       setWorkspace('generation');
+      setMode('virtual');
       return;
     }
     urls.push(url);
     field.value=urls.join('\n');
     field.dispatchEvent(new Event('input',{bubbles:true}));
     setWorkspace('generation');
-    toast(`已加入${label}`);
+    setMode('virtual');
+    toast(`已加入虚拟${label}`);
   }
 
   function useReviewedAsset(type,url){
     setError();
-    if(type==='Image'){
-      if(state.references.some(entry=>entry.url===url)){
-        toast('这张审核图片已在参考图中');
-        setWorkspace('generation');
-        return;
-      }
-      if(state.references.length>=MAX_REFERENCES){
-        setError(`参考图最多 ${MAX_REFERENCES} 张，请先移除一张。`);
-        setWorkspace('generation');
-        return;
-      }
-      state.references.push({url,preview:''});
-      setMode('reference');
-      renderReferences();
-      setWorkspace('generation');
-      toast('已加入参考图');
+    const config={
+      Image:[el.virtualImageUrls,'图片',9],
+      Video:[el.virtualVideoUrls,'视频',3],
+      Audio:[el.virtualAudioUrls,'音频',3]
+    }[type];
+    if(!config){
+      setReviewError('无法识别这个素材的类型。');
       return;
     }
-    appendReviewedUrl(type==='Video'?el.referenceUrls:el.audioUrls,url,type==='Video'?'参考视频':'参考音频');
-    document.querySelector('.video-advanced')?.setAttribute('open','');
+    appendReviewedUrl(config[0],url,config[1],config[2]);
   }
 
   async function copyText(value){
@@ -236,6 +341,344 @@
     }
   }
 
+  function materialTypeLabel(type){
+    return {Image:'图片',Video:'视频',Audio:'音频'}[type]||'素材';
+  }
+
+  function materialGroups(){
+    const groups=new Map();
+    state.materials.forEach(item=>{
+      const name=String(item.groupName||'').trim();
+      if(item.type!=='Image'||!name||!/^asset:\/\//i.test(item.assetUrl||''))return;
+      const key=name.toLocaleLowerCase();
+      const existing=groups.get(key);
+      if(existing&&existing.groupId&&item.groupId&&existing.groupId!==item.groupId)return;
+      const group=existing||{
+        key,
+        name,
+        groupId:item.groupId||'',
+        projectName:item.projectName||'',
+        description:item.groupDescription||'',
+        urls:new Set()
+      };
+      group.urls.add(item.assetUrl);
+      groups.set(key,group);
+    });
+    return [...groups.values()].map(group=>({...group,urls:[...group.urls]}));
+  }
+
+  function mentionContext(){
+    const caret=el.prompt.selectionStart;
+    if(caret===null)return null;
+    const before=el.prompt.value.slice(0,caret);
+    const start=before.lastIndexOf('@');
+    if(start<0)return null;
+    const query=before.slice(start+1);
+    if(query.includes('\n')||query.length>60)return null;
+    const groups=materialGroups();
+    if(groups.some(group=>query.startsWith(group.name)&&/\s/.test(query.charAt(group.name.length))))return null;
+    return {start,end:caret,query};
+  }
+
+  function closeMentionMenu(){
+    state.mentionGroups=[];
+    state.mentionRange=null;
+    state.mentionIndex=0;
+    el.mentionMenu.hidden=true;
+    el.prompt.setAttribute('aria-expanded','false');
+  }
+
+  function renderMentionMenu(){
+    const context=mentionContext();
+    if(!context){
+      closeMentionMenu();
+      return;
+    }
+    const query=context.query.trim().toLocaleLowerCase();
+    state.mentionGroups=materialGroups().filter(group=>!query||group.name.toLocaleLowerCase().includes(query));
+    state.mentionRange=context;
+    state.mentionIndex=Math.min(state.mentionIndex,Math.max(0,state.mentionGroups.length-1));
+    el.mentionList.replaceChildren();
+    state.mentionGroups.forEach((group,index)=>{
+      const button=document.createElement('button');
+      button.type='button';
+      button.className='video-mention-item';
+      if(index===state.mentionIndex)button.classList.add('is-active');
+      button.setAttribute('role','option');
+      button.setAttribute('aria-selected',String(index===state.mentionIndex));
+      const mark=document.createElement('span');
+      mark.className='video-mention-mark';
+      mark.textContent='@';
+      const copy=document.createElement('span');
+      copy.className='video-mention-copy';
+      const name=document.createElement('strong');
+      name.textContent=group.name;
+      const meta=document.createElement('small');
+      meta.textContent=group.description||group.projectName||group.groupId||'图片素材组';
+      copy.append(name,meta);
+      button.append(mark,copy);
+      button.addEventListener('mousedown',event=>event.preventDefault());
+      button.onclick=()=>selectMentionGroup(group);
+      el.mentionList.appendChild(button);
+    });
+    el.mentionEmpty.hidden=state.mentionGroups.length>0;
+    el.mentionMenu.hidden=false;
+    el.prompt.setAttribute('aria-expanded','true');
+  }
+
+  function selectMentionGroup(group){
+    const range=state.mentionRange||mentionContext();
+    if(!range)return;
+    const value=el.prompt.value;
+    const insertion=`@${group.name} `;
+    el.prompt.value=value.slice(0,range.start)+insertion+value.slice(range.end);
+    const caret=range.start+insertion.length;
+    el.prompt.setSelectionRange(caret,caret);
+    el.promptCount.textContent=el.prompt.value.length;
+    closeMentionMenu();
+    el.prompt.focus();
+  }
+
+  function mentionedMaterialGroups(prompt=el.prompt.value){
+    return materialGroups().filter(group=>prompt.includes(`@${group.name}`));
+  }
+
+  function promptForApi(prompt,groups){
+    return groups
+      .sort((a,b)=>b.name.length-a.name.length)
+      .reduce((value,group)=>value.split(`@${group.name}`).join(group.name),prompt);
+  }
+
+  function loadMaterialLibrary(){
+    try{
+      const items=JSON.parse(localStorage.getItem(MATERIAL_LIBRARY_KEY)||'[]');
+      state.materials=Array.isArray(items)
+        ?items.filter(item=>item?.assetUrl&&item?.type).sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0))
+        :[];
+    }catch(_){
+      state.materials=[];
+    }
+  }
+
+  function persistMaterialLibrary(){
+    try{
+      state.materials=state.materials
+        .filter(item=>item?.assetUrl&&item?.type)
+        .sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0))
+        .slice(0,500);
+      localStorage.setItem(MATERIAL_LIBRARY_KEY,JSON.stringify(state.materials));
+      return true;
+    }catch(error){
+      console.warn('素材历史保存失败',error);
+      toast('素材历史保存失败');
+      return false;
+    }
+  }
+
+  function selectedMaterialUrls(){
+    return new Set([
+      ...el.virtualImageUrls.value.split(/\r?\n|,/),
+      ...el.virtualVideoUrls.value.split(/\r?\n|,/),
+      ...el.virtualAudioUrls.value.split(/\r?\n|,/)
+    ].map(value=>value.trim()).filter(Boolean));
+  }
+
+  function materialDate(value){
+    const date=new Date(value||0);
+    if(Number.isNaN(date.getTime()))return '';
+    return new Intl.DateTimeFormat('zh-CN',{
+      month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false
+    }).format(date);
+  }
+
+  function materialVisual(item,className){
+    const visual=document.createElement('span');
+    visual.className=className;
+    if(item.type==='Image'&&/^https?:\/\//i.test(item.sourceUrl||'')){
+      const image=document.createElement('img');
+      image.src=item.sourceUrl;
+      image.alt=item.name||'素材图片';
+      image.loading='lazy';
+      image.onerror=()=>image.remove();
+      visual.appendChild(image);
+    }
+    const mark=document.createElement('b');
+    mark.textContent={Image:'IMG',Video:'VID',Audio:'AUD'}[item.type]||'AST';
+    visual.appendChild(mark);
+    return visual;
+  }
+
+  function renderMaterialPicker(){
+    const selected=selectedMaterialUrls();
+    el.materialPickerCount.textContent=state.materials.length;
+    el.materialPickerList.replaceChildren();
+    el.materialPickerEmpty.hidden=state.materials.length>0;
+    state.materials.forEach(item=>{
+      const button=document.createElement('button');
+      button.type='button';
+      button.className='video-material-picker-item';
+      button.setAttribute('role','option');
+      button.setAttribute('aria-selected',String(selected.has(item.assetUrl)));
+      if(selected.has(item.assetUrl))button.classList.add('is-selected');
+      const visual=materialVisual(item,'video-material-picker-visual');
+      const copy=document.createElement('span');
+      const name=document.createElement('strong');
+      name.textContent=item.name||materialTypeLabel(item.type);
+      const meta=document.createElement('small');
+      meta.textContent=`${materialTypeLabel(item.type)} · ${materialDate(item.createdAt)}`;
+      copy.append(name,meta);
+      const check=document.createElement('i');
+      check.textContent=selected.has(item.assetUrl)?'✓':'+';
+      button.append(visual,copy,check);
+      button.onclick=event=>{
+        event.stopPropagation();
+        useReviewedAsset(item.type,item.assetUrl);
+        renderMaterialPicker();
+      };
+      el.materialPickerList.appendChild(button);
+    });
+  }
+
+  function continueMaterialGroup(item){
+    if(!item.groupId){
+      toast('这条历史没有 group_id，无法继续追加素材');
+      return;
+    }
+    if(!item.projectName){
+      toast('这条旧记录没有 project_name，无法安全追加素材');
+      return;
+    }
+    setAppendGroup({
+      id:item.groupId,
+      name:item.groupName,
+      description:item.groupDescription,
+      projectName:item.projectName
+    });
+    el.reviewAssetType.value=item.type||'Image';
+    syncReviewLocalVisibility();
+    setWorkspace('review');
+    el.reviewNewGroup.closest('.video-review-form')?.scrollIntoView({behavior:'smooth',block:'start'});
+    toast(`继续添加到「${item.groupName||'素材组'}」`);
+  }
+
+  function renderMaterialHistory(){
+    el.materialHistoryCount.textContent=`${state.materials.length} 个`;
+    el.materialHistoryEmpty.hidden=state.materials.length>0;
+    el.materialHistoryList.replaceChildren();
+    state.materials.forEach(item=>{
+      const card=document.createElement('article');
+      card.className='video-material-history-item';
+      const visual=materialVisual(item,'video-material-history-visual');
+      const body=document.createElement('div');
+      body.className='video-material-history-copy';
+      const top=document.createElement('div');
+      const name=document.createElement('strong');
+      name.textContent=item.name||materialTypeLabel(item.type);
+      const date=document.createElement('small');
+      date.textContent=materialDate(item.createdAt);
+      top.append(name,date);
+      const address=document.createElement('code');
+      address.textContent=`素材：${item.assetUrl}`;
+      const group=document.createElement('p');
+      group.textContent=item.groupName
+        ?`素材组：${item.groupName}${item.projectName?` · 项目：${item.projectName}`:''}${item.groupDescription?` · ${item.groupDescription}`:''}`
+        :'素材组：未记录';
+      body.append(top,group,address);
+      const actions=document.createElement('div');
+      actions.className='video-material-history-actions';
+      const copyButton=document.createElement('button');
+      copyButton.type='button';
+      copyButton.textContent='复制';
+      copyButton.onclick=()=>copyText(item.assetUrl);
+      const useButton=document.createElement('button');
+      useButton.type='button';
+      useButton.className='primary';
+      useButton.textContent='用于视频';
+      useButton.onclick=()=>useReviewedAsset(item.type,item.assetUrl);
+      const continueButton=document.createElement('button');
+      continueButton.type='button';
+      continueButton.className='continue';
+      continueButton.textContent='继续添加素材';
+      continueButton.disabled=!item.groupId||!item.projectName;
+      continueButton.title=!item.groupId
+        ?'接口没有返回这个素材组的 group_id'
+        :!item.projectName
+          ?'旧记录没有保存 project_name，不能安全追加'
+          :'按文档要求向这个素材组追加素材';
+      continueButton.onclick=()=>continueMaterialGroup(item);
+      const removeButton=document.createElement('button');
+      removeButton.type='button';
+      removeButton.className='danger';
+      removeButton.title='删除素材记录';
+      removeButton.setAttribute('aria-label',`删除 ${item.name||'素材'} 的记录`);
+      removeButton.textContent='×';
+      removeButton.onclick=()=>{
+        state.materials=state.materials.filter(material=>material.assetUrl!==item.assetUrl);
+        persistMaterialLibrary();
+        renderMaterialHistory();
+        renderMaterialPicker();
+        renderMentionMenu();
+      };
+      actions.append(copyButton,useButton,continueButton,removeButton);
+      card.append(visual,body,actions);
+      el.materialHistoryList.appendChild(card);
+    });
+  }
+
+  function resolveMaterialGroup(data,context={},usable=[]){
+    const result=data?.result||{};
+    const first=usable[0]||{};
+    const responseGroup=result.group||data?.group||{};
+    const id=context.group?.id
+      ||result.group_id||result.groupId||result.GroupId
+      ||data?.group_id||data?.groupId||data?.GroupId
+      ||responseGroup.id||responseGroup.group_id||responseGroup.GroupId
+      ||first.group_id||first.groupId||first.GroupId
+      ||'';
+    return {
+      id:String(id||''),
+      name:context.group?.name||responseGroup.name||responseGroup.group_name||'',
+      description:context.group?.description||responseGroup.description||'',
+      projectName:context.group?.projectName||data?.project_name||result.project_name||responseGroup.project_name||''
+    };
+  }
+
+  function storeReviewedMaterials(usable,context={}){
+    const now=new Date().toISOString();
+    const additions=usable.map((asset,index)=>{
+      const assetUrl=asset.asset_url||asset.url||'';
+      const source=context.assets?.find(candidate=>candidate.name&&candidate.name===asset.name)
+        ||context.assets?.[index]
+        ||{};
+      return {
+        id:asset.asset_id||asset.id||assetUrl,
+        assetUrl,
+        sourceUrl:asset.source_url||asset.original_url||source.url||'',
+        name:asset.name||source.name||`${materialTypeLabel(context.assetType)} ${index+1}`,
+        type:context.assetType,
+        groupId:context.group?.id||'',
+        groupName:context.group?.name||'',
+        groupDescription:context.group?.description||'',
+        projectName:context.group?.projectName||'',
+        createdAt:now
+      };
+    }).filter(item=>item.assetUrl);
+    if(!additions.length)return;
+    const merged=new Map(state.materials.map(item=>[item.assetUrl,item]));
+    additions.forEach(item=>merged.set(item.assetUrl,{...merged.get(item.assetUrl),...item}));
+    state.materials=[...merged.values()];
+    persistMaterialLibrary();
+    renderMaterialHistory();
+    renderMaterialPicker();
+  }
+
+  function setMaterialPicker(open){
+    el.materialPicker.classList.toggle('open',open);
+    el.materialPickerMenu.hidden=!open;
+    el.materialPickerTrigger.setAttribute('aria-expanded',String(open));
+    if(open)renderMaterialPicker();
+  }
+
   function renderReviewResults(data,context){
     const result=data.result||{};
     let usable=Array.isArray(result.usable_assets)?result.usable_assets:[];
@@ -243,6 +686,8 @@
     if(!usable.length&&typeof result.asset_url==='string'){
       usable=[{asset_url:result.asset_url,name:context.assets?.[0]?.name||'素材'}];
     }
+    context={...context,group:resolveMaterialGroup(data,context,usable)};
+    storeReviewedMaterials(usable,context);
     el.reviewEmpty.hidden=true;
     el.reviewProgress.hidden=true;
     el.reviewResults.hidden=false;
@@ -317,13 +762,25 @@
 
   async function pollReviewTask(apiKey,taskId,signal){
     const started=performance.now();
+    let networkFailures=0;
     while(true){
       if(signal.aborted)throw new DOMException('已停止等待','AbortError');
       if(performance.now()-started>MAX_WAIT_MS)throw new DOMException('等待超过15分钟，请稍后刷新页面继续查询。','TimeoutError');
-      const response=await fetch(APIMART_BASE+'/tasks/'+encodeURIComponent(taskId)+'?language=zh',{
-        headers:{'Authorization':'Bearer '+apiKey,'Accept':'application/json'},
-        signal
-      });
+      let response;
+      try{
+        response=await fetchApi(APIMART_BASE+'/tasks/'+encodeURIComponent(taskId)+'?language=zh',{
+          headers:{'Authorization':'Bearer '+apiKey,'Accept':'application/json'},
+          signal
+        },'查询素材任务');
+      }catch(error){
+        if(!isNetworkError(error))throw error;
+        networkFailures++;
+        if(networkFailures>5)throw error;
+        showReviewProgress('网络波动，正在重新连接',0,`第 ${networkFailures}/5 次重试，任务不会丢失`);
+        await new Promise(resolve=>setTimeout(resolve,POLL_INTERVAL));
+        continue;
+      }
+      networkFailures=0;
       if(!response.ok)throw new Error(parseApiError(await response.text(),response.status));
       const json=await response.json();
       const data=json.data||json;
@@ -356,6 +813,11 @@
         showReviewProgress('已停止等待',0,'任务仍在服务器审核，刷新页面可继续查询。');
         return;
       }
+      if(isNetworkError(error)||error.name==='TimeoutError'){
+        setReviewError(error.message||'任务查询暂时中断。');
+        showReviewProgress('连接暂时中断',0,'审核任务仍已保留，恢复网络后刷新页面可继续查询。');
+        return;
+      }
       setReviewError(error.message||'素材审核失败。');
       showReviewEmpty();
       if(error.name!=='TimeoutError')localStorage.removeItem(REVIEW_JOB_KEY);
@@ -371,30 +833,47 @@
     if(!apiKey){Settings.openPage();return}
     try{
       const assets=parseReviewAssets();
-      const projectName=el.reviewProject.value.trim()||'default';
+      const localFiles=el.reviewAssetType.value==='Image'?state.reviewFiles:[];
+      if(!assets.length&&!localFiles.length)throw new Error('请选择本地图片或填写公网素材 URL。');
+      if(assets.length+localFiles.length>20)throw new Error('本地图片与公网 URL 合计最多 20 个。');
+      const projectName=state.appendGroup?.projectName||el.reviewProject.value.trim()||'default';
       const payload={
         project_name:projectName,
         asset_type:el.reviewAssetType.value,
-        assets
+        assets:[]
       };
-      if(state.reviewGroupMode==='existing'){
-        const groupId=el.reviewGroupId.value.trim();
-        if(!groupId)throw new Error('请填写已有素材组 ID。');
-        payload.group_id=groupId;
+      let groupContext;
+      if(state.appendGroup){
+        payload.group_id=state.appendGroup.id;
+        groupContext={...state.appendGroup};
       }else{
         const name=el.reviewGroupName.value.trim();
         if(!name)throw new Error('请填写素材组名称。');
         payload.group={name};
         const description=el.reviewGroupDescription.value.trim();
         if(description)payload.group.description=description;
+        groupContext={id:'',name,description,projectName};
       }
 
       state.reviewController?.abort();
       state.reviewController=new AbortController();
       el.reviewSubmit.disabled=true;
       el.reviewSubmit.querySelector('span').textContent='提交中';
-      showReviewProgress('正在提交审核',0);
-      const response=await fetch(APIMART_BASE+'/seedance2/private-avatar',{
+
+      for(let index=0;index<localFiles.length;index++){
+        const entry=localFiles[index];
+        const progress=Math.round((index/localFiles.length)*35);
+        showReviewProgress('正在上传本地图片',progress,`正在上传 ${index+1}/${localFiles.length}`);
+        if(!entry.url)entry.url=await uploadImage(entry.file,apiKey,state.reviewController.signal);
+        payload.assets.push({
+          url:entry.url,
+          name:entry.file.name.replace(/\.[^.]+$/,'').slice(0,80)||`本地图片-${index+1}`
+        });
+      }
+      payload.assets.push(...assets);
+
+      showReviewProgress('正在提交审核',localFiles.length?40:0);
+      const response=await fetchApi(APIMART_BASE+'/seedance2/private-avatar',{
         method:'POST',
         headers:{
           'Authorization':'Bearer '+apiKey,
@@ -403,12 +882,18 @@
         },
         body:JSON.stringify(payload),
         signal:state.reviewController.signal
-      });
+      },'提交素材审核');
       if(!response.ok)throw new Error(parseApiError(await response.text(),response.status));
       const json=await response.json();
       const taskId=json.data?.id||json.data?.task_id||json.id||json.task_id;
       if(!taskId)throw new Error('审核任务已提交，但接口没有返回任务 ID。');
-      const context={assetType:payload.asset_type,assets};
+      const submittedGroup=json.data?.group||json.group||{};
+      groupContext.id=groupContext.id
+        ||json.data?.group_id||json.data?.groupId||json.data?.GroupId
+        ||json.group_id||json.groupId||json.GroupId
+        ||submittedGroup.id||submittedGroup.group_id||submittedGroup.GroupId
+        ||'';
+      const context={assetType:payload.asset_type,assets:payload.assets,group:groupContext};
       savePendingReview(taskId,context);
       await waitForReviewJob(taskId,context);
     }catch(error){
@@ -557,7 +1042,6 @@
       el.referenceGrid.appendChild(item);
     });
     el.referenceButton.querySelector('strong').textContent=state.references.length?`继续添加参考图（${state.references.length}/${MAX_REFERENCES}）`:'添加参考图';
-    updateCreditEstimate();
   }
 
   function renderFrame(kind){
@@ -565,7 +1049,6 @@
     const button=kind==='first'?el.firstButton:el.lastButton;
     button.querySelector('.video-frame-preview')?.remove();
     if(!entry){
-      updateCreditEstimate();
       return;
     }
     const preview=document.createElement('div');
@@ -588,22 +1071,6 @@
     };
     preview.append(img,label,remove);
     button.appendChild(preview);
-    updateCreditEstimate();
-  }
-
-  function updateCreditEstimate(actualCredits){
-    if(Number.isFinite(Number(actualCredits))){
-      el.creditEstimate.textContent=`${Number(actualCredits).toFixed(2)} Credits`;
-      el.creditNote.textContent='任务实际消耗';
-      return;
-    }
-    const hasVideoReference=el.referenceUrls.value.trim().length>0;
-    const rate=VIDEO_CREDITS_PER_SECOND[el.resolution.value]||0;
-    const estimate=rate*Number(el.duration.value);
-    el.creditEstimate.textContent=`${estimate.toFixed(2)} Credits`;
-    el.creditNote.textContent=hasVideoReference
-      ?'最低估算，另计参考视频时长'
-      :`${el.resolution.value.toUpperCase()} · ${rate.toFixed(2)} Credits/秒`;
   }
 
   function addReferenceFiles(files){
@@ -630,6 +1097,7 @@
 
   function setMode(mode){
     state.mode=mode;
+    if(mode!=='virtual')setMaterialPicker(false);
     document.querySelectorAll('[data-video-mode]').forEach(button=>{
       const active=button.dataset.videoMode===mode;
       button.classList.toggle('active',active);
@@ -638,18 +1106,17 @@
     document.querySelectorAll('[data-video-panel]').forEach(panel=>{
       panel.hidden=panel.dataset.videoPanel!==mode;
     });
-    updateCreditEstimate();
   }
 
   async function uploadImage(file,apiKey,signal){
     const form=new FormData();
     form.append('file',file);
-    const response=await fetch(APIMART_BASE+'/uploads/images',{
+    const response=await fetchApi(APIMART_BASE+'/uploads/images',{
       method:'POST',
       headers:{'Authorization':'Bearer '+apiKey},
       body:form,
       signal
-    });
+    },'上传图片');
     if(!response.ok)throw new Error(parseApiError(await response.text(),response.status));
     const data=await response.json();
     if(!data.url)throw new Error('图片上传成功，但接口没有返回图片 URL。');
@@ -699,7 +1166,6 @@
     el.lastFrame.hidden=!lastFrameUrl;
     if(lastFrameUrl)el.lastFrame.querySelector('img').src=lastFrameUrl;
     el.outputMeta.textContent=data.actual_time?`${data.actual_time}秒完成`:'生成完成';
-    updateCreditEstimate(data.credits_cost);
     return {videoUrl,lastFrameUrl};
   }
 
@@ -734,13 +1200,25 @@
 
   async function pollTask(apiKey,taskId,signal){
     const started=performance.now();
+    let networkFailures=0;
     while(true){
       if(signal.aborted)throw new DOMException('已停止等待','AbortError');
       if(performance.now()-started>MAX_WAIT_MS)throw new DOMException('等待超过15分钟，请稍后刷新页面继续查询。','TimeoutError');
-      const response=await fetch(APIMART_BASE+'/tasks/'+encodeURIComponent(taskId)+'?language=zh',{
-        headers:{'Authorization':'Bearer '+apiKey,'Accept':'application/json'},
-        signal
-      });
+      let response;
+      try{
+        response=await fetchApi(APIMART_BASE+'/tasks/'+encodeURIComponent(taskId)+'?language=zh',{
+          headers:{'Authorization':'Bearer '+apiKey,'Accept':'application/json'},
+          signal
+        },'查询视频任务');
+      }catch(error){
+        if(!isNetworkError(error))throw error;
+        networkFailures++;
+        if(networkFailures>5)throw error;
+        showProgress('网络波动，正在重新连接',0,`第 ${networkFailures}/5 次重试，任务不会丢失`);
+        await new Promise(resolve=>setTimeout(resolve,POLL_INTERVAL));
+        continue;
+      }
+      networkFailures=0;
       if(!response.ok)throw new Error(parseApiError(await response.text(),response.status));
       const json=await response.json();
       const data=json.data||json;
@@ -788,6 +1266,11 @@
         showProgress('已停止等待',0,'任务仍在服务器生成，刷新页面可继续查询。');
         return;
       }
+      if(isNetworkError(error)||error.name==='TimeoutError'){
+        setError(error.message||'任务查询暂时中断。');
+        showProgress('连接暂时中断',0,'视频任务仍已保留，恢复网络后刷新页面可继续查询。');
+        return;
+      }
       setError(error.message||'视频生成失败。');
       showEmpty();
       localStorage.removeItem(VIDEO_JOB_KEY);
@@ -798,15 +1281,38 @@
   }
 
   async function buildPayload(apiKey,signal){
-    const prompt=el.prompt.value.trim();
-    if(!prompt)throw new Error('请先描述想生成的视频镜头。');
+    const rawPrompt=el.prompt.value.trim();
+    if(!rawPrompt)throw new Error('请先描述想生成的视频镜头。');
+    const mentionedGroups=mentionedMaterialGroups(rawPrompt);
+    const mentionedAssetUrls=[...new Set(mentionedGroups.flatMap(group=>group.urls))];
+    const prompt=promptForApi(rawPrompt,mentionedGroups);
     const videoUrls=parseUrlList(el.referenceUrls.value,'参考视频 URL');
     const audioUrls=parseUrlList(el.audioUrls.value,'参考音频 URL');
-    const hasImageInput=state.mode==='reference'?state.references.length>0:!!(state.firstFrame||state.lastFrame);
-    const hasInput=hasImageInput||videoUrls.length>0;
+    const virtualImageUrls=state.mode==='virtual'?parseVirtualAssetList(el.virtualImageUrls.value,'图片素材',9):[];
+    const virtualVideoUrls=state.mode==='virtual'?parseVirtualAssetList(el.virtualVideoUrls.value,'视频素材',3):[];
+    const virtualAudioUrls=state.mode==='virtual'?parseVirtualAssetList(el.virtualAudioUrls.value,'音频素材',3):[];
+    const combinedVideoUrls=[...new Set([...videoUrls,...virtualVideoUrls])];
+    const combinedAudioUrls=[...new Set([...audioUrls,...virtualAudioUrls])];
+    if(combinedVideoUrls.length>3)throw new Error('参考视频与视频素材合计最多 3 个。');
+    if(combinedAudioUrls.length>3)throw new Error('参考音频与音频素材合计最多 3 个。');
+    const hasRegularImageInput=state.mode==='reference'
+      ?state.references.length>0
+      :state.mode==='frames'
+        ?!!(state.firstFrame||state.lastFrame)
+        :virtualImageUrls.length>0;
+    const hasImageInput=hasRegularImageInput||mentionedAssetUrls.length>0;
+    const hasInput=hasImageInput||combinedVideoUrls.length>0;
     if(el.size.value==='adaptive'&&!hasInput)throw new Error('自适应比例需要先添加参考图片或参考视频。');
-    if(state.mode==='frames'&&(videoUrls.length||audioUrls.length))throw new Error('首尾帧模式不能同时使用参考视频或参考音频。');
-    if(audioUrls.length&&!hasInput)throw new Error('参考音频必须与参考图片或参考视频一起使用。');
+    if(state.mode==='frames'&&(combinedVideoUrls.length||combinedAudioUrls.length))throw new Error('首尾帧模式不能同时使用参考视频或参考音频。');
+    if(combinedAudioUrls.length&&!hasInput)throw new Error('参考音频必须与参考图片或参考视频一起使用。');
+    if(mentionedAssetUrls.length&&(
+      (state.mode==='reference'&&state.references.length)
+      ||(state.mode==='virtual'&&virtualImageUrls.length)
+    )){
+      throw new Error('@素材组不能与普通参考图片同时使用，请保留其中一种。');
+    }
+    const roleImageCount=mentionedAssetUrls.length+(state.mode==='frames'?Number(!!state.firstFrame)+Number(!!state.lastFrame):0);
+    if(roleImageCount>MAX_REFERENCES)throw new Error(`@素材组与首尾帧合计最多 ${MAX_REFERENCES} 张图片。`);
 
     const payload={
       model:VIDEO_MODEL,
@@ -820,8 +1326,9 @@
     const seed=el.seed.value.trim();
     if(seed)payload.seed=Number(seed);
     if(el.webSearch.checked)payload.tools=[{type:'web_search'}];
-    if(videoUrls.length)payload.video_urls=videoUrls;
-    if(audioUrls.length)payload.audio_urls=audioUrls;
+    if(combinedVideoUrls.length)payload.video_urls=combinedVideoUrls;
+    if(combinedAudioUrls.length)payload.audio_urls=combinedAudioUrls;
+    const roleImages=mentionedAssetUrls.map(url=>({url,role:'reference_image'}));
 
     if(state.mode==='reference'&&state.references.length){
       const urls=[];
@@ -831,6 +1338,10 @@
         urls.push(entry.url||await uploadImage(entry.file,apiKey,signal));
       }
       payload.image_urls=urls;
+    }
+
+    if(state.mode==='virtual'&&virtualImageUrls.length){
+      payload.image_urls=virtualImageUrls;
     }
 
     if(state.mode==='frames'&&(state.firstFrame||state.lastFrame)){
@@ -843,8 +1354,9 @@
         showProgress('正在上传尾帧图',0,'上传完成后将自动提交任务');
         frames.push({url:await uploadImage(state.lastFrame.file,apiKey,signal),role:'last_frame'});
       }
-      payload.image_with_roles=frames;
+      roleImages.push(...frames);
     }
+    if(roleImages.length)payload.image_with_roles=roleImages;
     return payload;
   }
 
@@ -873,19 +1385,79 @@
     }
   }
 
-  el.prompt.addEventListener('input',()=>{el.promptCount.textContent=el.prompt.value.length});
+  el.prompt.addEventListener('input',()=>{
+    el.promptCount.textContent=el.prompt.value.length;
+    state.mentionIndex=0;
+    renderMentionMenu();
+  });
+  el.prompt.addEventListener('click',renderMentionMenu);
+  el.prompt.addEventListener('keydown',event=>{
+    if(el.mentionMenu.hidden)return;
+    if(event.key==='ArrowDown'||event.key==='ArrowUp'){
+      if(!state.mentionGroups.length)return;
+      event.preventDefault();
+      const direction=event.key==='ArrowDown'?1:-1;
+      state.mentionIndex=(state.mentionIndex+direction+state.mentionGroups.length)%state.mentionGroups.length;
+      renderMentionMenu();
+      el.mentionList.children[state.mentionIndex]?.scrollIntoView({block:'nearest'});
+      return;
+    }
+    if(event.key==='Enter'&&state.mentionGroups.length&&!event.ctrlKey&&!event.metaKey){
+      event.preventDefault();
+      selectMentionGroup(state.mentionGroups[state.mentionIndex]);
+      return;
+    }
+    if(event.key==='Escape'){
+      event.preventDefault();
+      closeMentionMenu();
+    }
+  });
   el.duration.addEventListener('input',()=>{
     el.durationValue.value=el.duration.value+' 秒';
-    updateCreditEstimate();
   });
-  el.resolution.addEventListener('change',()=>updateCreditEstimate());
-  el.referenceUrls.addEventListener('input',()=>updateCreditEstimate());
+  [el.virtualImageUrls,el.virtualVideoUrls,el.virtualAudioUrls].forEach(field=>{
+    field.addEventListener('input',()=>{
+      renderMaterialPicker();
+    });
+  });
+  el.materialPickerTrigger.onclick=event=>{
+    event.stopPropagation();
+    setMaterialPicker(!el.materialPicker.classList.contains('open'));
+  };
+  el.materialPickerMenu.onclick=event=>event.stopPropagation();
+  el.materialPickerEmpty.onclick=()=>{
+    setMaterialPicker(false);
+    setWorkspace('review');
+  };
+  document.addEventListener('click',event=>{
+    setMaterialPicker(false);
+    if(!el.mentionMenu.contains(event.target)&&event.target!==el.prompt)closeMentionMenu();
+  });
+  document.addEventListener('keydown',event=>{
+    if(event.key==='Escape')setMaterialPicker(false);
+  });
   document.querySelectorAll('[data-video-workspace]').forEach(button=>button.onclick=()=>setWorkspace(button.dataset.videoWorkspace));
-  document.querySelectorAll('[data-review-group-mode]').forEach(button=>button.onclick=()=>setReviewGroupMode(button.dataset.reviewGroupMode));
-  el.reviewAssets.addEventListener('input',()=>{
-    const count=el.reviewAssets.value.split(/\r?\n/).filter(line=>line.trim()).length;
-    el.reviewAssetCount.textContent=count;
-    el.reviewAssetCount.parentElement.classList.toggle('is-over-limit',count>20);
+  el.reviewAppendCancel.onclick=()=>{
+    setAppendGroup(null);
+    el.reviewProject.value='default';
+    el.reviewGroupName.value=defaultReviewGroupName();
+  };
+  el.reviewAssetType.addEventListener('change',syncReviewLocalVisibility);
+  el.reviewAssets.addEventListener('input',updateReviewAssetCount);
+  el.reviewLocalButton.onclick=()=>el.reviewLocalInput.click();
+  el.reviewLocalInput.onchange=event=>{
+    addReviewFiles(Array.from(event.target.files||[]));
+    event.target.value='';
+  };
+  el.reviewLocalBlock.addEventListener('dragover',event=>{
+    event.preventDefault();
+    el.reviewLocalBlock.classList.add('is-dragover');
+  });
+  el.reviewLocalBlock.addEventListener('dragleave',()=>el.reviewLocalBlock.classList.remove('is-dragover'));
+  el.reviewLocalBlock.addEventListener('drop',event=>{
+    event.preventDefault();
+    el.reviewLocalBlock.classList.remove('is-dragover');
+    addReviewFiles(Array.from(event.dataTransfer?.files||[]));
   });
   el.reviewSubmit.onclick=submitReview;
   el.reviewStop.onclick=()=>state.reviewController?.abort();
@@ -914,18 +1486,22 @@
     }
   });
   window.addEventListener('beforeunload',()=>{
-    [...state.references,state.firstFrame,state.lastFrame].filter(Boolean).forEach(releaseEntry);
+    [...state.references,...state.reviewFiles,state.firstFrame,state.lastFrame].filter(Boolean).forEach(releaseEntry);
   });
 
   initCommonPage();
   initVideoDropdowns();
+  loadMaterialLibrary();
+  renderMaterialHistory();
+  renderMaterialPicker();
   el.reviewGroupName.value=defaultReviewGroupName();
-  setReviewGroupMode('new');
+  setAppendGroup(null);
   setWorkspace('generation');
   showReviewEmpty();
+  syncReviewLocalVisibility();
+  renderReviewFiles();
   setMode('reference');
   renderReferences();
-  updateCreditEstimate();
   const pending=loadPendingJob();
   if(pending){
     showProgress('正在恢复视频任务',0);

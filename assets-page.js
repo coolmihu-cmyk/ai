@@ -265,13 +265,11 @@ requestAnimationFrame(async()=>{
   finally{
     assetsEls.loading.hidden=true;renderAssets();
   }
-  History.validate([...assetItems],{
-    concurrency:3,
-    onInvalid:item=>{
-      assetItems=assetItems.filter(asset=>asset.id!==item.id);
-      renderAssets();
-    }
-  }).catch(error=>console.warn('历史记录后台检查失败',error));
+  History.validate([...assetItems],{concurrency:3})
+    .then(unavailable=>{
+      if(unavailable.length)console.warn(`有 ${unavailable.length} 条历史资源暂时无法加载，记录已保留。`);
+    })
+    .catch(error=>console.warn('历史记录后台检查失败',error));
   if(pendingJob){
     if(pendingJob.failedAt)showGenerationFailure(pendingJob,pendingJob.lastError||'上次生成未完成。');
     else runPendingGeneration(pendingJob);

@@ -2,6 +2,7 @@
 const APIMART_BASE='https://api.apimart.ai/v1';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_RETENTION_MS=72*60*60*1000;
+const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
 const MODEL_CONFIG={
   gpt:{
@@ -174,7 +175,44 @@ const Apimart={
 
 const History={
   openDB(){return new Promise((resolve,reject)=>{if(!('indexedDB' in window)){reject(new Error('IndexedDB unavailable'));return}const req=indexedDB.open(DB_NAME,DB_VERSION);req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(STORE_NAME))db.createObjectStore(STORE_NAME,{keyPath:'id'});if(!db.objectStoreNames.contains(JOB_STORE_NAME))db.createObjectStore(JOB_STORE_NAME,{keyPath:'id'})};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})},
-  async save(item){try{const db=await this.openDB();await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite');tx.objectStore(STORE_NAME).put(item);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close();await this.trim()}catch(e){toast('历史记录保存失败')}},
+  readBackup(){
+    try{
+      const items=JSON.parse(localStorage.getItem(HISTORY_BACKUP_KEY)||'[]');
+      return Array.isArray(items)?items:[];
+    }catch(_){return[]}
+  },
+  writeBackup(items){
+    try{
+      const cutoff=Date.now()-HISTORY_RETENTION_MS;
+      const recent=(Array.isArray(items)?items:[])
+        .filter(item=>item?.id!=null&&this.itemTime(item)>=cutoff)
+        .sort((a,b)=>this.itemTime(b)-this.itemTime(a))
+        .slice(0,200);
+      localStorage.setItem(HISTORY_BACKUP_KEY,JSON.stringify(recent));
+    }catch(error){console.warn('历史记录备用存储失败',error)}
+  },
+  backupSave(item){
+    const items=this.readBackup().filter(existing=>String(existing.id)!==String(item.id));
+    items.push(item);
+    this.writeBackup(items);
+  },
+  backupDelete(ids){
+    const keys=new Set(ids.map(id=>String(id)));
+    this.writeBackup(this.readBackup().filter(item=>!keys.has(String(item.id))));
+  },
+  async save(item){
+    this.backupSave(item);
+    try{
+      const db=await this.openDB();
+      await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite');tx.objectStore(STORE_NAME).put(item);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});
+      db.close();
+      this.trim().catch(error=>console.warn('历史记录过期清理失败',error));
+      return true;
+    }catch(error){
+      console.warn('IndexedDB 历史记录保存失败，已保留备用副本',error);
+      return true;
+    }
+  },
   itemTime(item){
     const createdAt=new Date(item?.createdAt||0).getTime();
     if(Number.isFinite(createdAt)&&createdAt>0)return createdAt;
@@ -183,13 +221,17 @@ const History={
   },
   async deleteMany(ids){
     if(!ids.length)return;
-    const db=await this.openDB();
-    await new Promise((resolve,reject)=>{
-      const tx=db.transaction(STORE_NAME,'readwrite');
-      for(const id of ids)tx.objectStore(STORE_NAME).delete(id);
-      tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);
-    });
-    db.close();
+    try{
+      const db=await this.openDB();
+      await new Promise((resolve,reject)=>{
+        const tx=db.transaction(STORE_NAME,'readwrite');
+        for(const id of ids)tx.objectStore(STORE_NAME).delete(id);
+        tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);
+      });
+      db.close();
+    }finally{
+      this.backupDelete(ids);
+    }
   },
   async trim(){
     const db=await this.openDB();
@@ -203,22 +245,28 @@ const History={
     await this.deleteMany(staleIds);
   },
   async load(modelFilter){
+    let all=[];
     try{
       const db=await this.openDB();
-      const all=await new Promise((resolve,reject)=>{
+      all=await new Promise((resolve,reject)=>{
         const req=db.transaction(STORE_NAME).objectStore(STORE_NAME).getAll();
         req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
       });
       db.close();
-      const cutoff=Date.now()-HISTORY_RETENTION_MS;
-      const expiredIds=all.filter(item=>this.itemTime(item)<cutoff).map(item=>item.id);
-      let recent=all.filter(item=>this.itemTime(item)>=cutoff).sort((a,b)=>b.id-a.id);
-      if(modelFilter)recent=recent.filter(item=>item.model===modelFilter);
-      if(expiredIds.length)this.deleteMany(expiredIds).catch(()=>{});
-      return recent;
-    }catch(_){return[]}
+    }catch(error){console.warn('IndexedDB 历史记录读取失败，使用备用副本',error)}
+    const merged=new Map();
+    for(const item of this.readBackup())if(item?.id!=null)merged.set(String(item.id),item);
+    for(const item of all)if(item?.id!=null)merged.set(String(item.id),item);
+    const combined=[...merged.values()];
+    const cutoff=Date.now()-HISTORY_RETENTION_MS;
+    const expiredIds=combined.filter(item=>this.itemTime(item)<cutoff).map(item=>item.id);
+    let recent=combined.filter(item=>this.itemTime(item)>=cutoff).sort((a,b)=>this.itemTime(b)-this.itemTime(a));
+    this.writeBackup(recent);
+    if(modelFilter)recent=recent.filter(item=>item.model===modelFilter);
+    if(expiredIds.length)this.deleteMany(expiredIds).catch(()=>{});
+    return recent;
   },
-  async validate(items,{concurrency=3,onInvalid}={}){
+  async validate(items,{concurrency=3}={}){
     const queue=Array.isArray(items)?[...items]:[];
     if(!queue.length)return[];
     const invalid=[],workerCount=Math.min(Math.max(1,Number(concurrency)||1),queue.length);
@@ -229,15 +277,16 @@ const History={
         const available=await this.isAvailable(item.url,item.type);
         if(available)continue;
         invalid.push(item);
-        try{onInvalid?.(item)}catch(_){}
       }
     };
     await Promise.all(Array.from({length:workerCount},worker));
-    if(invalid.length)await this.deleteMany([...new Set(invalid.map(item=>item.id))]);
     return invalid;
   },
-  async clear(){try{const db=await this.openDB();await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite');tx.objectStore(STORE_NAME).clear();tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(e){}},
-  async delete(id){try{const db=await this.openDB();await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite');tx.objectStore(STORE_NAME).delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close();return true}catch(e){return false}},
+  async clear(){
+    localStorage.removeItem(HISTORY_BACKUP_KEY);
+    try{const db=await this.openDB();await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite');tx.objectStore(STORE_NAME).clear();tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(e){}
+  },
+  async delete(id){try{await this.deleteMany([id]);return true}catch(e){return false}},
   async isAvailable(url,type='image'){
     if(!url||url.startsWith('data:'))return!!url;
     if(type==='video'){

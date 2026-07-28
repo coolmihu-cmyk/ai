@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="css/base.css?v=20260727-32">
 <link rel="stylesheet" href="css/pages.css?v=20260727-32">
 <link rel="stylesheet" href="css/modern-ui.css?v=20260728-04">
-<link rel="stylesheet" href="css/video.css?v=20260728-06">
+<link rel="stylesheet" href="css/video.css?v=20260728-16">
 </head>
 <body class="video-page">
 
@@ -49,12 +49,11 @@
       <h1>视频</h1>
       <p>用 Seedance 2.0 把静止的念头变成一段完整镜头。</p>
     </div>
-    <div class="video-model-badge"><span>SD2</span><strong>Seedance 2.0</strong></div>
   </header>
 
   <nav class="video-workspace-tabs" aria-label="视频工作区">
     <button class="active" type="button" aria-selected="true" data-video-workspace="generation">视频生成</button>
-    <button type="button" aria-selected="false" data-video-workspace="review">虚拟素材审核</button>
+    <button type="button" aria-selected="false" data-video-workspace="review">素材</button>
   </nav>
 
   <div class="video-workspace" data-video-workspace-panel="generation">
@@ -65,7 +64,12 @@
       </div>
 
       <div class="video-prompt-wrap">
-        <textarea id="videoPrompt" maxlength="4000" placeholder="描述主体、动作、镜头运动、环境与声音，例如：雨夜街头，镜头低位跟随一只黑猫穿过霓虹倒影，电影感，浅景深…"></textarea>
+        <textarea id="videoPrompt" maxlength="4000" aria-autocomplete="list" aria-controls="videoMentionMenu" aria-expanded="false" placeholder="描述主体、动作、镜头运动、环境与声音，例如：雨夜街头，镜头低位跟随一只黑猫穿过霓虹倒影，电影感，浅景深…"></textarea>
+        <div class="video-mention-menu" id="videoMentionMenu" role="listbox" aria-label="选择素材组" hidden>
+          <div class="video-mention-heading"><span>素材组</span><small>输入名称筛选</small></div>
+          <div class="video-mention-list" id="videoMentionList"></div>
+          <div class="video-mention-empty" id="videoMentionEmpty" hidden>暂无可调用的图片素材组</div>
+        </div>
       </div>
 
       <div class="video-parameter-grid">
@@ -121,6 +125,7 @@
         <div class="video-mode-tabs" role="tablist" aria-label="参考图模式">
           <button class="active" type="button" role="tab" aria-selected="true" data-video-mode="reference">参考图</button>
           <button type="button" role="tab" aria-selected="false" data-video-mode="frames">首尾帧</button>
+          <button type="button" role="tab" aria-selected="false" data-video-mode="virtual">素材</button>
         </div>
 
         <div class="video-upload-panel" data-video-panel="reference">
@@ -144,6 +149,45 @@
           </div>
           <input id="videoFirstFrameInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
           <input id="videoLastFrameInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+        </div>
+
+        <div class="video-upload-panel video-virtual-panel" data-video-panel="virtual" hidden>
+          <div class="video-virtual-intro">
+            <div class="video-virtual-mark">VA</div>
+            <div>
+              <strong>导入审核通过的素材</strong>
+              <small>粘贴 <code>asset://</code> 地址，或在审核结果中点击“用于视频”</small>
+            </div>
+          </div>
+          <div class="video-material-picker" id="videoMaterialPicker">
+            <button class="video-material-picker-trigger" id="videoMaterialPickerTrigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+              <span>从素材库选择</span>
+              <b id="videoMaterialPickerCount">0</b>
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4.5 6.5 3.5 3 3.5-3"/></svg>
+            </button>
+            <div class="video-material-picker-menu" id="videoMaterialPickerMenu" role="listbox" hidden>
+              <div class="video-material-picker-heading">
+                <strong>已生成素材</strong>
+                <small>点击即可加入当前视频</small>
+              </div>
+              <div class="video-material-picker-list" id="videoMaterialPickerList"></div>
+              <button class="video-material-picker-empty" id="videoMaterialPickerEmpty" type="button">暂无素材，前往素材页创建</button>
+            </div>
+          </div>
+          <div class="video-virtual-grid">
+            <label class="video-field">
+              <span>图片素材 <small>最多 9 张</small></span>
+              <textarea id="videoVirtualImageUrls" placeholder="每行一个 asset:// 地址"></textarea>
+            </label>
+            <label class="video-field">
+              <span>视频素材 <small>最多 3 个</small></span>
+              <textarea id="videoVirtualVideoUrls" placeholder="每行一个 asset:// 地址"></textarea>
+            </label>
+            <label class="video-field">
+              <span>音频素材 <small>最多 3 个</small></span>
+              <textarea id="videoVirtualAudioUrls" placeholder="每行一个 asset:// 地址"></textarea>
+            </label>
+          </div>
         </div>
       </section>
 
@@ -177,11 +221,6 @@
       <div class="video-error" id="videoError" role="alert" hidden></div>
       <div class="video-submit-row">
         <div class="video-submit-info">
-          <div class="video-credit-estimate">
-            <span>参考积分</span>
-            <strong id="videoCreditEstimate">8.95 Credits</strong>
-            <small id="videoCreditNote">720P · 1.79 Credits/秒</small>
-          </div>
           <p>生成结果链接仅保存72小时，请及时下载。</p>
         </div>
         <button class="video-generate-button" id="videoGenerateButton" type="button">
@@ -229,10 +268,10 @@
   <div class="video-review-workspace" data-video-workspace-panel="review" hidden>
     <section class="video-review-form" aria-labelledby="videoReviewTitle">
       <div class="video-section-heading">
-        <div><span>PRIVATE ASSET</span><h2 id="videoReviewTitle">虚拟素材审核</h2></div>
+        <div><span>MATERIAL</span><h2 id="videoReviewTitle">创建素材</h2></div>
         <small>最多 20 个</small>
       </div>
-      <p class="video-review-intro">提交虚拟人物素材，通过审核后会获得可直接用于 Seedance 2.0 的 <code>asset://</code> 地址。</p>
+      <p class="video-review-intro">提交人物素材，通过审核后会保存到素材库，并获得可直接用于 Seedance 2.0 的 <code>asset://</code> 地址。</p>
 
       <div class="video-review-grid">
         <label class="video-field">
@@ -249,12 +288,17 @@
         </label>
       </div>
 
-      <div class="video-mode-tabs video-review-group-tabs" role="tablist" aria-label="素材组方式">
-        <button class="active" type="button" role="tab" aria-selected="true" data-review-group-mode="new">新建素材组</button>
-        <button type="button" role="tab" aria-selected="false" data-review-group-mode="existing">已有素材组</button>
+      <div class="video-review-append-mode" id="videoReviewAppendMode" hidden>
+        <div>
+          <span>正在追加到素材组</span>
+          <strong id="videoReviewAppendName"></strong>
+          <code id="videoReviewAppendId"></code>
+          <small id="videoReviewAppendDescription"></small>
+        </div>
+        <button id="videoReviewAppendCancel" type="button">改为新建素材组</button>
       </div>
 
-      <div class="video-review-group-panel" data-review-group-panel="new">
+      <div class="video-review-group-panel" id="videoReviewNewGroup">
         <div class="video-review-grid">
           <label class="video-field">
             <span>素材组名称</span>
@@ -266,18 +310,29 @@
           </label>
         </div>
       </div>
-      <div class="video-review-group-panel" data-review-group-panel="existing" hidden>
-        <label class="video-field">
-          <span>素材组 ID</span>
-          <input id="videoReviewGroupId" type="text" placeholder="填写已有 group_id">
-        </label>
-      </div>
 
-      <label class="video-field video-review-assets-field">
-        <span>公网素材 URL</span>
-        <textarea id="videoReviewAssets" placeholder="每行一个公网 URL；也可写成：素材名称 | https://example.com/file.jpg"></textarea>
-        <small><b id="videoReviewAssetCount">0</b>/20 · URL 必须可由 APIMart 服务器直接访问</small>
-      </label>
+      <section class="video-review-local" id="videoReviewLocalBlock" aria-labelledby="videoReviewLocalTitle">
+        <div class="video-review-local-heading">
+          <div>
+            <strong id="videoReviewLocalTitle">本地图片</strong>
+            <small>选择后会先上传，再自动提交审核</small>
+          </div>
+          <button id="videoReviewLocalButton" type="button">选择图片</button>
+        </div>
+        <div class="video-review-local-grid" id="videoReviewLocalGrid"></div>
+        <input id="videoReviewLocalInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden>
+      </section>
+
+      <details class="video-review-url-details">
+        <summary>
+          <span><strong>公网素材 URL（可选）</strong><small>使用已有公网文件时展开填写</small></span>
+          <b>展开</b>
+        </summary>
+        <label class="video-field video-review-assets-field">
+          <textarea id="videoReviewAssets" placeholder="每行一个公网 URL；也可写成：素材名称 | https://example.com/file.jpg"></textarea>
+          <small><b id="videoReviewAssetCount">0</b>/20 · 本地图片与 URL 合计，URL 必须可由 APIMart 服务器直接访问</small>
+        </label>
+      </details>
 
       <div class="video-error" id="videoReviewError" role="alert" hidden></div>
       <div class="video-review-submit-row">
@@ -291,7 +346,7 @@
 
     <section class="video-review-output" aria-labelledby="videoReviewOutputTitle">
       <div class="video-output-heading">
-        <div><span>REVIEW QUEUE</span><h2 id="videoReviewOutputTitle">审核结果</h2></div>
+        <div><span>MATERIAL LIBRARY</span><h2 id="videoReviewOutputTitle">素材库</h2></div>
         <small id="videoReviewMeta">等待提交</small>
       </div>
       <div class="video-review-empty" id="videoReviewEmpty">
@@ -310,12 +365,23 @@
         <div class="video-review-summary" id="videoReviewSummary"></div>
         <div class="video-review-result-list" id="videoReviewResultList"></div>
       </div>
+      <section class="video-material-history" aria-labelledby="videoMaterialHistoryTitle">
+        <div class="video-material-history-heading">
+          <div>
+            <span>HISTORY</span>
+            <h3 id="videoMaterialHistoryTitle">历史素材</h3>
+          </div>
+          <small id="videoMaterialHistoryCount">0 个</small>
+        </div>
+        <div class="video-material-history-list" id="videoMaterialHistoryList"></div>
+        <div class="video-material-history-empty" id="videoMaterialHistoryEmpty">审核通过的素材会保存在这里</div>
+      </section>
     </section>
   </div>
 </main>
 
 <div class="toast" id="toast"></div>
-<script src="shared.js?v=20260728-04"></script>
-<script src="video-page.js?v=20260728-06"></script>
+<script src="shared.js?v=20260728-09"></script>
+<script src="video-page.js?v=20260728-16"></script>
 </body>
 </html>
