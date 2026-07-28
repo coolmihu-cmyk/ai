@@ -265,6 +265,13 @@ requestAnimationFrame(async()=>{
   finally{
     assetsEls.loading.hidden=true;renderAssets();
   }
+  History.validate([...assetItems],{
+    concurrency:3,
+    onInvalid:item=>{
+      assetItems=assetItems.filter(asset=>asset.id!==item.id);
+      renderAssets();
+    }
+  }).catch(error=>console.warn('历史记录后台检查失败',error));
   if(pendingJob){
     if(pendingJob.failedAt)showGenerationFailure(pendingJob,pendingJob.lastError||'上次生成未完成。');
     else runPendingGeneration(pendingJob);

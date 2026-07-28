@@ -181,15 +181,16 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 
 /* Creation page */
 .home-page{position:relative;isolation:isolate;background:#fff;overflow:hidden}
-.shapegrid-background{
+.static-grid-background{
   position:fixed;
   inset:0;
   z-index:0;
-  width:100%;
-  height:100%;
-  display:block;
-  border:0;
-  background:#fff;
+  background-color:#fff;
+  background-image:
+    linear-gradient(to right,#eef0f1 1px,transparent 1px),
+    linear-gradient(to bottom,#eef0f1 1px,transparent 1px);
+  background-size:35px 35px;
+  background-position:center;
   pointer-events:none;
 }
 .home-page .app{

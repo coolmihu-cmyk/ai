@@ -186,14 +186,27 @@ const History={
       const expiredIds=all.filter(item=>this.itemTime(item)<cutoff).map(item=>item.id);
       let recent=all.filter(item=>this.itemTime(item)>=cutoff).sort((a,b)=>b.id-a.id);
       if(modelFilter)recent=recent.filter(item=>item.model===modelFilter);
-      const checks=await Promise.all(recent.map(async item=>({
-        item,available:await this.isAvailable(item.url,item.type)
-      })));
-      const valid=checks.filter(entry=>entry.available).map(entry=>entry.item);
-      const staleIds=[...expiredIds,...checks.filter(entry=>!entry.available).map(entry=>entry.item.id)];
-      if(staleIds.length)await this.deleteMany([...new Set(staleIds)]);
-      return valid;
+      if(expiredIds.length)this.deleteMany(expiredIds).catch(()=>{});
+      return recent;
     }catch(_){return[]}
+  },
+  async validate(items,{concurrency=3,onInvalid}={}){
+    const queue=Array.isArray(items)?[...items]:[];
+    if(!queue.length)return[];
+    const invalid=[],workerCount=Math.min(Math.max(1,Number(concurrency)||1),queue.length);
+    let cursor=0;
+    const worker=async()=>{
+      while(cursor<queue.length){
+        const item=queue[cursor++];
+        const available=await this.isAvailable(item.url,item.type);
+        if(available)continue;
+        invalid.push(item);
+        try{onInvalid?.(item)}catch(_){}
+      }
+    };
+    await Promise.all(Array.from({length:workerCount},worker));
+    if(invalid.length)await this.deleteMany([...new Set(invalid.map(item=>item.id))]);
+    return invalid;
   },
   async clear(){try{const db=await this.openDB();await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite');tx.objectStore(STORE_NAME).clear();tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(e){}},
   async delete(id){try{const db=await this.openDB();await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite');tx.objectStore(STORE_NAME).delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close();return true}catch(e){return false}},
