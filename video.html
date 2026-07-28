@@ -11,8 +11,8 @@
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="stylesheet" href="css/base.css?v=20260727-32">
 <link rel="stylesheet" href="css/pages.css?v=20260727-32">
-<link rel="stylesheet" href="css/modern-ui.css?v=20260728-02">
-<link rel="stylesheet" href="css/video.css?v=20260727-32">
+<link rel="stylesheet" href="css/modern-ui.css?v=20260728-04">
+<link rel="stylesheet" href="css/video.css?v=20260728-06">
 </head>
 <body class="video-page">
 
@@ -52,7 +52,12 @@
     <div class="video-model-badge"><span>SD2</span><strong>Seedance 2.0</strong></div>
   </header>
 
-  <div class="video-workspace">
+  <nav class="video-workspace-tabs" aria-label="视频工作区">
+    <button class="active" type="button" aria-selected="true" data-video-workspace="generation">视频生成</button>
+    <button type="button" aria-selected="false" data-video-workspace="review">虚拟素材审核</button>
+  </nav>
+
+  <div class="video-workspace" data-video-workspace-panel="generation">
     <section class="video-creator" aria-labelledby="videoCreateTitle">
       <div class="video-section-heading">
         <div><span>DIRECT</span><h2 id="videoCreateTitle">描述镜头</h2></div>
@@ -97,8 +102,6 @@
             <select id="videoResolution" aria-label="视频分辨率">
               <option value="480p">480P · 标清</option>
               <option value="720p" selected>720P · 高清</option>
-              <option value="1080p">1080P · 全高清</option>
-              <option value="4k">4K · 超高清</option>
             </select>
             <button class="creation-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
               <span class="creation-select-copy"><strong data-video-current>720P · 高清</strong></span>
@@ -176,8 +179,8 @@
         <div class="video-submit-info">
           <div class="video-credit-estimate">
             <span>参考积分</span>
-            <strong id="videoCreditEstimate">7.10 Credits</strong>
-            <small id="videoCreditNote">按生成时长估算</small>
+            <strong id="videoCreditEstimate">8.95 Credits</strong>
+            <small id="videoCreditNote">720P · 1.79 Credits/秒</small>
           </div>
           <p>生成结果链接仅保存72小时，请及时下载。</p>
         </div>
@@ -222,10 +225,97 @@
       </div>
     </section>
   </div>
+
+  <div class="video-review-workspace" data-video-workspace-panel="review" hidden>
+    <section class="video-review-form" aria-labelledby="videoReviewTitle">
+      <div class="video-section-heading">
+        <div><span>PRIVATE ASSET</span><h2 id="videoReviewTitle">虚拟素材审核</h2></div>
+        <small>最多 20 个</small>
+      </div>
+      <p class="video-review-intro">提交虚拟人物素材，通过审核后会获得可直接用于 Seedance 2.0 的 <code>asset://</code> 地址。</p>
+
+      <div class="video-review-grid">
+        <label class="video-field">
+          <span>素材类型</span>
+          <select id="videoReviewAssetType">
+            <option value="Image">图片</option>
+            <option value="Video">视频</option>
+            <option value="Audio">音频</option>
+          </select>
+        </label>
+        <label class="video-field">
+          <span>项目名称</span>
+          <input id="videoReviewProject" type="text" value="default" maxlength="80">
+        </label>
+      </div>
+
+      <div class="video-mode-tabs video-review-group-tabs" role="tablist" aria-label="素材组方式">
+        <button class="active" type="button" role="tab" aria-selected="true" data-review-group-mode="new">新建素材组</button>
+        <button type="button" role="tab" aria-selected="false" data-review-group-mode="existing">已有素材组</button>
+      </div>
+
+      <div class="video-review-group-panel" data-review-group-panel="new">
+        <div class="video-review-grid">
+          <label class="video-field">
+            <span>素材组名称</span>
+            <input id="videoReviewGroupName" type="text" placeholder="例如：品牌虚拟人" maxlength="80">
+          </label>
+          <label class="video-field">
+            <span>素材组说明</span>
+            <input id="videoReviewGroupDescription" type="text" placeholder="可选" maxlength="200">
+          </label>
+        </div>
+      </div>
+      <div class="video-review-group-panel" data-review-group-panel="existing" hidden>
+        <label class="video-field">
+          <span>素材组 ID</span>
+          <input id="videoReviewGroupId" type="text" placeholder="填写已有 group_id">
+        </label>
+      </div>
+
+      <label class="video-field video-review-assets-field">
+        <span>公网素材 URL</span>
+        <textarea id="videoReviewAssets" placeholder="每行一个公网 URL；也可写成：素材名称 | https://example.com/file.jpg"></textarea>
+        <small><b id="videoReviewAssetCount">0</b>/20 · URL 必须可由 APIMart 服务器直接访问</small>
+      </label>
+
+      <div class="video-error" id="videoReviewError" role="alert" hidden></div>
+      <div class="video-review-submit-row">
+        <p>审核为异步任务，离开页面后再次打开仍会继续查询。</p>
+        <button class="video-generate-button" id="videoReviewSubmit" type="button">
+          <span>提交审核</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <section class="video-review-output" aria-labelledby="videoReviewOutputTitle">
+      <div class="video-output-heading">
+        <div><span>REVIEW QUEUE</span><h2 id="videoReviewOutputTitle">审核结果</h2></div>
+        <small id="videoReviewMeta">等待提交</small>
+      </div>
+      <div class="video-review-empty" id="videoReviewEmpty">
+        <div class="video-review-empty-mark">✓</div>
+        <strong>审核结果会在这里显示</strong>
+        <p>图片、视频和音频素材需要分别提交。</p>
+      </div>
+      <div class="video-review-progress" id="videoReviewProgress" hidden>
+        <span id="videoReviewProgressStatus">正在提交审核</span>
+        <strong id="videoReviewProgressPercent">0%</strong>
+        <div class="video-progress-track"><i id="videoReviewProgressBar"></i></div>
+        <small id="videoReviewProgressDetail">审核时间取决于素材数量</small>
+        <button id="videoReviewStop" type="button">停止等待</button>
+      </div>
+      <div class="video-review-results" id="videoReviewResults" hidden>
+        <div class="video-review-summary" id="videoReviewSummary"></div>
+        <div class="video-review-result-list" id="videoReviewResultList"></div>
+      </div>
+    </section>
+  </div>
 </main>
 
 <div class="toast" id="toast"></div>
-<script src="shared.js?v=20260728-01"></script>
-<script src="video-page.js?v=20260727-32"></script>
+<script src="shared.js?v=20260728-04"></script>
+<script src="video-page.js?v=20260728-06"></script>
 </body>
 </html>

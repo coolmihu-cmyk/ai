@@ -54,6 +54,48 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 }
 .fluid-background,.fluid-orb,.fluid-noise{display:none!important}
 
+/* Page navigation feedback */
+.page-transition-loader{
+  position:fixed;
+  inset:0;
+  z-index:10000;
+  display:grid;
+  place-items:center;
+  background:rgba(255,255,255,.68);
+  -webkit-backdrop-filter:blur(2px);
+  backdrop-filter:blur(2px);
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity .16s ease,visibility .16s ease;
+}
+.page-is-transitioning .page-transition-loader{
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+}
+.page-transition-loader-icon{
+  width:46px;
+  height:46px;
+  display:grid;
+  place-items:center;
+  color:#fff;
+  background:var(--ui-ink);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:9px;
+  box-shadow:0 12px 32px rgba(17,19,21,.18);
+}
+.page-transition-loader-icon svg{
+  width:21px;
+  height:21px;
+  animation:pageTransitionSpin .9s cubic-bezier(.55,.12,.45,.88) infinite;
+}
+@keyframes pageTransitionSpin{
+  0%{transform:rotate(0deg) scale(.82);opacity:.55}
+  50%{transform:rotate(180deg) scale(1);opacity:1}
+  100%{transform:rotate(360deg) scale(.82);opacity:.55}
+}
+
 /* Navigation */
 .app-rail{
   position:fixed;

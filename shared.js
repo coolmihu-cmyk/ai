@@ -28,6 +28,34 @@ const MODEL_CONFIG={
 };
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 
+let pageTransitionTimer=0;
+function ensurePageTransitionLoader(){
+  let loader=document.querySelector('.page-transition-loader');
+  if(loader)return loader;
+  loader=document.createElement('div');
+  loader.className='page-transition-loader';
+  loader.setAttribute('role','status');
+  loader.setAttribute('aria-label','页面加载中');
+  loader.setAttribute('aria-live','polite');
+  loader.innerHTML='<span class="page-transition-loader-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l2.1 6.9L21 12l-6.9 2.1L12 21l-2.1-6.9L3 12l6.9-2.1L12 3Z"/></svg></span>';
+  document.body.appendChild(loader);
+  return loader;
+}
+function showPageTransition(){
+  ensurePageTransitionLoader();
+  document.documentElement.classList.add('page-is-transitioning');
+}
+function hidePageTransition(){
+  clearTimeout(pageTransitionTimer);
+  document.documentElement.classList.remove('page-is-transitioning');
+}
+function navigateWithLoading(url){
+  if(!url)return;
+  showPageTransition();
+  clearTimeout(pageTransitionTimer);
+  pageTransitionTimer=setTimeout(()=>{location.href=url},90);
+}
+
 function toast(text){const t=$('#toast');if(!t)return;t.textContent=text;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
 function formatDuration(ms){const t=Math.max(0,Math.floor(ms/1000)),m=Math.floor(t/60),s=t%60;return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
 function fileToDataURI(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)})}
@@ -45,7 +73,7 @@ const Settings={
   openPage(){
     if(location.pathname.endsWith('/settings.html'))return;
     sessionStorage.setItem('mihu_settings_return',this.getCurrentPage());
-    location.href='settings.html';
+    navigateWithLoading('settings.html');
   },
   openModal(){this.openPage()}
 };
@@ -370,6 +398,25 @@ function lockPageZoom(){
   document.addEventListener('gestureend',prevent,{passive:false});
 }
 lockPageZoom();
+
+ensurePageTransitionLoader();
+document.addEventListener('click',event=>{
+  if(event.defaultPrevented||event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
+  const link=event.target.closest('a[href]');
+  if(!link||link.hasAttribute('download')||link.dataset.noPageTransition!==undefined)return;
+  if(link.target&&link.target.toLowerCase()!=='_self')return;
+  let target;
+  try{target=new URL(link.href,location.href)}catch(_){return}
+  if(target.origin!==location.origin||!/^https?:$/.test(target.protocol))return;
+  const current=location.pathname+location.search+location.hash;
+  const next=target.pathname+target.search+target.hash;
+  if(next===current)return;
+  if(target.pathname===location.pathname&&target.search===location.search&&target.hash)return;
+  event.preventDefault();
+  navigateWithLoading(target.href);
+});
+window.addEventListener('beforeunload',showPageTransition);
+window.addEventListener('pageshow',hidePageTransition);
 
 /* 资产和设置工作区仅在实际滚动时显示滚动条 */
 document.querySelectorAll('.assets-shell,.settings-shell,.video-shell').forEach(shell=>{

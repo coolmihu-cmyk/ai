@@ -149,7 +149,7 @@ function updateCharLimit(){
 
 function updatePlaceholder(){
   const phs={
-    gpt:'一个念头、一种氛围，或一句不完整的灵感...',
+    gpt:'描述你想生成的画面，Image 2 擅长文字渲染、写实质感与原生 4K 输出…',
     nano:'描述你想生成的画面，NB2 支持 4K 输出、角色一致性…',
     grok:'描述你想生成的画面，Grok 超写实图像生成…'
   };

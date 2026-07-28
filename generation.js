@@ -55,7 +55,7 @@ async function doGenerate(){
   try{
     const existingJob=await PendingGeneration.load();
     if(existingJob){
-      window.location.href='assets.html';
+      navigateWithLoading('assets.html');
       return;
     }
     if(els.enhanceBtn.checked){
@@ -67,7 +67,7 @@ async function doGenerate(){
     modelState[activeModel].promptText=prompt;
     const job=await buildPendingGeneration();
     await PendingGeneration.save(job);
-    window.location.href='assets.html';
+    navigateWithLoading('assets.html');
   }catch(error){
     const message=error?.message||'任务准备失败，请重试。';
     showComposerError(message);

@@ -53,7 +53,7 @@ function openAssetEditor(item){
       url:item.url,prompt:item.prompt||'',model:item.model||'gpt'
     }));
   }catch(_){}
-  window.location.href='edit.html';
+  navigateWithLoading('edit.html');
 }
 function renderAssets(){
   assetsEls.grid.innerHTML='';
