@@ -123,13 +123,15 @@ els.creationResolutionSelect.onchange=()=>{
 
 function switchModel(key){
   if(key===activeModel)return;
-  // 保存当前模型的提示词
+  // 首页提示词是共用草稿；切换模型时只切换模型参数，不清空创作内容。
   const currentPrompt=els.promptInput.value;
-  modelState[activeModel].promptText=currentPrompt;
+  Object.entries(modelState).forEach(([modelKey,state])=>{
+    state.promptText=currentPrompt.slice(0,MODEL_CONFIG[modelKey].promptLimit);
+  });
   activeModel=key;
   els.creationModelSelect.value=key;
   syncCreationDropdown(els.creationModelSelect.closest('.creation-dropdown'));
-  els.promptInput.value=modelState[key].promptText||'';
+  els.promptInput.value=modelState[key].promptText;
   els.promptInput.maxLength=MODEL_CONFIG[key].promptLimit;
   els.charCount.textContent=els.promptInput.value.length;
   updateCharLimit();
