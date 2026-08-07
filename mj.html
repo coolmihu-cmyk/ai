@@ -1,0 +1,60 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="color-scheme" content="light">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Midjourney · MIHU DESIGN OS</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="stylesheet" href="css/base.css?v=20260727-32">
+<link rel="stylesheet" href="css/pages.css?v=20260727-32">
+<link rel="stylesheet" href="css/modern-ui.css?v=20260807-01">
+<link rel="stylesheet" href="css/mj.css?v=20260807-03">
+</head>
+<body class="mj-page">
+<nav class="app-rail" aria-label="主要功能">
+  <a class="rail-brand" href="index.html" title="Pic.supmihu.cn"><img src="logo.png" alt=""></a>
+  <div class="rail-nav">
+    <a class="rail-item" href="index.html" title="图片"><img class="rail-icon" src="icon/chuangzuo.svg" alt=""><span>图片</span></a>
+    <a class="rail-item" href="video.html" title="视频"><img class="rail-icon" src="icon/video.svg" alt=""><span>视频</span></a>
+    <a class="rail-item" href="assets.html" title="历史"><img class="rail-icon" src="icon/photo.svg" alt=""><span>历史</span></a>
+    <a class="rail-item" href="edit.html" title="编辑"><img class="rail-icon" src="icon/edit.svg" alt=""><span>编辑</span></a>
+    <a class="rail-item" href="settings.html" title="设置"><img class="rail-icon" src="icon/shezhi.svg" alt=""><span>设置</span></a>
+  </div>
+</nav>
+<main class="mj-shell">
+  <header class="mj-header">
+    <div><span class="mj-kicker">MIDJOURNEY / CREATE</span><h1>Midjourney</h1></div>
+    <a href="assets.html" class="mj-history-link">查看历史 <span>↗</span></a>
+  </header>
+  <div class="mj-workspace">
+    <section class="mj-composer-card" aria-labelledby="mjPromptLabel">
+      <div class="mj-card-head"><div><span>DIRECT PROMPT</span><h2 id="mjPromptLabel">描述画面</h2></div><div class="mj-head-actions"><button id="mjTranslate" type="button" title="将中文提示词译为英文">中译英</button><small><b id="mjCount">0</b> / 4000</small></div></div>
+      <textarea id="mjPrompt" maxlength="4000" placeholder="描述画面、构图、光线、材质和氛围…"></textarea>
+      <div class="mj-reference-row"><input id="mjReferences" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden><button id="mjAddReference" type="button">+ 添加垫图</button><div id="mjReferenceList" class="mj-reference-list"></div><small>可选 · 图生图画面参考</small></div>
+      <div id="mjError" class="mj-error" role="alert" hidden></div>
+      <footer class="mj-submit"><p>生成结果会自动保存到历史。</p><button id="mjGenerate" type="button"><span>生成图片</span><i>↗</i></button></footer>
+    </section>
+    <aside class="mj-controls-card" aria-label="Midjourney 参数">
+      <div class="mj-card-head"><div><span>MJ PARAMETERS</span><h2>创作参数</h2></div></div>
+      <div class="mj-settings">
+        <label><span>版本</span><select id="mjVersion"><option value="8.2">v8.2</option><option value="8.1">v8.1</option><option value="7">v7</option><option value="6.1">v6.1</option><option value="5.2">v5.2</option><option value="5.1">v5.1</option><option value="niji7">Niji 7</option><option value="niji6">Niji 6</option></select></label>
+        <label><span>速度</span><select id="mjSpeed"><option value="relax">Relax</option><option value="fast" selected>Fast</option><option value="turbo">Turbo</option></select></label>
+        <label><span>宽高比</span><select id="mjSize"><option>1:1</option><option>3:2</option><option>2:3</option><option selected>16:9</option><option>9:16</option><option>4:3</option><option>3:4</option></select></label>
+        <label><span>画质</span><select id="mjQuality"><option value="0.25">0.25</option><option value="0.5">0.5</option><option value="1" selected>1</option><option value="2">2</option></select></label>
+      </div>
+      <div class="mj-sliders">
+        <label><span>风格化 <output id="mjStylizeValue">100</output></span><input id="mjStylize" type="range" min="0" max="1000" value="100"></label>
+        <label><span>混乱度 <output id="mjChaosValue">0</output></span><input id="mjChaos" type="range" min="0" max="100" value="0"></label>
+        <label><span>怪异度 <output id="mjWeirdValue">0</output></span><input id="mjWeird" type="range" min="0" max="3000" value="0"></label>
+      </div>
+      <div class="mj-switches"><label><input id="mjRaw" type="checkbox"><span>Raw 原始风格</span></label><label><input id="mjTile" type="checkbox"><span>平铺</span></label><label><input id="mjDraft" type="checkbox"><span>Draft 草图</span></label><label><input id="mjHd" type="checkbox"><span>HD 高清</span></label></div>
+      <details class="mj-advanced"><summary>高级参数 <span>展开</span></summary><div><label>负向提示词<input id="mjNegative" type="text" placeholder="例如：blurry, low quality"></label><label>随机种子<input id="mjSeed" type="number" inputmode="numeric" placeholder="可选"></label><label>额外 Flag<input id="mjExtra" type="text" placeholder="例如：--no text"></label></div></details>
+    </aside>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script src="shared.js?v=20260807-01"></script>
+<script src="mj-page.js?v=20260807-02"></script>
+</body></html>

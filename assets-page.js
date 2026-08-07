@@ -1,9 +1,10 @@
-"use strict";
+﻿"use strict";
 
 const ASSET_MODEL_NAMES=Object.fromEntries(
   Object.entries(MODEL_CONFIG).map(([key,config])=>[key,config.name])
 );
 ASSET_MODEL_NAMES['doubao-seedance-2.0']='Seedance 2.0';
+ASSET_MODEL_NAMES.midjourney='Midjourney';
 const assetsEls={
   grid:$('#assetsGrid'),loading:$('#assetsLoading'),empty:$('#assetsEmpty'),count:$('#assetsCount'),
   generation:$('#assetsGeneration'),generationModel:$('#assetsGenerationModel'),
@@ -50,7 +51,7 @@ function assetIcon(paths){
 function openAssetEditor(item){
   try{
     sessionStorage.setItem('mihu_edit_payload',JSON.stringify({
-      url:item.url,prompt:item.prompt||'',model:item.model||'gpt'
+      url:item.url,prompt:item.prompt||'',model:MODEL_CONFIG[item.model]?item.model:'gpt'
     }));
   }catch(_){}
   navigateWithLoading('edit.html');
@@ -213,12 +214,13 @@ async function runPendingGeneration(job){
     assetsEls.generationError.innerHTML='尚未配置 API Key。<a href="settings.html">前往设置</a>';
     clearInterval(generationElapsedTimer);return;
   }
-  const controller=new AbortController(),timeoutId=setTimeout(()=>controller.abort(),300000);
+  const maxWaitMs=Math.max(300000,Math.min(Number(job.maxWaitMs)||300000,30*60*1000));
+  const controller=new AbortController(),timeoutId=setTimeout(()=>controller.abort(),maxWaitMs+15000);
   const startedAt=performance.now();
   try{
     let url;
     if(job.taskId){
-      url=await Apimart.pollTask(apiKey,job.taskId,updateGeneration,controller.signal);
+      url=await Apimart.pollTask(apiKey,job.taskId,updateGeneration,controller.signal,maxWaitMs);
     }else{
       url=await Apimart.generate({
         apiKey,body:job.body,endpoint:job.endpoint,signal:controller.signal,

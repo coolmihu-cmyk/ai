@@ -1,4 +1,4 @@
-/* Modern light studio — shared visual system */
+﻿/* Modern light studio — shared visual system */
 @font-face{
   font-family:"Montserrat";
   font-style:normal;
@@ -356,6 +356,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   user-select:none;
 }
 .home-help-button{
+  text-decoration:none;
   position:fixed;
   right:24px;
   bottom:20px;

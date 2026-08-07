@@ -1,4 +1,4 @@
-"use strict";
+﻿"use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_RETENTION_MS=72*60*60*1000;
@@ -110,8 +110,8 @@ const Apimart={
     if(!taskId)throw new Error('接口未返回 task_id。返回内容：'+JSON.stringify(json).slice(0,400));
     return taskId;
   },
-  async pollTask(apiKey,taskId,onProgress,signal){
-    const maxWait=300000,pollInterval=2500,start=performance.now();
+  async pollTask(apiKey,taskId,onProgress,signal,maxWaitMs=300000){
+    const maxWait=Math.max(300000,Math.min(Number(maxWaitMs)||300000,30*60*1000)),pollInterval=2500,start=performance.now();
     while(true){
       if(signal?.aborted)throw new DOMException('请求超时','AbortError');
       if(performance.now()-start>maxWait)throw new DOMException('请求超时','AbortError');
@@ -122,12 +122,9 @@ const Apimart={
       const status=d.status,progress=d.progress||0;
       if(onProgress)onProgress(status,progress);
       if(status==='completed'){
-        const imgs=d.result?.images;
-        if(imgs&&imgs.length>0){
-          const url=imgs[0].url;
-          if(Array.isArray(url))return url[0];
-          if(typeof url==='string')return url;
-        }
+        const result=d.result||{};
+        const urls=[result.grid_image_url,...(Array.isArray(result.images)?result.images.flatMap(image=>Array.isArray(image?.url)?image.url:image?.url):[]),...(Array.isArray(result.image_urls)?result.image_urls:[]),d.grid_image_url,...(Array.isArray(d.image_urls)?d.image_urls:[])].filter(url=>typeof url==='string'&&url);
+        if(urls.length)return urls[0];
         throw new Error('任务完成但未找到图片 URL');
       }
       if(status==='failed'){const e=d.error;throw new Error('生成失败：'+(e?.message||JSON.stringify(d).slice(0,300)))}
