@@ -1111,6 +1111,18 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .assets-generation-error-actions button:hover{background:var(--ui-soft)}
 .assets-generation-error-actions button:disabled{opacity:.5;cursor:wait}
 .assets-generation-model{border-radius:8px;background:var(--ui-ink);color:#fff}
+.assets-generation-queue{
+  min-height:26px;margin-left:2px;padding:0 10px;display:inline-flex;align-items:center;gap:7px;
+  border:1px solid #cfd3d6;border-radius:8px;background:#eceff1;color:var(--ui-ink);
+  font-size:12px;font-weight:720;line-height:1;
+}
+.assets-generation-queue[hidden]{display:none}
+.assets-generation-queue::before{
+  content:"";width:6px;height:6px;flex:0 0 auto;border-radius:50%;background:var(--ui-ink);
+  animation:queueStatusPulse 1.6s ease-in-out infinite;
+}
+@keyframes queueStatusPulse{50%{opacity:.3;transform:scale(.72)}}
+@media(prefers-reduced-motion:reduce){.assets-generation-queue::before{animation:none}}
 .assets-generation-track{height:6px;background:var(--ui-soft-strong)}
 .assets-generation-track > div{background:var(--ui-ink)}
 .assets-groups{max-width:1480px}

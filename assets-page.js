@@ -8,12 +8,12 @@ ASSET_MODEL_NAMES.midjourney='Midjourney';
 const assetsEls={
   grid:$('#assetsGrid'),loading:$('#assetsLoading'),empty:$('#assetsEmpty'),count:$('#assetsCount'),
   generation:$('#assetsGeneration'),generationModel:$('#assetsGenerationModel'),
-  generationElapsed:$('#assetsGenerationElapsed'),generationPrompt:$('#assetsGenerationPrompt'),
+  generationElapsed:$('#assetsGenerationElapsed'),generationQueue:$('#assetsGenerationQueue'),generationPrompt:$('#assetsGenerationPrompt'),
   generationStatus:$('#assetsGenerationStatus'),generationPercent:$('#assetsGenerationPercent'),
   generationBar:$('#assetsGenerationBar'),generationError:$('#assetsGenerationError'),
   generationVisual:$('#assetsGenerationVisual'),generationReference:$('#assetsGenerationReference')
 };
-let assetItems=[],generationElapsedTimer=null;
+let assetItems=[],generationElapsedTimer=null,queueAdvancing=false;
 
 function sortAssets(items){
   return items.sort((a,b)=>{
@@ -125,6 +125,13 @@ function renderAssets(){
   assetsEls.grid.appendChild(fragment);
 }
 
+async function syncGenerationQueue(currentJob){
+  const jobs=await PendingGeneration.loadAll();
+  const position=Math.max(0,jobs.findIndex(job=>job.id===currentJob.id));
+  const waiting=Math.max(0,jobs.length-position-1);
+  assetsEls.generationQueue.hidden=waiting===0;
+  assetsEls.generationQueue.textContent=waiting?'队列中 · '+waiting+' 个等待':'';
+}
 function showGeneration(job){
   assetsEls.generation.hidden=false;
   assetsEls.generation.className='assets-generation is-running';
@@ -158,6 +165,7 @@ function showGeneration(job){
   const updateElapsed=()=>assetsEls.generationElapsed.textContent=formatDuration(Date.now()-startedAt);
   updateElapsed();generationElapsedTimer=setInterval(updateElapsed,1000);
   syncAssetsSummary();
+  syncGenerationQueue(job).catch(()=>{});
 }
 function updateGeneration(status,progress,retryMessage){
   const numeric=Math.max(0,Math.min(100,Number(progress)||0));
@@ -191,7 +199,7 @@ function showGenerationFailure(job,message){
     delete job.failedAt;delete job.lastError;
     await PendingGeneration.save(job);
     showGeneration(job);
-    runPendingGeneration(job);
+    runNextPendingGeneration().catch(()=>{});
   };
   cancel.onclick=async()=>{
     retry.disabled=true;cancel.disabled=true;
@@ -199,9 +207,23 @@ function showGenerationFailure(job,message){
     assetsEls.generation.hidden=true;
     clearInterval(generationElapsedTimer);
     syncAssetsSummary();
+    runNextPendingGeneration().catch(()=>{});
   };
   actions.append(retry,cancel);
   assetsEls.generationError.append(text,actions);
+}
+async function runNextPendingGeneration(){
+  if(queueAdvancing)return;
+  queueAdvancing=true;
+  try{
+    while(true){
+      const next=await PendingGeneration.load();
+      if(!next){assetsEls.generation.hidden=true;syncAssetsSummary();break}
+      if(next.failedAt){showGeneration(next);showGenerationFailure(next,next.lastError||'上次生成未完成。');break}
+      showGeneration(next);
+      if(!await runPendingGeneration(next))break;
+    }
+  }finally{queueAdvancing=false}
 }
 async function runPendingGeneration(job){
   const apiKey=Settings.getKey();
@@ -247,7 +269,7 @@ async function runPendingGeneration(job){
     assetsEls.generationBar.style.width='100%';
     clearInterval(generationElapsedTimer);
     notifyGenerated(ASSET_MODEL_NAMES[item.model]||item.model);
-    setTimeout(()=>{assetsEls.generation.hidden=true;syncAssetsSummary()},3500);
+    return true;
   }catch(error){
     const message=error?.name==='AbortError'?'请求超时，可以重试当前任务。':(error?.message||'生成失败，请重试。');
     job.failedAt=new Date().toISOString();
@@ -255,6 +277,7 @@ async function runPendingGeneration(job){
     await PendingGeneration.save(job);
     showGenerationFailure(job,message);
     clearInterval(generationElapsedTimer);
+    return false;
   }finally{
     clearTimeout(timeoutId);
   }
@@ -274,6 +297,6 @@ requestAnimationFrame(async()=>{
     .catch(error=>console.warn('历史记录后台检查失败',error));
   if(pendingJob){
     if(pendingJob.failedAt)showGenerationFailure(pendingJob,pendingJob.lastError||'上次生成未完成。');
-    else runPendingGeneration(pendingJob);
+    else runNextPendingGeneration();
   }
 });

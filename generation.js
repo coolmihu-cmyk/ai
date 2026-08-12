@@ -34,7 +34,7 @@ async function buildPendingGeneration(){
   }
 
   return {
-    id:'active-generation',
+    id:'generation-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),
     body,endpoint,prompt,model:key,
     settings:snapshotCreationState(key),
     createdAt:new Date().toISOString(),
@@ -53,11 +53,7 @@ async function doGenerate(){
   els.sendBtn.disabled=true;
   ensureNotificationPermission();
   try{
-    const existingJob=await PendingGeneration.load();
-    if(existingJob){
-      navigateWithLoading('assets.html');
-      return;
-    }
+
     if(els.enhanceBtn.checked){
       if(typeof window.optimizeCurrentPrompt!=='function')throw new Error('提示词优化功能尚未就绪，请刷新页面后重试。');
       const optimized=await window.optimizeCurrentPrompt();

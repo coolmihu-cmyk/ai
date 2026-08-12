@@ -323,7 +323,7 @@ const PendingGeneration={
     });
     db.close();return job;
   },
-  async load(){
+  async loadAll(){
     try{
       const db=await History.openDB();
       const jobs=await new Promise((resolve,reject)=>{
@@ -333,9 +333,14 @@ const PendingGeneration={
       db.close();
       return jobs
         .filter(job=>job.scope!=='editor')
-        .sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt))[0]||null;
-    }catch(_){return null}
+        .sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
+    }catch(_){return []}
   },
+  async load(){
+    const jobs=await this.loadAll();
+    return jobs[0]||null;
+  },
+  async count(){return (await this.loadAll()).length},
   async loadById(id){
     try{
       const db=await History.openDB();

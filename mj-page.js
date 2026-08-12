@@ -40,7 +40,7 @@
     if(negative)body.negative_prompt=negative;
     if(extra)body.extra=extra;
     if(seed){const number=Number(seed);if(!Number.isInteger(number))throw new Error('随机种子必须是整数。');body.seed=number}
-    return {id:'active-generation',body,endpoint:'/midjourney/generations',prompt,model:'midjourney',settings:{version:el.version.value,speed:el.speed.value,size:el.size.value,quality:el.quality.value,stylize:body.stylize,chaos:body.chaos,weird:body.weird},createdAt:new Date().toISOString(),taskId:null,maxWaitMs:30*60*1000};
+    return {id:'generation-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),body,endpoint:'/midjourney/generations',prompt,model:'midjourney',settings:{version:el.version.value,speed:el.speed.value,size:el.size.value,quality:el.quality.value,stylize:body.stylize,chaos:body.chaos,weird:body.weird},createdAt:new Date().toISOString(),taskId:null,maxWaitMs:30*60*1000};
   }
   async function translatePrompt(){
     const original=el.prompt.value.trim();
@@ -66,7 +66,7 @@
     if(!Settings.getKey()){Settings.openPage();toast('请先保存 API Key');return}
     el.generate.disabled=true;
     try{
-      if(await PendingGeneration.load()){navigateWithLoading('assets.html');return}
+
       await PendingGeneration.save(buildJob());
       navigateWithLoading('assets.html');
     }catch(error){setError(error.message||'任务准备失败，请重试。')}finally{el.generate.disabled=false}
