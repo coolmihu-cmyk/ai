@@ -153,7 +153,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 }
 .rail-item svg,.rail-icon{width:21px;height:21px;flex:0 0 21px}
 .rail-icon{display:block;object-fit:contain;filter:none;opacity:.72;transition:filter .18s,opacity .18s}
-.rail-icon[src$="video.svg"]{width:18px;height:18px;flex-basis:18px}
 .rail-icon[src$="photo.svg"]{width:17px;height:17px;flex-basis:17px}
 .rail-item:hover{background:#fff;color:var(--ui-ink);transform:translateY(-1px)}
 .rail-item:hover .rail-icon{filter:none;opacity:1}
@@ -745,6 +744,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   border-radius:2px;
   background:#eef0f1;
 }
+.ratio-auto-mark{width:20px;height:16px;display:grid;place-items:center;border:1px solid currentColor;border-radius:4px;background:#eef0f1;font-size:9px;font-weight:760;line-height:1}
 .creation-resolution-mark{
   border-radius:6px;
   background:#e9ebec;
@@ -1144,8 +1144,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   box-shadow:0 16px 36px rgba(17,19,21,.11);
 }
 .asset-media{background:#e9ebec}
-.asset-media img,.asset-media video{filter:none;transition:transform .28s}
-.asset-card:hover .asset-media img,.asset-card:hover .asset-media video{filter:none;transform:scale(1.025)}
+.asset-media img{filter:none;transition:transform .28s}
+.asset-card:hover .asset-media img{filter:none;transform:scale(1.025)}
 .asset-model{
   padding:6px 8px;
   border:0;

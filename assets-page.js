@@ -3,7 +3,6 @@
 const ASSET_MODEL_NAMES=Object.fromEntries(
   Object.entries(MODEL_CONFIG).map(([key,config])=>[key,config.name])
 );
-ASSET_MODEL_NAMES['doubao-seedance-2.0']='Seedance 2.0';
 ASSET_MODEL_NAMES.midjourney='Midjourney';
 const assetsEls={
   grid:$('#assetsGrid'),loading:$('#assetsLoading'),empty:$('#assetsEmpty'),count:$('#assetsCount'),
@@ -22,11 +21,7 @@ function sortAssets(items){
   });
 }
 function syncAssetsSummary(){
-  const videos=assetItems.filter(item=>item.type==='video').length;
-  const images=assetItems.length-videos;
-  assetsEls.count.textContent=images&&videos
-    ?`${images} 张图片 · ${videos} 个视频`
-    :videos?`${videos} 个视频`:`${images} 张图片`;
+  assetsEls.count.textContent=`${assetItems.length} 张图片`;
   assetsEls.empty.hidden=assetItems.length>0||!assetsEls.generation.hidden;
 }
 function assetDay(value){
@@ -75,44 +70,20 @@ function renderAssets(){
       dayGrid=document.createElement('div');dayGrid.className='asset-date-grid';
       group.append(heading,dayGrid);fragment.appendChild(group);
     }
-    const isVideo=item.type==='video';
-    const card=document.createElement('article');card.className='asset-card'+(isVideo?' is-video':'');
+    const card=document.createElement('article');card.className='asset-card';
     const media=document.createElement('button');
-    media.type='button';media.className='asset-media';
-    media.title=isVideo?'在新标签页打开视频':'在新标签页打开图片';
-    if(isVideo){
-      const video=document.createElement('video');
-      video.src=item.url;video.muted=true;video.loop=true;video.playsInline=true;video.preload='metadata';
-      if(item.thumbnailUrl)video.poster=item.thumbnailUrl;
-      media.appendChild(video);
-      card.addEventListener('mouseenter',()=>video.play().catch(()=>{}));
-      card.addEventListener('mouseleave',()=>{
-        video.pause();
-        if(video.readyState)video.currentTime=0;
-      });
-    }else{
-      const image=document.createElement('img');
-      image.src=item.url;image.alt=item.prompt||'生成图片';image.loading='lazy';
-      media.appendChild(image);
-    }
+    media.type='button';media.className='asset-media';media.title='在新标签页打开图片';
+    const image=document.createElement('img');
+    image.src=item.url;image.alt=item.prompt||'生成图片';image.loading='lazy';media.appendChild(image);
     media.onclick=()=>openImage(item.url);
     const meta=document.createElement('div');meta.className='asset-meta';
     const model=document.createElement('span');model.className='asset-model';model.textContent=ASSET_MODEL_NAMES[item.model]||item.model;
     meta.append(model);
     const actions=document.createElement('div');actions.className='asset-actions';
-    if(isVideo){
-      const download=document.createElement('a');
-      download.className='asset-download';download.href=item.url;download.download='';
-      download.title='下载视频';
-      download.appendChild(assetIcon(['M12 3v12','m7 10 5 5 5-5','M5 21h14']));
-      const downloadText=document.createElement('span');downloadText.textContent='下载';
-      download.appendChild(downloadText);actions.appendChild(download);
-    }else{
-      const edit=document.createElement('button');edit.type='button';edit.className='asset-edit';edit.title='进入编辑页面';
-      edit.appendChild(assetIcon(['m4 16-.8 4.8L8 20l11-11-4-4L4 16Z','m13.5 6.5 4 4']));
-      const editText=document.createElement('span');editText.textContent='编辑';edit.appendChild(editText);
-      edit.onclick=()=>openAssetEditor(item);actions.appendChild(edit);
-    }
+    const edit=document.createElement('button');edit.type='button';edit.className='asset-edit';edit.title='进入编辑页面';
+    edit.appendChild(assetIcon(['m4 16-.8 4.8L8 20l11-11-4-4L4 16Z','m13.5 6.5 4 4']));
+    const editText=document.createElement('span');editText.textContent='编辑';edit.appendChild(editText);
+    edit.onclick=()=>openAssetEditor(item);actions.appendChild(edit);
     const remove=document.createElement('button');remove.type='button';remove.className='asset-delete';remove.title='删除记录';
     remove.appendChild(assetIcon(['M4 7h16','M9 7V5h6v2','M7 7l1 13h8l1-13','M10 11v5','M14 11v5']));
     remove.onclick=async()=>{
@@ -286,7 +257,7 @@ async function runPendingGeneration(job){
 requestAnimationFrame(async()=>{
   const pendingJob=await PendingGeneration.load();
   if(pendingJob)showGeneration(pendingJob);
-  try{assetItems=sortAssets(await History.load())}
+  try{assetItems=sortAssets((await History.load()).filter(item=>(item.type||'image')==='image'))}
   finally{
     assetsEls.loading.hidden=true;renderAssets();
   }

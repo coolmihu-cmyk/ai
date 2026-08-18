@@ -22,15 +22,9 @@ async function buildPendingGeneration(){
     body={model:MODEL_CONFIG.nano.generationModel,prompt,size:state.ratio,resolution:state.resolution,n:1};
     if(refCount>0)body.image_urls=await refMgr.getDataURIs();
   }else if(key==='grok'){
+    if(refCount)throw new Error('Grok Imagine 2.0 仅支持文生图，请移除参考图或切换 Image 2 / NB2。');
     endpoint='/images/generations';
-    const isEdit=refCount>0;
-    body={
-      model:isEdit?MODEL_CONFIG.grok.editModel:MODEL_CONFIG.grok.generationModel,
-      prompt,
-      size:isEdit?(MODEL_CONFIG.grok.editSizes[state.ratio]||'1024x1024'):state.ratio,
-      n:1
-    };
-    if(isEdit)body.image_urls=await refMgr.getDataURIs();
+    body={model:MODEL_CONFIG.grok.generationModel,prompt,size:state.ratio,resolution:'quality',response_format:'url',n:1};
   }
 
   return {

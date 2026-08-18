@@ -27,7 +27,7 @@ $('#settingsClear').onclick=()=>{
 };
 
 const returnPath=sessionStorage.getItem('mihu_settings_return');
-if(returnPath&&/^(?:index|video|edit|assets)\.html$/.test(returnPath)){
+if(returnPath&&/^(?:index|edit|assets)\.html$/.test(returnPath)){
   settingsReturnLink.href=returnPath;
   settingsReturnLink.textContent='返回上一页';
 }

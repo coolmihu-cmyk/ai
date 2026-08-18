@@ -327,8 +327,8 @@
 }
 .asset-card:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(31,35,33,.13)}
 .asset-media{width:100%;aspect-ratio:1;display:block;background:#e5e5e5;overflow:hidden;cursor:zoom-in}
-.asset-media img,.asset-media video{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.94);transition:filter .2s,transform .24s}
-.asset-card:hover .asset-media img,.asset-card:hover .asset-media video{filter:saturate(1.04);transform:scale(1.008)}
+.asset-media img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.94);transition:filter .2s,transform .24s}
+.asset-card:hover .asset-media img{filter:saturate(1.04);transform:scale(1.008)}
 .asset-meta{
   position:absolute;left:7px;right:7px;top:7px;z-index:2;display:flex;align-items:center;gap:6px;
   pointer-events:none;
@@ -348,7 +348,7 @@
   height:34px;border:1px solid rgba(255,255,255,.42);border-radius:10px;display:flex;align-items:center;justify-content:center;
   background:rgba(247,246,241,.93);color:#343a37;box-shadow:0 5px 16px rgba(20,23,21,.18);backdrop-filter:blur(8px);text-decoration:none;
 }
-.asset-actions .asset-edit,.asset-actions .asset-download{min-width:78px;padding:0 13px;gap:7px;font-size:12px;font-weight:650}
+.asset-actions .asset-edit{min-width:78px;padding:0 13px;gap:7px;font-size:12px;font-weight:650}
 .asset-actions .asset-delete{width:34px}
 .asset-actions button:hover,.asset-actions a:hover{border-color:#fff;background:#fff;color:#202321}
 .asset-actions button:disabled{opacity:.45}
@@ -470,5 +470,5 @@
 }
 @media(prefers-reduced-motion:reduce){
   .fluid-orb{animation:none!important}
-  .asset-card,.asset-media img,.asset-media video{transition:none}
+  .asset-card,.asset-media img{transition:none}
 }

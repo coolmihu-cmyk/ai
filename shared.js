@@ -7,7 +7,7 @@ const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
 const MODEL_CONFIG={
   gpt:{
     name:'Image 2',icon:'icon/model-image2.svg',promptLimit:3000,
-    ratios:['1:1','3:2','4:3','3:4','16:9','9:16'],
+    ratios:['auto','1:1','3:2','2:3','4:3','3:4','16:9','9:16'],
     resolutions:[{v:'1k',l:'1K · 快速'},{v:'2k',l:'2K · 高清'},{v:'4k',l:'4K · 超清'}],
     defaultResolution:'1k',generationModel:'gpt-image-2',editModel:'gpt-image-2'
   },
@@ -20,11 +20,7 @@ const MODEL_CONFIG={
   grok:{
     name:'Grok',icon:'icon/model-grok.svg',promptLimit:4000,
     ratios:['1:1','16:9','9:16','4:3','3:4','3:2','2:3'],resolutions:null,
-    generationModel:'grok-imagine-1.5-ext',editModel:'grok-imagine-1.5-edit-ext',
-    editSizes:{
-      '1:1':'1024x1024','16:9':'1280x720','4:3':'1792x1024','3:2':'1792x1024',
-      '9:16':'720x1280','3:4':'1024x1792','2:3':'1024x1792'
-    }
+    generationModel:'grok-imagine-2.0-ext'
   }
 };
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
@@ -69,7 +65,7 @@ const Settings={
   setKey(k){localStorage.setItem('apimart_api_key',k)},
   getCurrentPage(){
     const page=location.pathname.split('/').pop()||'index.html';
-    return /^(index|video|edit|assets)\.html$/.test(page)?page:'index.html';
+    return /^(index|edit|assets)\.html$/.test(page)?page:'index.html';
   },
   openPage(){
     if(location.pathname.endsWith('/settings.html'))return;
@@ -106,7 +102,7 @@ const Apimart={
     const res=await fetch(url,{method:'POST',signal,headers:{'Authorization':'Bearer '+apiKey,'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(body)});
     if(!res.ok){const t=await res.text();let m;try{const j=JSON.parse(t);m=j.error?.message||j.message||t}catch(e){m=t}throw new Error('提交失败（HTTP '+res.status+'）'+(m?': '+m.slice(0,400):''))}
     const json=await res.json();
-    const taskId=json.data?.[0]?.task_id||json.data?.task_id||json.task_id;
+    const taskId=json.data?.[0]?.task_id||json.data?.task_id||json.data?.id||json.task_id||json.id;
     if(!taskId)throw new Error('接口未返回 task_id。返回内容：'+JSON.stringify(json).slice(0,400));
     return taskId;
   },
@@ -271,7 +267,7 @@ const History={
     const worker=async()=>{
       while(cursor<queue.length){
         const item=queue[cursor++];
-        const available=await this.isAvailable(item.url,item.type);
+        const available=await this.isAvailable(item.url);
         if(available)continue;
         invalid.push(item);
       }
@@ -284,26 +280,8 @@ const History={
     try{const db=await this.openDB();await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite');tx.objectStore(STORE_NAME).clear();tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(e){}
   },
   async delete(id){try{await this.deleteMany([id]);return true}catch(e){return false}},
-  async isAvailable(url,type='image'){
+  async isAvailable(url){
     if(!url||url.startsWith('data:'))return!!url;
-    if(type==='video'){
-      return new Promise(resolve=>{
-        const video=document.createElement('video');
-        const finish=available=>{
-          clearTimeout(timer);
-          video.onloadedmetadata=null;
-          video.onerror=null;
-          video.removeAttribute('src');
-          video.load();
-          resolve(available);
-        };
-        const timer=setTimeout(()=>finish(false),12000);
-        video.preload='metadata';
-        video.onloadedmetadata=()=>finish(video.duration>0);
-        video.onerror=()=>finish(false);
-        video.src=url;
-      });
-    }
     return new Promise(resolve=>{
       const img=new Image(),t=setTimeout(()=>{img.src='';resolve(false)},12000);
       img.onload=()=>{clearTimeout(t);resolve(img.naturalWidth>0)};
@@ -470,7 +448,7 @@ window.addEventListener('beforeunload',showPageTransition);
 window.addEventListener('pageshow',hidePageTransition);
 
 /* 资产和设置工作区仅在实际滚动时显示滚动条 */
-document.querySelectorAll('.assets-shell,.settings-shell,.video-shell').forEach(shell=>{
+document.querySelectorAll('.assets-shell,.settings-shell').forEach(shell=>{
   let hideScrollbarTimer=0;
   shell.addEventListener('scroll',()=>{
     shell.classList.add('is-scrolling');

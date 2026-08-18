@@ -19,7 +19,7 @@ const editorItems=[];
 let editorSelectedId=null,editorCounter=0,editorTopZ=1,editorGenerating=false;
 let editorGenerationController=null;
 let editorModel='gpt';
-let editorDrafts=Object.fromEntries(Object.entries(MODEL_CONFIG).map(([key,config])=>[
+let editorDrafts=Object.fromEntries(Object.entries(MODEL_CONFIG).filter(([key])=>key!=='grok').map(([key,config])=>[
   key,{ratio:config.ratios[0],resolution:config.defaultResolution||null}
 ]));
 const editorDrag={id:null,pointerId:null,startX:0,startY:0,originX:0,originY:0};
@@ -194,23 +194,16 @@ function renderEditorSettings(){
       button.textContent=resolution.l;button.onclick=()=>{draft.resolution=resolution.v;renderEditorSettings()};
       editorEls.resolutionGrid.appendChild(button);
     }
-  }else{
-    const automatic=document.createElement('div');
-    automatic.className='canvas-edit-auto-resolution';
-    automatic.textContent='自动 · '+(MODEL_CONFIG.grok.editSizes[draft.ratio]||'1024x1024');
-    editorEls.resolutionGrid.appendChild(automatic);
   }
-  const resolutionLabel=resolutions
-    ?(resolutions.find(item=>item.v===draft.resolution)?.l.split(' · ')[0]||'自动')
-    :(MODEL_CONFIG.grok.editSizes[draft.ratio]||'自动');
+  const resolutionLabel=resolutions?.find(item=>item.v===draft.resolution)?.l.split(' · ')[0]||'自动';
   editorEls.settingsValue.textContent=draft.ratio+' · '+resolutionLabel;
 }
 function openEditorModal(){
   const item=getEditorItem();if(!item){toast('请先选择一张图片');return}
   editorDrafts={
-    gpt:{...editorDrafts.gpt},nano:{...editorDrafts.nano},grok:{...editorDrafts.grok}
+    gpt:{...editorDrafts.gpt},nano:{...editorDrafts.nano}
   };
-  setEditorModel(MODEL_CONFIG[item.model]?item.model:'gpt');
+  setEditorModel(editorDrafts[item.model]?item.model:'gpt');
   editorEls.prompt.value=item.prompt||'';editorEls.settings.open=false;
   editorEls.modal.classList.add('open','show');requestAnimationFrame(()=>editorEls.prompt.focus());
 }
@@ -234,11 +227,7 @@ function buildEditorRequest(model,prompt,ratio,resolution,sourceUrl){
   if(model==='nano'){
     return {model:MODEL_CONFIG.nano.editModel,prompt,size:ratio,resolution,n:1,image_urls:[sourceUrl]};
   }
-  return {
-    model:MODEL_CONFIG.grok.editModel,prompt,
-    size:MODEL_CONFIG.grok.editSizes[ratio]||'1024x1024',
-    n:1,image_urls:[sourceUrl]
-  };
+  throw new Error('Grok Imagine 2.0 不支持参考图编辑，请使用 Image 2 或 NB2。');
 }
 
 async function runEditorJob(job){
