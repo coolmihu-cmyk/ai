@@ -59,13 +59,30 @@ function fileToDataURI(file){return new Promise((resolve,reject)=>{const r=new F
 function openImage(url){if(!url)return;const w=window.open(url,'_blank');if(w)w.opener=null;else toast('浏览器拦截了弹出窗口，请允许后重试')}
 function showError(el,msg){if(!el)return;el.textContent=msg;el.style.display='block'}
 function hideError(el){if(!el)return;el.style.display='none';el.textContent=''}
+const APP_RAIL_ITEMS=[
+  {key:'index',href:'index.html',title:'创意',icon:'icon/chuangzuo.svg'},
+  {key:'edit',href:'edit.html',title:'编辑',icon:'icon/edit.svg'},
+  {key:'reference',href:'reference.html',title:'参考',icon:'icon/reference.svg'},
+  {key:'assets',href:'assets.html',title:'资产',icon:'icon/photo.svg'},
+  {key:'settings',href:'settings.html',title:'设置',icon:'icon/shezhi.svg'}
+];
+function renderAppRails(){
+  document.querySelectorAll('[data-app-rail]').forEach(rail=>{
+    const current=rail.dataset.current||'';
+    const items=APP_RAIL_ITEMS.map(item=>{
+      const active=item.key===current;
+      return '<a class="rail-item'+(active?' active':'')+'" href="'+item.href+'"'+(active?' aria-current="page"':'')+' title="'+item.title+'"><img class="rail-icon" src="'+item.icon+'" alt="" aria-hidden="true"><span>'+item.title+'</span></a>';
+    }).join('');
+    rail.innerHTML='<a class="rail-brand" href="index.html" title="Pic.supmihu.cn"><img src="logo.png" alt=""></a><div class="rail-nav">'+items+'</div>';
+  });
+}
 
 const Settings={
   getKey(){return localStorage.getItem('apimart_api_key')||''},
   setKey(k){localStorage.setItem('apimart_api_key',k)},
   getCurrentPage(){
     const page=location.pathname.split('/').pop()||'index.html';
-    return /^(index|edit|assets)\.html$/.test(page)?page:'index.html';
+    return /^(index|edit|reference|assets|mj)\.html$/.test(page)?page:'index.html';
   },
   openPage(){
     if(location.pathname.endsWith('/settings.html'))return;
@@ -292,6 +309,7 @@ const History={
 };
 
 const PendingGeneration={
+  notify(){window.dispatchEvent(new Event('mihu-pending-generation-change'))},
   async save(job){
     const db=await History.openDB();
     await new Promise((resolve,reject)=>{
@@ -299,9 +317,9 @@ const PendingGeneration={
       tx.objectStore(JOB_STORE_NAME).put(job);
       tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);
     });
-    db.close();return job;
+    db.close();this.notify();return job;
   },
-  async loadAll(){
+  async loadAll({includeEditor=false}={}){
     try{
       const db=await History.openDB();
       const jobs=await new Promise((resolve,reject)=>{
@@ -310,7 +328,7 @@ const PendingGeneration={
       });
       db.close();
       return jobs
-        .filter(job=>job.scope!=='editor')
+        .filter(job=>includeEditor||job.scope!=='editor')
         .sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
     }catch(_){return []}
   },
@@ -337,10 +355,40 @@ const PendingGeneration={
         tx.objectStore(JOB_STORE_NAME).delete(id);
         tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);
       });
-      db.close();return true;
+      db.close();this.notify();return true;
     }catch(_){return false}
   }
 };
+
+const GenerationExecutionLock=(()=>{
+  const key='mihu-generation-execution-lock',ttl=45000;
+  const owner=sessionStorage.getItem('mihu-generation-lock-owner')||('tab-'+Date.now()+'-'+Math.random().toString(36).slice(2));
+  sessionStorage.setItem('mihu-generation-lock-owner',owner);
+  const read=()=>{try{return JSON.parse(localStorage.getItem(key)||'null')}catch(_){return null}};
+  async function fallback(callback){
+    const lease=read();
+    if(lease&&lease.owner!==owner&&lease.expiresAt>Date.now())return false;
+    const refresh=()=>localStorage.setItem(key,JSON.stringify({owner,expiresAt:Date.now()+ttl}));
+    refresh();
+    if(read()?.owner!==owner)return false;
+    const heartbeat=setInterval(refresh,Math.floor(ttl/3));
+    try{await callback();return true}
+    finally{clearInterval(heartbeat);if(read()?.owner===owner)localStorage.removeItem(key)}
+  }
+  return {
+    async run(callback){
+      if(navigator.locks?.request){
+        let acquired=false;
+        await navigator.locks.request(key,{ifAvailable:true},async lock=>{
+          if(!lock)return;
+          acquired=true;await callback();
+        });
+        return acquired;
+      }
+      return fallback(callback);
+    }
+  };
+})();
 
 async function ensureNotificationPermission(){if(!('Notification' in window)||Notification.permission!=='default'||localStorage.getItem('apimart_notification_asked')==='1')return;localStorage.setItem('apimart_notification_asked','1');try{await Notification.requestPermission()}catch(e){}}
 function notifyGenerated(modelName){if(!('Notification' in window)||Notification.permission!=='granted')return;try{const n=new Notification('图片生成完成',{body:modelName+' 已完成生成，点击查看结果。',tag:'mdos-image-ready',renotify:true});n.onclick=()=>{window.focus();n.close()}}catch(e){}}
@@ -428,6 +476,7 @@ function lockPageZoom(){
 }
 lockPageZoom();
 
+renderAppRails();
 ensurePageTransitionLoader();
 document.addEventListener('click',event=>{
   if(event.defaultPrevented||event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
@@ -448,7 +497,7 @@ window.addEventListener('beforeunload',showPageTransition);
 window.addEventListener('pageshow',hidePageTransition);
 
 /* 资产和设置工作区仅在实际滚动时显示滚动条 */
-document.querySelectorAll('.assets-shell,.settings-shell').forEach(shell=>{
+document.querySelectorAll('.assets-shell,.reference-shell,.settings-shell').forEach(shell=>{
   let hideScrollbarTimer=0;
   shell.addEventListener('scroll',()=>{
     shell.classList.add('is-scrolling');

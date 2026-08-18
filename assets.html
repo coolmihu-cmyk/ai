@@ -7,41 +7,21 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>历史 · MIHU DESIGN OS</title>
+<title>资产 · MIHU DESIGN OS</title>
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="stylesheet" href="css/base.css?v=20260727-32">
 <link rel="stylesheet" href="css/pages.css?v=20260818-01">
-<link rel="stylesheet" href="css/modern-ui.css?v=20260818-02">
+<link rel="stylesheet" href="css/modern-ui.css?v=20260818-134647">
 </head>
 <body class="assets-page">
 
-<nav class="app-rail" aria-label="主要功能">
-  <a class="rail-brand" href="index.html" title="Pic.supmihu.cn"><img src="logo.png" alt=""></a>
-  <div class="rail-nav">
-    <a class="rail-item" href="index.html" title="图片">
-      <img class="rail-icon" src="icon/chuangzuo.svg" alt="" aria-hidden="true">
-      <span>图片</span>
-    </a>
-    <a class="rail-item active" href="assets.html" aria-current="page" title="历史">
-      <img class="rail-icon" src="icon/photo.svg" alt="" aria-hidden="true">
-      <span>历史</span>
-    </a>
-    <a class="rail-item" href="edit.html" title="编辑">
-      <img class="rail-icon" src="icon/edit.svg" alt="" aria-hidden="true">
-      <span>编辑</span>
-    </a>
-    <a class="rail-item" href="settings.html" title="设置">
-      <img class="rail-icon" src="icon/shezhi.svg" alt="" aria-hidden="true">
-      <span>设置</span>
-    </a>
-  </div>
-</nav>
+<nav class="app-rail" aria-label="主要功能" data-app-rail data-current="assets"></nav>
 
 <main class="assets-shell">
   <header class="assets-header">
     <div>
-      <span class="assets-kicker">GENERATION HISTORY</span>
-      <h1>历史</h1>
+      <span class="assets-kicker">VISUAL ASSETS</span>
+      <h1>资产</h1>
     </div>
     <div class="assets-count" id="assetsCount">0 项记录</div>
   </header>
@@ -67,9 +47,12 @@
       <div class="assets-generation-error" id="assetsGenerationError" hidden></div>
     </div>
   </section>
-  <div class="assets-loading" id="assetsLoading">
+  <section class="asset-task-center" id="assetsTaskCenter" aria-labelledby="assetsTaskTitle" hidden>
+    <div class="asset-task-center-head"><div><span>TASK CENTER</span><h2 id="assetsTaskTitle">任务中心</h2></div><b id="assetsTaskCount">0</b></div>
+    <div class="asset-task-list" id="assetsTaskList" aria-live="polite"></div>
+  </section>  <div class="assets-loading" id="assetsLoading">
     <span></span>
-    <b>正在加载历史</b>
+    <b>正在加载资产</b>
   </div>
   <div class="assets-empty" id="assetsEmpty" hidden>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="m7 15 3-3 2.5 2.5L16 10l3 4"/></svg>
@@ -81,7 +64,7 @@
 </main>
 
 <div class="toast" id="toast"></div>
-<script src="shared.js?v=20260818-03"></script>
-<script src="assets-page.js?v=20260818-03"></script>
+<script src="shared.js?v=20260818-134258"></script>
+<script src="assets-page.js?v=20260818-134524"></script>
 </body>
 </html>

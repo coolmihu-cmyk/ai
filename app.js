@@ -4,6 +4,7 @@ updatePlaceholder();
 renderResPop();
 renderRatioPop();
 renderRefRow();
+applyReferenceLibraryPayload();
 
 (() => {
   const quoteRoot = document.getElementById("homeArtistQuote");

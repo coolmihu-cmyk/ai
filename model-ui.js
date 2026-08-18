@@ -233,6 +233,20 @@ function renderRefRow(){
   }
 }
 
+function applyReferenceLibraryPayload(){
+  try{
+    const payload=JSON.parse(sessionStorage.getItem('mihu_reference_payload')||'null');
+    sessionStorage.removeItem('mihu_reference_payload');
+    if(!payload?.url)return;
+    const manager=refManagers[activeModel];
+    if(!manager?.addRemote(payload.url,'参考库图片'))return;
+    if(payload.prompt&&!els.promptInput.value.trim()){
+      const prompt=payload.prompt.slice(0,MODEL_CONFIG[activeModel].promptLimit);
+      els.promptInput.value=prompt;modelState[activeModel].promptText=prompt;updateCharLimit();
+    }
+    renderRefRow();toast('已带入参考图和提示词');
+  }catch(_){}
+}
 /* ===================== 提示词字符计数 ===================== */
 els.promptInput.addEventListener('input',()=>{
   els.charCount.textContent=els.promptInput.value.length;

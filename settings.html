@@ -11,31 +11,11 @@
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="stylesheet" href="css/base.css?v=20260727-32">
 <link rel="stylesheet" href="css/pages.css?v=20260818-01">
-<link rel="stylesheet" href="css/modern-ui.css?v=20260818-02">
+<link rel="stylesheet" href="css/modern-ui.css?v=20260818-134647">
 </head>
 <body class="settings-page">
 
-<nav class="app-rail" aria-label="主要功能">
-  <a class="rail-brand" href="index.html" title="Pic.supmihu.cn"><img src="logo.png" alt=""></a>
-  <div class="rail-nav">
-    <a class="rail-item" href="index.html" title="图片">
-      <img class="rail-icon" src="icon/chuangzuo.svg" alt="" aria-hidden="true">
-      <span>图片</span>
-    </a>
-    <a class="rail-item" href="assets.html" title="历史">
-      <img class="rail-icon" src="icon/photo.svg" alt="" aria-hidden="true">
-      <span>历史</span>
-    </a>
-    <a class="rail-item" href="edit.html" title="编辑">
-      <img class="rail-icon" src="icon/edit.svg" alt="" aria-hidden="true">
-      <span>编辑</span>
-    </a>
-    <a class="rail-item active" href="settings.html" aria-current="page" title="设置">
-      <img class="rail-icon" src="icon/shezhi.svg" alt="" aria-hidden="true">
-      <span>设置</span>
-    </a>
-  </div>
-</nav>
+<nav class="app-rail" aria-label="主要功能" data-app-rail data-current="settings"></nav>
 
 <main class="settings-shell">
   <header class="settings-header">
@@ -69,29 +49,11 @@
       </a>
       <a class="settings-return-link" id="settingsReturnLink" href="index.html">返回图片页</a>
     </section>
-
-    <section class="settings-pricing" aria-labelledby="pricingTitle">
-      <div class="settings-section-head">
-        <div>
-          <span>EXPOSURE COST</span>
-          <h2 id="pricingTitle">生成价格</h2>
-        </div>
-        <div class="credit-rate"><b>¥7</b><span>= 10 Credits</span></div>
-      </div>
-      <div class="settings-price-table">
-        <div class="settings-price-row"><div><b>Image 2</b><span>1K · 快速</span></div><strong>0.0851</strong><small>Credits</small></div>
-        <div class="settings-price-row"><div><b>Image 2</b><span>2K · 高清</span></div><strong>0.14</strong><small>Credits</small></div>
-        <div class="settings-price-row"><div><b>Image 2</b><span>4K · 超清</span></div><strong>0.21</strong><small>Credits</small></div>
-        <div class="settings-price-row"><div><b>NB2</b><span>nano-banana-2-ext</span></div><strong>0.30</strong><small>Credits</small></div>
-        <div class="settings-price-row"><div><b>Grok Image 2.0</b><span>grok-imagine-2.0-ext · 文生图</span></div><strong>0.8</strong><small>Credits / 张</small></div>
-      </div>
-      <p class="settings-price-note">实际扣费由 APIMart 按模型和参数结算，页面仅用于生成前参考。</p>
-    </section>
   </div>
 </main>
 
 <div class="toast" id="toast"></div>
-<script src="shared.js?v=20260818-03"></script>
-<script src="settings-page.js?v=20260818-01"></script>
+<script src="shared.js?v=20260818-134258"></script>
+<script src="settings-page.js?v=20260818-131357"></script>
 </body>
 </html>

@@ -13,6 +13,8 @@ const assetsEls={
   generationVisual:$('#assetsGenerationVisual'),generationReference:$('#assetsGenerationReference')
 };
 let assetItems=[],generationElapsedTimer=null,queueAdvancing=false;
+let unavailableAssetIds=new Set(),assetImageObserver=null;
+const REFERENCE_LIBRARY_KEY='mihu-reference-library-v1',REFERENCE_LIBRARY_LIMIT=300;
 
 function sortAssets(items){
   return items.sort((a,b)=>{
@@ -33,6 +35,65 @@ function assetDay(value){
   }).format(date);
   return {key,label};
 }
+function assetExpiry(item){
+  const createdAt=new Date(item.createdAt||0).getTime();
+  const remaining=createdAt+HISTORY_RETENTION_MS-Date.now();
+  if(unavailableAssetIds.has(String(item.id)))return {label:'原图已过期',expired:true};
+  if(remaining<=0)return {label:'原图可能已过期',expired:true};
+  const hours=Math.ceil(remaining/(60*60*1000));
+  return {label:hours<=12?'还剩 '+hours+' 小时':'还剩 '+Math.ceil(hours/24)+' 天',expired:false};
+}
+function markAssetUnavailable(id){
+  unavailableAssetIds.add(String(id));
+  const card=[...assetsEls.grid.querySelectorAll('[data-asset-id]')].find(node=>node.dataset.assetId===String(id));
+  if(!card)return;
+  card.classList.add('is-expired');
+  const state=card.querySelector('.asset-expiry');if(state)state.textContent='原图已过期';
+}
+function setupAssetImageLoading(){
+  assetImageObserver?.disconnect();
+  const images=[...assetsEls.grid.querySelectorAll('img[data-src]')];
+  const load=image=>{
+    if(!image.dataset.src)return;
+    image.onload=()=>image.classList.remove('is-loading');
+    image.onerror=()=>{image.classList.remove('is-loading');markAssetUnavailable(image.closest('[data-asset-id]')?.dataset.assetId)};
+    image.src=image.dataset.src;delete image.dataset.src;
+  };
+  if(!('IntersectionObserver' in window)){images.forEach(load);return}
+  assetImageObserver=new IntersectionObserver(entries=>{
+    entries.forEach(entry=>{if(entry.isIntersecting){assetImageObserver.unobserve(entry.target);load(entry.target)}})
+  },{root:assetsEls.shell,rootMargin:'480px 0px',threshold:.01});
+  images.forEach(image=>assetImageObserver.observe(image));
+}
+function taskState(job){
+  if(job.failedAt)return {label:'等待处理',kind:'failed'};
+  if(job.scope==='editor')return {label:'编辑任务',kind:'editor'};
+  return job.taskId?{label:'正在生成',kind:'running'}:{label:'排队中',kind:'queued'};
+}
+async function renderTaskCenter(){
+  if(!assetsEls.taskCenter)return;
+  const jobs=await PendingGeneration.loadAll({includeEditor:true});
+  assetsEls.taskCenter.hidden=!jobs.length;
+  assetsEls.taskCount.textContent=jobs.length+' 项';
+  assetsEls.taskList.replaceChildren();
+  for(const job of jobs){
+    const state=taskState(job),row=document.createElement('article');
+    row.className='asset-task-row is-'+state.kind;
+    const copy=document.createElement('div');copy.className='asset-task-copy';
+    const head=document.createElement('div');head.className='asset-task-row-head';
+    const model=document.createElement('b');model.textContent=ASSET_MODEL_NAMES[job.model]||job.model||'图片任务';
+    const badge=document.createElement('span');badge.textContent=state.label;head.append(model,badge);
+    const prompt=document.createElement('p');prompt.textContent=job.prompt||'正在准备图片任务';copy.append(head,prompt);
+    const actions=document.createElement('div');actions.className='asset-task-actions';
+    if(job.scope==='editor'){
+      const open=document.createElement('button');open.type='button';open.textContent='前往编辑';open.onclick=()=>navigateWithLoading('edit.html');actions.appendChild(open);
+    }else if(job.failedAt){
+      const retry=document.createElement('button');retry.type='button';retry.textContent='重试';retry.onclick=async()=>{retry.disabled=true;delete job.failedAt;delete job.lastError;await PendingGeneration.save(job);runNextPendingGeneration().catch(()=>{})};actions.appendChild(retry);
+    }
+    const cancel=document.createElement('button');cancel.type='button';cancel.className='is-quiet';cancel.textContent='取消';cancel.onclick=async()=>{cancel.disabled=true;await PendingGeneration.delete(job.id);renderTaskCenter();syncGenerationQueue(job).catch(()=>{})};actions.appendChild(cancel);
+    row.append(copy,actions);assetsEls.taskList.appendChild(row);
+  }
+}
 function assetIcon(paths){
   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
   svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('fill','none');
@@ -50,6 +111,16 @@ function openAssetEditor(item){
     }));
   }catch(_){}
   navigateWithLoading('edit.html');
+}
+function favoriteAsset(item){
+  try{
+    const references=JSON.parse(localStorage.getItem(REFERENCE_LIBRARY_KEY)||'[]');
+    if(!Array.isArray(references))throw new Error('invalid reference library');
+    if(references.some(reference=>reference.imageUrl===item.url)){toast('这张图片已收藏到参考');return}
+    references.unshift({id:'reference-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),imageUrl:item.url,prompt:item.prompt||'',createdAt:new Date().toISOString()});
+    localStorage.setItem(REFERENCE_LIBRARY_KEY,JSON.stringify(references.slice(0,REFERENCE_LIBRARY_LIMIT)));
+    toast('已收藏到参考');
+  }catch(error){console.warn('收藏到参考失败',error);toast('收藏失败，请检查浏览器本地存储')}
 }
 function renderAssets(){
   assetsEls.grid.innerHTML='';
@@ -70,16 +141,20 @@ function renderAssets(){
       dayGrid=document.createElement('div');dayGrid.className='asset-date-grid';
       group.append(heading,dayGrid);fragment.appendChild(group);
     }
-    const card=document.createElement('article');card.className='asset-card';
+    const expiry=assetExpiry(item);
+    const card=document.createElement('article');card.className='asset-card'+(expiry.expired?' is-expired':'');card.dataset.assetId=item.id;
     const media=document.createElement('button');
     media.type='button';media.className='asset-media';media.title='在新标签页打开图片';
     const image=document.createElement('img');
-    image.src=item.url;image.alt=item.prompt||'生成图片';image.loading='lazy';media.appendChild(image);
+    image.dataset.src=item.url;image.alt=item.prompt||'生成图片';image.loading='lazy';image.decoding='async';image.className='is-loading';media.appendChild(image);
     media.onclick=()=>openImage(item.url);
     const meta=document.createElement('div');meta.className='asset-meta';
     const model=document.createElement('span');model.className='asset-model';model.textContent=ASSET_MODEL_NAMES[item.model]||item.model;
-    meta.append(model);
+    const state=document.createElement('span');state.className='asset-expiry';state.textContent=expiry.label;
+    meta.append(model,state);
     const actions=document.createElement('div');actions.className='asset-actions';
+    const favorite=document.createElement('button');favorite.type='button';favorite.className='asset-favorite';favorite.title='收藏到参考';
+    favorite.appendChild(assetIcon(['M12 20.5 4.8 16A5 5 0 0 1 12 9.1 5 5 0 0 1 19.2 16L12 20.5Z']));const favoriteText=document.createElement('span');favoriteText.textContent='收藏';favorite.appendChild(favoriteText);favorite.onclick=()=>favoriteAsset(item);actions.appendChild(favorite);
     const edit=document.createElement('button');edit.type='button';edit.className='asset-edit';edit.title='进入编辑页面';
     edit.appendChild(assetIcon(['m4 16-.8 4.8L8 20l11-11-4-4L4 16Z','m13.5 6.5 4 4']));
     const editText=document.createElement('span');editText.textContent='编辑';edit.appendChild(editText);
@@ -94,6 +169,7 @@ function renderAssets(){
     actions.appendChild(remove);card.append(media,meta,actions);dayGrid.appendChild(card);
   }
   assetsEls.grid.appendChild(fragment);
+  setupAssetImageLoading();
 }
 
 async function syncGenerationQueue(currentJob){
@@ -185,6 +261,10 @@ function showGenerationFailure(job,message){
 }
 async function runNextPendingGeneration(){
   if(queueAdvancing)return;
+  const acquired=await GenerationExecutionLock.run(()=>runNextPendingGenerationUnlocked());
+  if(!acquired)renderTaskCenter();
+}async function runNextPendingGenerationUnlocked(){
+  if(queueAdvancing)return;
   queueAdvancing=true;
   try{
     while(true){
@@ -254,8 +334,11 @@ async function runPendingGeneration(job){
   }
 }
 
+window.addEventListener('mihu-pending-generation-change',()=>renderTaskCenter().catch(()=>{}));
+
 requestAnimationFrame(async()=>{
   const pendingJob=await PendingGeneration.load();
+  renderTaskCenter().catch(()=>{});
   if(pendingJob)showGeneration(pendingJob);
   try{assetItems=sortAssets((await History.load()).filter(item=>(item.type||'image')==='image'))}
   finally{
@@ -263,7 +346,8 @@ requestAnimationFrame(async()=>{
   }
   History.validate([...assetItems],{concurrency:3})
     .then(unavailable=>{
-      if(unavailable.length)console.warn(`有 ${unavailable.length} 条历史资源暂时无法加载，记录已保留。`);
+      unavailableAssetIds=new Set(unavailable.map(item=>String(item.id)));
+      if(unavailable.length)renderAssets();
     })
     .catch(error=>console.warn('历史记录后台检查失败',error));
   if(pendingJob){

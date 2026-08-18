@@ -230,7 +230,7 @@ function buildEditorRequest(model,prompt,ratio,resolution,sourceUrl){
   throw new Error('Grok Imagine 2.0 不支持参考图编辑，请使用 Image 2 或 NB2。');
 }
 
-async function runEditorJob(job){
+async function runEditorJobUnlocked(job){
   const apiKey=Settings.getKey();
   if(!apiKey){Settings.openPage();toast('请先保存 API Key');return}
   if(editorGenerating){toast('图片正在生成，请稍后');return}
@@ -287,6 +287,14 @@ async function runEditorJob(job){
   }
 }
 
+async function runEditorJob(job){
+  if(editorGenerating){toast('图片正在生成，请稍后');return}
+  const acquired=await GenerationExecutionLock.run(()=>runEditorJobUnlocked(job));
+  if(!acquired){
+    setEditorProgress(true,8,'任务正在另一标签页继续');
+    toast('任务正在另一标签页继续，请勿重复提交');
+  }
+}
 async function generateEditorImage({model,prompt,ratio,resolution,source}){
   const apiKey=Settings.getKey();
   if(!apiKey){Settings.openPage();toast('请先保存 API Key');return}
