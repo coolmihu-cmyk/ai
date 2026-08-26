@@ -1,8 +1,9 @@
 "use strict";
 (() => {
   const STORAGE_KEY='mihu-reference-library-v1',MAX_ITEMS=300;
-  const el={grid:$('#referenceGrid'),empty:$('#referenceEmpty'),modal:$('#referenceModal'),form:$('#referenceForm'),imageUrl:$('#referenceImageUrl'),prompt:$('#referencePrompt'),error:$('#referenceFormError'),create:$('#referenceCreate'),emptyCreate:$('#referenceEmptyCreate'),close:$('#referenceClose'),cancel:$('#referenceCancel'),exportJson:$('#referenceExportJson'),exportText:$('#referenceExportText')};
-  let items=[];
+  const CATEGORIES=['photography','design','commerce'];
+  const el={grid:$('#referenceGrid'),empty:$('#referenceEmpty'),emptyTitle:$('#referenceEmptyTitle'),modal:$('#referenceModal'),form:$('#referenceForm'),imageUrl:$('#referenceImageUrl'),category:$('#referenceCategory'),prompt:$('#referencePrompt'),error:$('#referenceFormError'),create:$('#referenceCreate'),emptyCreate:$('#referenceEmptyCreate'),close:$('#referenceClose'),cancel:$('#referenceCancel'),exportJson:$('#referenceExportJson'),importFile:$('#referenceImportFile'),filters:[...document.querySelectorAll('[data-reference-filter]')]};
+  let items=[],activeCategory='all';
   const icon=paths=>{const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('fill','none');svg.setAttribute('stroke','currentColor');svg.setAttribute('stroke-width','1.8');paths.forEach(d=>{const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',d);svg.appendChild(path)});return svg};
   function read(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');return Array.isArray(saved)?saved:[]}catch(_){return []}}
   function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(items.slice(0,MAX_ITEMS)))}catch(_){toast('本地存储空间不足，请删除部分参考')}}
@@ -13,24 +14,41 @@
   function remove(id){items=items.filter(item=>item.id!==id);persist();render();toast('已删除参考')}
   async function copyPrompt(text){if(!text){toast('这条参考没有提示词');return}try{await navigator.clipboard.writeText(text);toast('提示词已复制')}catch(_){const input=document.createElement('textarea');input.value=text;document.body.appendChild(input);input.select();document.execCommand('copy');input.remove();toast('提示词已复制')}}
   function useReference(item){try{sessionStorage.setItem('mihu_reference_payload',JSON.stringify({url:item.imageUrl,prompt:item.prompt||''}))}catch(_){}navigateWithLoading('index.html')}
+  function categoryOf(value){return CATEGORIES.includes(value)?value:''}
   function getColumnCount(){return matchMedia('(max-width:720px)').matches?2:matchMedia('(max-width:1180px)').matches?3:5}
   function download(filename,content,type){const blob=new Blob([content],{type});const href=URL.createObjectURL(blob);const link=document.createElement('a');link.href=href;link.download=filename;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(href),0)}
-  function exportReferences(format){
+  function exportReferences(){
     if(!items.length){toast('还没有可导出的参考');return}
     const stamp=new Date().toISOString().slice(0,10);
-    if(format==='json'){
-      download(`mihu-reference-${stamp}.json`,JSON.stringify({version:1,exportedAt:new Date().toISOString(),items},null,2),'application/json;charset=utf-8');
-    }else{
-      const text=items.map((item,index)=>`# ${index+1}\n图片链接：${item.imageUrl}\n提示词：${item.prompt||'（未填写）'}\n添加时间：${item.createdAt||''}`).join('\n\n');
-      download(`mihu-reference-${stamp}.txt`,text,'text/plain;charset=utf-8');
-    }
+    download(`mihu-reference-${stamp}.json`,JSON.stringify({version:1,exportedAt:new Date().toISOString(),items},null,2),'application/json;charset=utf-8');
     toast('参考库已导出');
+  }
+  async function importReferences(event){
+    const file=event.target.files?.[0];event.target.value='';
+    if(!file)return;
+    try{
+      const payload=JSON.parse((await file.text()).replace(/^\uFEFF/,''));
+      const source=Array.isArray(payload)?payload:payload?.items;
+      if(!Array.isArray(source))throw new Error('unsupported backup');
+      const knownUrls=new Set(items.map(item=>item.imageUrl));
+      const imported=[];
+      for(const candidate of source){
+        if(!candidate||typeof candidate.imageUrl!=='string'||knownUrls.has(candidate.imageUrl))continue;
+        let url;try{url=new URL(candidate.imageUrl);if(!/^https?:$/.test(url.protocol))continue}catch(_){continue}
+        knownUrls.add(url.href);
+        imported.push({id:'reference-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),imageUrl:url.href,prompt:typeof candidate.prompt==='string'?candidate.prompt:'',category:categoryOf(candidate.category),createdAt:!Number.isNaN(new Date(candidate.createdAt).getTime())?candidate.createdAt:new Date().toISOString()});
+      }
+      if(!imported.length){toast('没有可导入的新参考');return}
+      items=[...imported,...items].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,MAX_ITEMS);
+      persist();render();toast(`已导入 ${imported.length} 条参考`);
+    }catch(error){console.warn('导入参考失败',error);toast('导入失败，请选择此前导出的 JSON 文件')}
   }
   function render(){
     items.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-    el.grid.replaceChildren();el.empty.hidden=items.length>0;
+    const visibleItems=activeCategory==='all'?items:items.filter(item=>categoryOf(item.category)===activeCategory);
+    el.grid.replaceChildren();el.empty.hidden=visibleItems.length>0;el.emptyTitle.textContent=items.length&&activeCategory!=='all'?'这个分类还没有参考':'还没有参考';
     const columns=Array.from({length:getColumnCount()},()=>{const column=document.createElement('div');column.className='reference-column';return column});
-    items.forEach((item,index)=>{
+    visibleItems.forEach((item,index)=>{
       const card=document.createElement('article');card.className='reference-card';
       const media=document.createElement('button');media.type='button';media.className='reference-media';media.title='在新标签页查看原图';media.onclick=()=>openImage(item.imageUrl);
       const image=document.createElement('img');image.src=item.imageUrl;image.alt=item.prompt||'参考图片';image.loading='lazy';image.decoding='async';image.onerror=()=>card.classList.add('is-unavailable');media.appendChild(image);
@@ -45,12 +63,13 @@
     });
     el.grid.append(...columns);
   }
-  el.create.onclick=openModal;el.emptyCreate.onclick=openModal;el.close.onclick=closeModal;el.cancel.onclick=closeModal;el.exportJson.onclick=()=>exportReferences('json');el.exportText.onclick=()=>exportReferences('text');
+  el.create.onclick=openModal;el.emptyCreate.onclick=openModal;el.close.onclick=closeModal;el.cancel.onclick=closeModal;el.exportJson.onclick=exportReferences;el.importFile.onchange=importReferences;
+  el.filters.forEach(button=>button.onclick=()=>{activeCategory=button.dataset.referenceFilter;el.filters.forEach(item=>item.classList.toggle('is-active',item===button));render()});
   el.modal.addEventListener('click',event=>{if(event.target===el.modal)closeModal()});
   el.form.onsubmit=event=>{
     event.preventDefault();setError();
     let imageUrl;try{imageUrl=new URL(el.imageUrl.value.trim());if(!/^https?:$/.test(imageUrl.protocol))throw new Error()}catch(_){setError('请输入有效的图片链接。');return}
-    items.unshift({id:'reference-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),imageUrl:imageUrl.href,prompt:el.prompt.value.trim(),createdAt:new Date().toISOString()});
+    items.unshift({id:'reference-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),imageUrl:imageUrl.href,prompt:el.prompt.value.trim(),category:categoryOf(el.category.value),createdAt:new Date().toISOString()});
     persist();render();closeModal();toast('参考已保存');
   };
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!el.modal.hidden)closeModal()});

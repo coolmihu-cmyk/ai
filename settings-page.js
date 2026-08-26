@@ -2,7 +2,6 @@
 
 const settingsInput=$('#settingsApiKey');
 const settingsStatus=$('#connectionStatus');
-const settingsReturnLink=$('#settingsReturnLink');
 
 function updateConnectionStatus(){
   const configured=!!Settings.getKey();
@@ -25,12 +24,6 @@ $('#settingsSave').onclick=()=>{
 $('#settingsClear').onclick=()=>{
   settingsInput.value='';Settings.setKey('');updateConnectionStatus();toast('API Key 已清除');
 };
-
-const returnPath=sessionStorage.getItem('mihu_settings_return');
-if(returnPath&&/^(?:index|edit|reference|assets|mj)\.html$/.test(returnPath)){
-  settingsReturnLink.href=returnPath;
-  settingsReturnLink.textContent='返回上一页';
-}
 
 document.addEventListener('keydown',event=>{
   if((event.ctrlKey||event.metaKey)&&event.key==='Enter')$('#settingsSave').click();
