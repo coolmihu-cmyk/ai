@@ -1,5 +1,6 @@
 /* ===================== 生成任务交接 ===================== */
 let preparingGeneration=false;
+const TRANSPARENT_ELEMENT_PROMPT='透明背景,background="transparent"';
 
 function snapshotCreationState(model){
   const state=modelState[model],snapshot={ratio:state.ratio};
@@ -9,13 +10,18 @@ function snapshotCreationState(model){
 
 async function buildPendingGeneration(){
   const key=activeModel,state=modelState[key];
-  const prompt=els.promptInput.value.trim();
+  let prompt=els.promptInput.value.trim();
   const refMgr=refManagers[key],refCount=refMgr?refMgr.count():0;
   let body,endpoint;
 
   if(key==='gpt'){
     endpoint='/images/generations';
+    if(els.transparentBgBtn.checked){
+      prompt+='\n\n'+TRANSPARENT_ELEMENT_PROMPT;
+      if(!/background\s*=\s*["']transparent["']/i.test(prompt))prompt+='\nbackground="transparent"';
+    }
     body={model:MODEL_CONFIG.gpt.generationModel,prompt,size:state.ratio,resolution:state.resolution,n:1};
+    if(els.transparentBgBtn.checked){body.background='transparent';body.output_format='png'}
     if(refCount>0)body.image_urls=await refMgr.getDataURIs();
   }else if(key==='nano'){
     endpoint='/images/generations';

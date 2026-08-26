@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="css/base.css?v=20260727-32">
 <link rel="stylesheet" href="css/canvas.css?v=20260727-32">
 <link rel="stylesheet" href="css/pages.css?v=20260818-01">
-<link rel="stylesheet" href="css/modern-ui.css?v=20260826-105520">
+<link rel="stylesheet" href="css/modern-ui.css?v=20260826-113159">
 </head>
 <body class="edit-page">
 
@@ -34,6 +34,10 @@
       <button class="canvas-tool-btn" id="editorEdit" type="button" disabled>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 16-.8 4.8L8 20l11-11-4-4L4 16Z"/><path d="m13.5 6.5 4 4M3.5 20.5h17"/></svg>
         <span>重新生成</span>
+      </button>
+      <button class="canvas-tool-btn" id="editorCutout" type="button" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m5 5 14 14M19 5 5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/></svg>
+        <span>抠图</span>
       </button>
       <button class="canvas-tool-btn" id="editorHD" type="button" disabled>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/><path d="m12 7 1.25 3.75L17 12l-3.75 1.25L12 17l-1.25-3.75L7 12l3.75-1.25L12 7Z"/></svg>
@@ -103,6 +107,6 @@
 
 <div class="toast" id="toast"></div>
 <script src="shared.js?v=20260818-134258"></script>
-<script src="edit-page.js?v=20260818-121509"></script>
+<script src="edit-page.js?v=20260826-115132"></script>
 </body>
 </html>

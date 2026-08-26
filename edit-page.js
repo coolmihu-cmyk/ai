@@ -1,11 +1,12 @@
 "use strict";
 
 const EDIT_HD_PROMPT='基于提供的参考图像进行严格的超高分辨率4K增强。必须绝对忠实于原始画面部结构、比例和身份特征。在表情、视线、姿势、相机角度、画面构图和透视关系上保持零偏差。服装、头发、皮肤以及背景元素的结构、位置和设计都必须保持不变。恢复细微层级的细节，呈现自然写实效果。增强毛孔、细纹、发丝、睫毛、织物纹理、缝线以及材质边缘，但不得引入任何风格化处理。颜色科学、白平衡以及整体色调关系必须与原图完全一致。光线方向、强度、对比度以及阴影表现必须与原始图像精确匹配，只允许提升清晰度并扩展动态范围。禁止重新布光，禁止改变形体';
+const EDIT_CUTOUT_PROMPT='抠图,透明背景background="transparent"';
 const EDITOR_JOB_ID='editor-generation';
 
 const editorEls={
   layer:$('#editorCanvasLayer'),empty:$('#editorEmpty'),upload:$('#editorUpload'),fileInput:$('#editorFileInput'),
-  edit:$('#editorEdit'),hd:$('#editorHD'),open:$('#editorOpen'),delete:$('#editorDelete'),
+  edit:$('#editorEdit'),cutout:$('#editorCutout'),hd:$('#editorHD'),open:$('#editorOpen'),delete:$('#editorDelete'),
   modal:$('#editorEditModal'),prompt:$('#editorPrompt'),models:$('#editorModels'),
   settings:$('#editorSettings'),settingsValue:$('#editorSettingsValue'),
   ratioGrid:$('#editorRatioGrid'),resolutionGrid:$('#editorResolutionGrid'),
@@ -31,6 +32,7 @@ function syncEditor(){
   document.body.classList.toggle('canvas-preview-mode',editorItems.length>0);
   editorEls.empty.hidden=editorItems.length>0;
   editorEls.edit.disabled=!selected||editorGenerating;
+  editorEls.cutout.disabled=!selected||editorGenerating;
   editorEls.hd.disabled=!selected||editorGenerating;
   editorEls.open.disabled=!selected;
   editorEls.delete.disabled=!selected||editorGenerating;
@@ -220,9 +222,9 @@ function setEditorProgress(show,percent=0,text='正在生成'){
   editorEls.progressBar.style.width=value+'%';editorEls.progressValue.textContent=Math.round(value)+'%';
   editorEls.progressText.textContent=text;
 }
-function buildEditorRequest(model,prompt,ratio,resolution,sourceUrl){
+function buildEditorRequest(model,prompt,ratio,resolution,sourceUrl,background){
   if(model==='gpt'){
-    return {model:MODEL_CONFIG.gpt.editModel,prompt,size:ratio,resolution,n:1,image_urls:[sourceUrl]};
+    return {model:MODEL_CONFIG.gpt.editModel,prompt,size:ratio,resolution,n:1,image_urls:[sourceUrl],...(background?{background,output_format:'png'}:{})};
   }
   if(model==='nano'){
     return {model:MODEL_CONFIG.nano.editModel,prompt,size:ratio,resolution,n:1,image_urls:[sourceUrl]};
@@ -295,7 +297,7 @@ async function runEditorJob(job){
     toast('任务正在另一标签页继续，请勿重复提交');
   }
 }
-async function generateEditorImage({model,prompt,ratio,resolution,source}){
+async function generateEditorImage({model,prompt,ratio,resolution,source,background}){
   const apiKey=Settings.getKey();
   if(!apiKey){Settings.openPage();toast('请先保存 API Key');return}
   if(editorGenerating){toast('图片正在生成，请稍后');return}
@@ -307,8 +309,8 @@ async function generateEditorImage({model,prompt,ratio,resolution,source}){
   }
   const job={
     id:EDITOR_JOB_ID,scope:'editor',
-    body:buildEditorRequest(model,prompt,ratio,resolution,source.url),
-    endpoint:'/images/generations',model,prompt,ratio,resolution,
+    body:buildEditorRequest(model,prompt,ratio,resolution,source.url,background),
+    endpoint:'/images/generations',model,prompt,ratio,resolution,background,
     source:{...source},createdAt:new Date().toISOString(),taskId:null
   };
   try{
@@ -340,6 +342,17 @@ editorEls.hd.onclick=async()=>{
   },'1:1');
   editorDrafts.gpt.ratio=ratio;editorDrafts.gpt.resolution='4k';
   await generateEditorImage({model:'gpt',prompt:EDIT_HD_PROMPT,ratio,resolution:'4k',source:{...source}});
+};
+editorEls.cutout.onclick=async()=>{
+  const source=getEditorItem();if(!source)return;
+  const image=editorEls.layer.querySelector('[data-editor-id="'+source.id+'"] img');
+  const sourceRatio=(image?.naturalWidth||1)/Math.max(image?.naturalHeight||1,1);
+  const ratio=MODEL_CONFIG.gpt.ratios.reduce((best,candidate)=>{
+    const [w,h]=candidate.split(':').map(Number),[bw,bh]=best.split(':').map(Number);
+    return Math.abs(Math.log(w/h/sourceRatio))<Math.abs(Math.log(bw/bh/sourceRatio))?candidate:best;
+  },'1:1');
+  editorDrafts.gpt.ratio=ratio;editorDrafts.gpt.resolution=MODEL_CONFIG.gpt.defaultResolution;
+  await generateEditorImage({model:'gpt',prompt:EDIT_CUTOUT_PROMPT,ratio,resolution:MODEL_CONFIG.gpt.defaultResolution,background:'transparent',source:{...source}});
 };
 editorEls.open.onclick=()=>{
   const source=getEditorItem();

@@ -146,6 +146,7 @@ function switchModel(key){
   renderRefRow();
   renderResPop();
   renderRatioPop();
+  syncTransparentBackgroundControl();
   // 更新占位符
   updatePlaceholder();
 }
@@ -180,6 +181,11 @@ function renderModelSettings(){
     }
   }
   syncCreationDropdown(els.creationResolutionControl);
+}
+
+function syncTransparentBackgroundControl(){
+  const control=els.transparentBgBtn?.closest('.prompt-transparent-switch');
+  if(control)control.hidden=activeModel!=='gpt';
 }
 function renderResPop(){renderModelSettings()}
 

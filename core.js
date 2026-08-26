@@ -11,7 +11,7 @@ const els={
   composer:$('#composer'),errorMsg:$('#errorMsg'),
   refRow:$('#refRow'),refBtn:$('#refBtn'),fileInput:$('#fileInput'),
   promptInput:$('#promptInput'),clearPromptBtn:$('#clearPromptBtn'),charCount:$('#charCount'),
-  enhanceBtn:$('#enhanceBtn'),sendBtn:$('#sendBtn'),
+  enhanceBtn:$('#enhanceBtn'),transparentBgBtn:$('#transparentBgBtn'),sendBtn:$('#sendBtn'),
   creationModelSelect:$('#creationModelSelect'),creationModelIcon:$('#creationModelIcon'),
   creationRatioSelect:$('#creationRatioSelect'),
   creationResolutionControl:$('#creationResolutionControl'),creationResolutionSelect:$('#creationResolutionSelect')
