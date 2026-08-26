@@ -348,7 +348,6 @@
   height:34px;border:1px solid rgba(255,255,255,.42);border-radius:10px;display:flex;align-items:center;justify-content:center;
   background:rgba(247,246,241,.93);color:#343a37;box-shadow:0 5px 16px rgba(20,23,21,.18);backdrop-filter:blur(8px);text-decoration:none;
 }
-.asset-actions .asset-edit{min-width:78px;padding:0 13px;gap:7px;font-size:12px;font-weight:650}
 .asset-actions .asset-delete{width:34px}
 .asset-actions button:hover,.asset-actions a:hover{border-color:#fff;background:#fff;color:#202321}
 .asset-actions button:disabled{opacity:.45}

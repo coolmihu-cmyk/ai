@@ -16,5 +16,11 @@ const els={
   creationRatioSelect:$('#creationRatioSelect'),
   creationResolutionControl:$('#creationResolutionControl'),creationResolutionSelect:$('#creationResolutionSelect')
 };
+els.enhanceBtn?.addEventListener('change',()=>{
+  if(els.enhanceBtn.checked&&els.transparentBgBtn)els.transparentBgBtn.checked=false;
+});
+els.transparentBgBtn?.addEventListener('change',()=>{
+  if(els.transparentBgBtn.checked&&els.enhanceBtn)els.enhanceBtn.checked=false;
+});
 initCommonPage();
 

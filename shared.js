@@ -61,7 +61,6 @@ function showError(el,msg){if(!el)return;el.textContent=msg;el.style.display='bl
 function hideError(el){if(!el)return;el.style.display='none';el.textContent=''}
 const APP_RAIL_ITEMS=[
   {key:'index',href:'index.html',title:'创意',icon:'icon/chuangzuo.svg'},
-  {key:'edit',href:'edit.html',title:'编辑',icon:'icon/edit.svg'},
   {key:'reference',href:'reference.html',title:'参考',icon:'icon/reference.svg'},
   {key:'assets',href:'assets.html',title:'资产',icon:'icon/photo.svg'},
   {key:'settings',href:'settings.html',title:'设置',icon:'icon/shezhi.svg'}
@@ -82,7 +81,7 @@ const Settings={
   setKey(k){localStorage.setItem('apimart_api_key',k)},
   getCurrentPage(){
     const page=location.pathname.split('/').pop()||'index.html';
-    return /^(index|edit|reference|assets|mj)\.html$/.test(page)?page:'index.html';
+    return /^(index|reference|assets|mj)\.html$/.test(page)?page:'index.html';
   },
   openPage(){
     if(location.pathname.endsWith('/settings.html'))return;
