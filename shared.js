@@ -6,16 +6,16 @@ const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
 const MODEL_CONFIG={
   gpt:{
-    name:'Image 2',icon:'icon/model-image2.svg',promptLimit:3000,
+    name:'GPT',icon:'icon/model-image2.svg',promptLimit:3000,
     ratios:['auto','1:1','3:2','2:3','4:3','3:4','16:9','9:16'],
     resolutions:[{v:'1k',l:'1K · 快速'},{v:'2k',l:'2K · 高清'},{v:'4k',l:'4K · 超清'}],
     defaultResolution:'1k',generationModel:'gpt-image-2',editModel:'gpt-image-2'
   },
   nano:{
-    name:'NB2',icon:'icon/model-nb2.svg',promptLimit:2000,
-    ratios:['1:1','3:2','4:3','3:4','2:3','16:9','9:16','4:5','5:4','21:9'],
-    resolutions:[{v:'0.5K',l:'0.5K · 预览'},{v:'1K',l:'1K · 标准'},{v:'2K',l:'2K · 高清'},{v:'4K',l:'4K · 超清'}],
-    defaultResolution:'1K',generationModel:'nano-banana-2-ext',editModel:'nano-banana-2-ext'
+    name:'NB PRO',icon:'icon/model-nb2.svg',promptLimit:2000,
+    ratios:['auto','1:1','2:3','3:2','3:4','4:3','4:5','5:4','9:16','16:9','21:9'],
+    resolutions:[{v:'1K',l:'1K · 标准'},{v:'2K',l:'2K · 高清'},{v:'4K',l:'4K · 超清'}],
+    defaultResolution:'1K',generationModel:'gemini-3-pro-image-preview',editModel:'gemini-3-pro-image-preview'
   },
   grok:{
     name:'Grok',icon:'icon/model-grok.svg',promptLimit:4000,
@@ -61,8 +61,8 @@ function showError(el,msg){if(!el)return;el.textContent=msg;el.style.display='bl
 function hideError(el){if(!el)return;el.style.display='none';el.textContent=''}
 const APP_RAIL_ITEMS=[
   {key:'index',href:'index.html',title:'创意',icon:'icon/chuangzuo.svg'},
+  {key:'assets',href:'assets.html',title:'历史',icon:'icon/photo.svg'},
   {key:'reference',href:'reference.html',title:'参考',icon:'icon/reference.svg'},
-  {key:'assets',href:'assets.html',title:'资产',icon:'icon/photo.svg'},
   {key:'settings',href:'settings.html',title:'设置',icon:'icon/shezhi.svg'}
 ];
 function renderAppRails(){

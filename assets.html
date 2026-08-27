@@ -7,11 +7,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>资产 · MIHU DESIGN OS</title>
+<title>历史 · MIHU DESIGN OS</title>
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="stylesheet" href="css/base.css?v=20260727-32">
 <link rel="stylesheet" href="css/pages.css?v=20260826-122714">
-<link rel="stylesheet" href="css/modern-ui.css?v=20260826-122648">
+<link rel="stylesheet" href="css/modern-ui.css?v=20260827-181414">
 </head>
 <body class="assets-page">
 
@@ -20,39 +20,44 @@
 <main class="assets-shell">
   <header class="assets-header">
     <div>
-      <span class="assets-kicker">VISUAL ASSETS</span>
-      <h1>资产</h1>
+      <span class="assets-kicker">IMAGE HISTORY</span>
+      <h1>历史</h1>
     </div>
     <div class="assets-count" id="assetsCount">0 项记录</div>
   </header>
   <p class="assets-retention-note">图片只保存72小时，请及时下载。</p>
   <section class="assets-generation" id="assetsGeneration" aria-live="polite" hidden>
-    <div class="assets-generation-visual" id="assetsGenerationVisual" hidden>
-      <img id="assetsGenerationReference" alt="生成任务参考图">
-    </div>
-    <div class="assets-generation-content">
-      <div class="assets-generation-head">
-        <span class="assets-generation-model" id="assetsGenerationModel">Image 2</span>
-        <span class="assets-generation-queue" id="assetsGenerationQueue" hidden></span>
-        <time id="assetsGenerationElapsed">00:00</time>
+    <header class="assets-generation-list-head">
+      <span>TASK LIST</span>
+      <h2>任务列表</h2>
+    </header>
+    <div class="assets-generation-task-row">
+      <div class="assets-generation-visual" id="assetsGenerationVisual" hidden>
+        <img id="assetsGenerationReference" alt="生成任务参考图">
       </div>
-      <p id="assetsGenerationPrompt">正在准备生成任务</p>
-      <div class="assets-generation-status">
-        <span id="assetsGenerationStatus">正在提交</span>
-        <strong id="assetsGenerationPercent">0%</strong>
+      <div class="assets-generation-content">
+        <div class="assets-generation-head">
+          <span class="assets-generation-model" id="assetsGenerationModel">GPT</span>
+          <time id="assetsGenerationElapsed">00:00</time>
+        </div>
+        <p id="assetsGenerationPrompt">正在准备生成任务</p>
+        <div class="assets-generation-status">
+          <span id="assetsGenerationStatus">正在提交</span>
+          <strong id="assetsGenerationPercent">0%</strong>
+        </div>
+        <div class="assets-generation-track" aria-hidden="true">
+          <div id="assetsGenerationBar"></div>
+        </div>
+        <div class="assets-generation-error" id="assetsGenerationError" hidden></div>
       </div>
-      <div class="assets-generation-track" aria-hidden="true">
-        <div id="assetsGenerationBar"></div>
-      </div>
-      <div class="assets-generation-error" id="assetsGenerationError" hidden></div>
     </div>
   </section>
   <section class="asset-task-center" id="assetsTaskCenter" aria-labelledby="assetsTaskTitle" hidden>
-    <div class="asset-task-center-head"><div><span>TASK CENTER</span><h2 id="assetsTaskTitle">任务中心</h2></div><b id="assetsTaskCount">0</b></div>
+    <div class="asset-task-center-head"><div><span>QUEUE</span><h2 id="assetsTaskTitle">等待中的任务</h2></div><b id="assetsTaskCount">0</b></div>
     <div class="asset-task-list" id="assetsTaskList" aria-live="polite"></div>
   </section>  <div class="assets-loading" id="assetsLoading">
     <span></span>
-    <b>正在加载资产</b>
+    <b>正在加载历史</b>
   </div>
   <div class="assets-empty" id="assetsEmpty" hidden>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="m7 15 3-3 2.5 2.5L16 10l3 4"/></svg>
@@ -63,8 +68,39 @@
   <div class="assets-groups" id="assetsGrid" aria-live="polite"></div>
 </main>
 
+<div class="local-edit-layer" id="localEditLayer" hidden>
+  <section class="local-edit-dialog" role="dialog" aria-modal="true" aria-labelledby="localEditTitle">
+    <header class="local-edit-head">
+      <div><span>MASK EDIT</span><h2 id="localEditTitle">局部编辑</h2></div>
+      <button type="button" class="local-edit-close" id="localEditClose" aria-label="关闭局部编辑">×</button>
+    </header>
+    <div class="local-edit-layout">
+      <div class="local-edit-workspace">
+        <div class="local-edit-stage" id="localEditStage">
+          <img id="localEditImage" alt="待局部编辑的原图">
+          <canvas id="localEditCanvas" aria-label="涂抹需要修改的区域"></canvas>
+          <div class="local-edit-loading" id="localEditLoading">正在载入原图</div>
+        </div>
+        <div class="local-edit-tools" aria-label="蒙版工具">
+          <div class="local-edit-tool-group"><button type="button" class="is-active" id="localEditBrush" aria-pressed="true">画笔</button><button type="button" id="localEditEraser" aria-pressed="false">橡皮擦</button></div>
+          <label class="local-edit-size">笔刷 <input type="range" id="localEditSize" min="12" max="120" value="44"><output id="localEditSizeValue">44</output></label>
+          <div class="local-edit-tool-group"><button type="button" id="localEditUndo">撤销</button><button type="button" id="localEditClear">清空</button></div>
+        </div>
+      </div>
+      <div class="local-edit-panel">
+        <div class="local-edit-model"><img src="icon/model-image2.svg" alt=""><span>GPT · 精确局部编辑</span></div>
+        <label for="localEditPrompt">修改提示词</label>
+        <textarea id="localEditPrompt" maxlength="3000" rows="7" placeholder="例如：把涂抹区域的衣服改成黑色西装，其余部分保持不变"></textarea>
+        <div class="local-edit-prompt-meta"><span>只会修改红色涂抹区域</span><b id="localEditPromptCount">0/3000</b></div>
+        <p class="local-edit-error" id="localEditError" hidden></p>
+        <div class="local-edit-actions"><button type="button" class="secondary" id="localEditCancel">取消</button><button type="button" class="primary" id="localEditSubmit">加入任务列表</button></div>
+      </div>
+    </div>
+  </section>
+</div>
+
 <div class="toast" id="toast"></div>
-<script src="shared.js?v=20260826-122648"></script>
-<script src="assets-page.js?v=20260826-122753"></script>
+<script src="shared.js?v=20260827-175956"></script>
+<script src="assets-page.js?v=20260827-181414"></script>
 </body>
 </html>

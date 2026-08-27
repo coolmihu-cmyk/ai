@@ -158,8 +158,8 @@ function updateCharLimit(){
 
 function updatePlaceholder(){
   const phs={
-    gpt:'描述你想生成的画面，Image 2 擅长文字渲染、写实质感与原生 4K 输出…',
-    nano:'描述你想生成的画面，NB2 支持 4K 输出、角色一致性…',
+    gpt:'描述你想生成的画面，GPT 擅长文字渲染、写实质感与原生 4K 输出…',
+    nano:'描述你想生成的画面，NB PRO 擅长高质量创作、文字渲染与多参考图一致性…',
     grok:'描述你想生成的画面，Grok Imagine 2.0 擅长高质量文生图…'
   };
   els.promptInput.placeholder=phs[activeModel]||'描述你想生成的图片…';
@@ -246,7 +246,7 @@ function applyReferenceLibraryPayload(){
     if(!payload?.url)return;
     const manager=refManagers[activeModel];
     if(!manager?.addRemote(payload.url,'参考库图片'))return;
-    if(payload.prompt&&!els.promptInput.value.trim()){
+    if(payload.prompt&&(payload.replacePrompt||!els.promptInput.value.trim())){
       const prompt=payload.prompt.slice(0,MODEL_CONFIG[activeModel].promptLimit);
       els.promptInput.value=prompt;modelState[activeModel].promptText=prompt;updateCharLimit();
     }
@@ -269,7 +269,7 @@ els.clearPromptBtn.onclick=()=>{
 /* ===================== 优化提示词 ===================== */
 const ENHANCE_SYSTEMS={
   gpt:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其结构清晰、具体且适合图片生成模型。不得改变核心意图、主体数量、人物身份和指定元素。只输出优化后的最终提示词，不要解释。',
-  nano:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 NB2 (Gemini 3.1 Flash Image) 图片生成模型。只输出优化后的最终提示词，不要解释。',
+  nano:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 NB PRO（Gemini 3 Pro Image）图片生成模型。突出主体、构图、光线、材质、文字内容和参考图一致性。只输出优化后的最终提示词，不要解释。',
   grok:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 Grok Imagine 2.0 Ext 文生图模型。强调主体、构图、光线、材质和氛围的具体描述。只输出优化后的最终提示词，不要解释。'
 };
 
