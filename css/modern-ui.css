@@ -1056,17 +1056,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   font-family:inherit;
   font-size:11px;
 }
-.assets-retention-note{
-  max-width:1480px;
-  margin:-18px auto 24px;
-  padding:10px 12px;
-  border:1px solid var(--ui-line);
-  border-radius:11px;
-  background:#fff;
-  color:var(--ui-muted);
-  font-size:12px;
-  line-height:1.5;
-}
 .assets-loading,.assets-empty{color:var(--ui-muted)}
 .assets-empty b{color:var(--ui-ink);font-size:19px}
 .assets-empty a{
