@@ -1,5 +1,5 @@
 const MAX_IMAGE_BYTES=20*1024*1024;
-const APIMART_IMAGE_HOST='upload.apimart.ai';
+const APIMART_IMAGE_HOSTS=new Set(['upload.apimart.ai','getapib.org']);
 const ALLOWED_TYPES=new Map([
   ['image/png','png'],['image/jpeg','jpg'],['image/webp','webp']
 ]);
@@ -39,7 +39,7 @@ function readConfig(env){
 }
 function validateSourceUrl(value){
   const url=new URL(value);
-  if(url.protocol!=='https:'||url.hostname!==APIMART_IMAGE_HOST)throw new Error('仅允许归档 APIMart 生成的图片。');
+  if(url.protocol!=='https:'||!APIMART_IMAGE_HOSTS.has(url.hostname))throw new Error('仅允许归档 APIMart 生成的图片。');
   return url;
 }
 
