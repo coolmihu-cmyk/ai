@@ -442,8 +442,17 @@ async function runPendingGeneration(job){
         onProgress:updateGeneration
       });
     }
+    let archived=false;
+    if(Archive.isAvailable()){
+      try{
+        url=await Archive.image(url);archived=true;
+      }catch(error){
+        console.warn('图片归档失败，暂时保留 APIMart 临时地址',error);
+        toast('图片已生成，但永久归档失败；请先下载原图。');
+      }
+    }
     const item={
-      id:Date.now(),url,prompt:job.prompt||'',model:job.model||'gpt',settings:job.settings||{},
+      id:Date.now(),url,prompt:job.prompt||'',model:job.model||'gpt',settings:job.settings||{},archived,
       createdAt:new Date().toISOString(),durationMs:Math.round(performance.now()-startedAt)
     };
     await History.save(item);

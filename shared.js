@@ -182,6 +182,18 @@ const Apimart={
   }
 };
 
+const Archive={
+  isAvailable(){
+    return location.protocol==='https:'&&location.hostname.toLowerCase()==='pic.supmihu.cn';
+  },
+  async image(sourceUrl){
+    const response=await fetch('/api/archive-image',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({sourceUrl})});
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok||!data.url)throw new Error(data.error||'图片归档失败。');
+    return data.url;
+  }
+};
+
 const History={
   openDB(){return new Promise((resolve,reject)=>{if(!('indexedDB' in window)){reject(new Error('IndexedDB unavailable'));return}const req=indexedDB.open(DB_NAME,DB_VERSION);req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(STORE_NAME))db.createObjectStore(STORE_NAME,{keyPath:'id'});if(!db.objectStoreNames.contains(JOB_STORE_NAME))db.createObjectStore(JOB_STORE_NAME,{keyPath:'id'})};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})},
   readBackup(){
