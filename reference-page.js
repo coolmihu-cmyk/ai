@@ -51,7 +51,7 @@
     visibleItems.forEach((item,index)=>{
       const card=document.createElement('article');card.className='reference-card';
       const media=document.createElement('button');media.type='button';media.className='reference-media';media.title='在新标签页查看原图';media.onclick=()=>openImage(item.imageUrl);
-      const image=document.createElement('img');image.src=item.imageUrl;image.alt=item.prompt||'参考图片';image.loading='lazy';image.decoding='async';image.onerror=()=>card.classList.add('is-unavailable');media.appendChild(image);
+      const image=document.createElement('img');image.src=ImageDelivery.thumbnail(item.imageUrl);image.alt=item.prompt||'参考图片';image.loading='lazy';image.decoding='async';image.onerror=()=>{if(image.src!==item.imageUrl){image.src=item.imageUrl;return}card.classList.add('is-unavailable')};media.appendChild(image);
       const body=document.createElement('div');body.className='reference-card-body';
       if(item.prompt){const prompt=document.createElement('p');prompt.textContent=item.prompt;body.appendChild(prompt)}
       const meta=document.createElement('div');meta.className='reference-card-meta';const date=document.createElement('span');date.textContent=formatDate(item.createdAt);meta.appendChild(date);body.appendChild(meta);

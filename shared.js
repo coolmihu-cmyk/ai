@@ -24,6 +24,19 @@ const MODEL_CONFIG={
   }
 };
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
+const COS_THUMBNAIL_RULE='imageMogr2/thumbnail/600x/format/webp/interlace/0/quality/80';
+const ImageDelivery={
+  thumbnail(sourceUrl){
+    if(!sourceUrl)return sourceUrl;
+    try{
+      const url=new URL(sourceUrl,location.href),host=url.hostname.toLowerCase();
+      const processable=host==='img.supmihu.cn'||/\.cos\.[a-z0-9-]+\.myqcloud\.com$/.test(host);
+      if(!processable||url.search)return sourceUrl;
+      url.search=COS_THUMBNAIL_RULE;
+      return url.href;
+    }catch(_){return sourceUrl}
+  }
+};
 
 let pageTransitionTimer=0;
 function ensurePageTransitionLoader(){
@@ -413,7 +426,7 @@ function createReferenceManager(els,maxFiles=10,maxBytes=10*1024*1024,maxTotal=5
     els.grid.innerHTML='';
     state.files.forEach((entry,i)=>{
       const item=document.createElement('div');item.className='reference-item';item.title=entry.file.name||'参考图 '+(i+1);
-      const img=document.createElement('img');img.src=entry.url;img.alt='参考图 '+(i+1);
+      const img=document.createElement('img');img.src=ImageDelivery.thumbnail(entry.url);img.alt='参考图 '+(i+1);
       const rm=document.createElement('button');rm.type='button';rm.className='reference-remove';rm.title='移除';rm.textContent='×';rm.onclick=e=>{e.stopPropagation();remove(i)};
       item.append(img,rm);els.grid.appendChild(item);
     });

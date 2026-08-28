@@ -175,7 +175,12 @@ function setupAssetImageLoading(){
   const load=image=>{
     if(!image.dataset.src)return;
     image.onload=()=>image.classList.remove('is-loading');
-    image.onerror=()=>{image.classList.remove('is-loading');markAssetUnavailable(image.closest('[data-asset-id]')?.dataset.assetId)};
+    image.onerror=()=>{
+      if(image.dataset.original&&image.src!==image.dataset.original){
+        const original=image.dataset.original;delete image.dataset.original;image.src=original;return;
+      }
+      image.classList.remove('is-loading');markAssetUnavailable(image.closest('[data-asset-id]')?.dataset.assetId);
+    };
     image.src=image.dataset.src;delete image.dataset.src;
   };
   if(!('IntersectionObserver' in window)){images.forEach(load);return}
@@ -286,7 +291,7 @@ function renderAssets(){
     const media=document.createElement('button');
     media.type='button';media.className='asset-media';media.title='在新标签页打开图片';
     const image=document.createElement('img');
-    image.dataset.src=item.url;image.alt=item.prompt||'生成图片';image.loading='lazy';image.decoding='async';image.className='is-loading';media.appendChild(image);
+    image.dataset.src=ImageDelivery.thumbnail(item.url);image.dataset.original=item.url;image.alt=item.prompt||'生成图片';image.loading='lazy';image.decoding='async';image.className='is-loading';media.appendChild(image);
     media.onclick=()=>openImage(item.url);
     const meta=document.createElement('div');meta.className='asset-meta';
     const model=document.createElement('span');model.className='asset-model';model.textContent=ASSET_MODEL_NAMES[item.model]||item.model;
@@ -334,7 +339,7 @@ function showGeneration(job){
   };
   if(reference){
     assetsEls.generationReference.hidden=false;
-    assetsEls.generationReference.src=reference;
+    assetsEls.generationReference.src=ImageDelivery.thumbnail(reference);
   }else{
     assetsEls.generationReference.removeAttribute('src');
   }
