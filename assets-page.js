@@ -155,19 +155,16 @@ function assetDay(value){
   return {key,label};
 }
 function assetExpiry(item){
-  const createdAt=new Date(item.createdAt||0).getTime();
-  const remaining=createdAt+HISTORY_RETENTION_MS-Date.now();
-  if(unavailableAssetIds.has(String(item.id)))return {label:'原图已过期',expired:true};
-  if(remaining<=0)return {label:'原图可能已过期',expired:true};
-  const hours=Math.ceil(remaining/(60*60*1000));
-  return {label:hours<=12?'还剩 '+hours+' 小时':'还剩 '+Math.ceil(hours/24)+' 天',expired:false};
+  if(item.archived||ImageDelivery.isArchivedUrl(item.url))return {label:'已归档',expired:false};
+  if(unavailableAssetIds.has(String(item.id)))return {label:'图片暂不可用',expired:true};
+  return {label:'临时地址',expired:false};
 }
 function markAssetUnavailable(id){
   unavailableAssetIds.add(String(id));
   const card=[...assetsEls.grid.querySelectorAll('[data-asset-id]')].find(node=>node.dataset.assetId===String(id));
   if(!card)return;
   card.classList.add('is-expired');
-  const state=card.querySelector('.asset-expiry');if(state)state.textContent='原图已过期';
+  const state=card.querySelector('.asset-expiry');if(state)state.textContent='图片暂不可用';
 }
 function setupAssetImageLoading(){
   assetImageObserver?.disconnect();

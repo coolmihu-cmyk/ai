@@ -1,7 +1,6 @@
 ﻿"use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
-const HISTORY_RETENTION_MS=72*60*60*1000;
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
 const MODEL_CONFIG={
@@ -26,12 +25,18 @@ const MODEL_CONFIG={
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 const COS_THUMBNAIL_RULE='imageMogr2/thumbnail/600x/format/webp/interlace/0/quality/80';
 const ImageDelivery={
+  isArchivedUrl(sourceUrl){
+    if(!sourceUrl)return false;
+    try{
+      const host=new URL(sourceUrl,location.href).hostname.toLowerCase();
+      return host==='img.supmihu.cn'||/\.cos\.[a-z0-9-]+\.myqcloud\.com$/.test(host);
+    }catch(_){return false}
+  },
   thumbnail(sourceUrl){
     if(!sourceUrl)return sourceUrl;
     try{
-      const url=new URL(sourceUrl,location.href),host=url.hostname.toLowerCase();
-      const processable=host==='img.supmihu.cn'||/\.cos\.[a-z0-9-]+\.myqcloud\.com$/.test(host);
-      if(!processable||url.search)return sourceUrl;
+      const url=new URL(sourceUrl,location.href);
+      if(!this.isArchivedUrl(url.href)||url.search)return sourceUrl;
       url.search=COS_THUMBNAIL_RULE;
       return url.href;
     }catch(_){return sourceUrl}
@@ -217,9 +222,8 @@ const History={
   },
   writeBackup(items){
     try{
-      const cutoff=Date.now()-HISTORY_RETENTION_MS;
       const recent=(Array.isArray(items)?items:[])
-        .filter(item=>item?.id!=null&&this.itemTime(item)>=cutoff)
+        .filter(item=>item?.id!=null)
         .sort((a,b)=>this.itemTime(b)-this.itemTime(a))
         .slice(0,200);
       localStorage.setItem(HISTORY_BACKUP_KEY,JSON.stringify(recent));
@@ -240,7 +244,6 @@ const History={
       const db=await this.openDB();
       await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite');tx.objectStore(STORE_NAME).put(item);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});
       db.close();
-      this.trim().catch(error=>console.warn('历史记录过期清理失败',error));
       return true;
     }catch(error){
       console.warn('IndexedDB 历史记录保存失败，已保留备用副本',error);
@@ -267,17 +270,6 @@ const History={
       this.backupDelete(ids);
     }
   },
-  async trim(){
-    const db=await this.openDB();
-    const all=await new Promise((resolve,reject)=>{
-      const req=db.transaction(STORE_NAME).objectStore(STORE_NAME).getAll();
-      req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
-    });
-    db.close();
-    const cutoff=Date.now()-HISTORY_RETENTION_MS;
-    const staleIds=all.filter(item=>this.itemTime(item)<cutoff).map(item=>item.id);
-    await this.deleteMany(staleIds);
-  },
   async load(modelFilter){
     let all=[];
     try{
@@ -291,14 +283,10 @@ const History={
     const merged=new Map();
     for(const item of this.readBackup())if(item?.id!=null)merged.set(String(item.id),item);
     for(const item of all)if(item?.id!=null)merged.set(String(item.id),item);
-    const combined=[...merged.values()];
-    const cutoff=Date.now()-HISTORY_RETENTION_MS;
-    const expiredIds=combined.filter(item=>this.itemTime(item)<cutoff).map(item=>item.id);
-    let recent=combined.filter(item=>this.itemTime(item)>=cutoff).sort((a,b)=>this.itemTime(b)-this.itemTime(a));
-    this.writeBackup(recent);
-    if(modelFilter)recent=recent.filter(item=>item.model===modelFilter);
-    if(expiredIds.length)this.deleteMany(expiredIds).catch(()=>{});
-    return recent;
+    let items=[...merged.values()].sort((a,b)=>this.itemTime(b)-this.itemTime(a));
+    this.writeBackup(items);
+    if(modelFilter)items=items.filter(item=>item.model===modelFilter);
+    return items;
   },
   async validate(items,{concurrency=3}={}){
     const queue=Array.isArray(items)?[...items]:[];
