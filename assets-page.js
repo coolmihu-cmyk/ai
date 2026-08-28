@@ -165,7 +165,7 @@ function markAssetUnavailable(id){
   if(!card)return;
   card.classList.add('is-expired');
   const state=card.querySelector('.asset-expiry');
-  if(state){state.classList.remove('is-archived');state.removeAttribute('aria-label');state.removeAttribute('title');state.textContent='图片暂不可用'}
+  if(state){state.classList.remove('is-archived');state.removeAttribute('aria-label');state.textContent='图片暂不可用'}
 }
 function setupAssetImageLoading(){
   assetImageObserver?.disconnect();
@@ -294,7 +294,7 @@ function renderAssets(){
     const meta=document.createElement('div');meta.className='asset-meta';
     const model=document.createElement('span');model.className='asset-model';model.textContent=ASSET_MODEL_NAMES[item.model]||item.model;
     const state=document.createElement('span');state.className='asset-expiry';
-    if(expiry.archived){state.classList.add('is-archived');state.title='已归档';state.setAttribute('aria-label','已归档')}
+    if(expiry.archived){state.classList.add('is-archived');state.setAttribute('aria-label','已归档')}
     else state.textContent=expiry.label;
     meta.append(model,state);
     const actions=document.createElement('div');actions.className='asset-actions';
