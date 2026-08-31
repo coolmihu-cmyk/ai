@@ -42,7 +42,9 @@ export async function onRequestGet(context){
     const token=historyToken(context.request);if(!token)return json({error:'请先在设置中保存 API Key。'},401);
     const kv=getKV(context.env,['list','get']),url=new URL(context.request.url);
     const cursor=url.searchParams.get('cursor')||undefined;
-    const listed=await kv.list({prefix:prefix(token),cursor,limit:MAX_PAGE_SIZE});
+    const listOptions={prefix:prefix(token),limit:MAX_PAGE_SIZE};
+    if(cursor)listOptions.cursor=cursor;
+    const listed=await kv.list(listOptions);
     const names=(listed.keys||[]).map(keyName).filter(Boolean);
     const values=await Promise.all(names.map(name=>kv.get(name)));
     const items=values.map(value=>{try{return typeof value==='string'?JSON.parse(value):value}catch(_){return null}}).filter(Boolean);
