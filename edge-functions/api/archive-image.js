@@ -107,8 +107,15 @@ export async function onRequestPost(context){
     if(!upload.ok)throw new Error('COS 写入失败（HTTP '+upload.status+'）。');
     const base=config.COS_PUBLIC_BASE_URL.replace(/\/+$/,'');
     const url=base+'/'+objectKey;
-    const historyKey=await saveHistory(context.env,context.request,item,{url,cosKey:objectKey});
-    return json({url,key:objectKey,contentType,historyKey});
+    let historyKey=null,historyPending=false;
+    try{
+      historyKey=await saveHistory(context.env,context.request,item,{url,cosKey:objectKey});
+    }catch(error){
+      // 图片已经安全写入 COS；历史索引暂不可用时不应退回临时图片地址。
+      historyPending=Boolean(item);
+      console.warn('archive-image:history',error);
+    }
+    return json({url,key:objectKey,contentType,historyKey,historyPending});
   }catch(error){
     console.error('archive-image',error);
     return json({error:sanitizeError(error)},400);

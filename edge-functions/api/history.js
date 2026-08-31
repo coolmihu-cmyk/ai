@@ -11,7 +11,7 @@ function getKV(env){
   if(!kv||typeof kv.get!=='function'||typeof kv.put!=='function'||typeof kv.list!=='function'||typeof kv.delete!=='function')throw new Error('云端历史存储尚未绑定。');
   return kv;
 }
-function prefix(token){return 'history:'+token+':' }
+function prefix(token){return 'history:'+token+':'}
 function cleanItem(value){
   if(!value||typeof value!=='object'||value.id==null)return null;
   const url=new URL(String(value.url||''));
