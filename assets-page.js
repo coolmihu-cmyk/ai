@@ -17,7 +17,6 @@ const assetsEls={
 let assetItems=[],generationElapsedTimer=null,queueAdvancing=false;
 let unavailableAssetIds=new Set(),assetImageObserver=null;
 const REFERENCE_LIBRARY_KEY='mihu-reference-library-v1',REFERENCE_LIBRARY_LIMIT=300;
-const ASSET_HD_PROMPT='基于提供的参考图像进行严格的超高分辨率4K增强。必须绝对忠实于原始画面部结构、比例和身份特征。在表情、视线、姿势、相机角度、画面构图和透视关系上保持零偏差。服装、头发、皮肤以及背景元素的结构、位置和设计都必须保持不变。恢复细微层级的细节，呈现自然写实效果。增强毛孔、细纹、发丝、睫毛、织物纹理、缝线以及材质边缘，但不得引入任何风格化处理。颜色科学、白平衡以及整体色调关系必须与原图完全一致。光线方向、强度、对比度以及阴影表现必须与原始图像精确匹配，只允许提升清晰度并扩展动态范围。禁止重新布光，禁止改变形体';
 const LOCAL_EDIT_MODEL='gpt-image-2-official';
 
 const localEdit={
@@ -269,29 +268,6 @@ function favoriteAsset(item){
     toast('已收藏到参考');
   }catch(error){console.warn('收藏到参考失败',error);toast('收藏失败，请检查浏览器本地存储')}
 }
-function assetSettings(item,model){
-  const config=MODEL_CONFIG[model];
-  const saved=item.settings||{};
-  return {
-    ratio:config.ratios.includes(saved.ratio)?saved.ratio:config.ratios[0],
-    resolution:config.resolutions?.some(option=>option.v===saved.resolution)?saved.resolution:config.defaultResolution
-  };
-}
-async function enqueueAssetHD(item){
-  const apiKey=Settings.getKey();
-  if(!apiKey){Settings.openPage();toast('请先保存 API Key');return}
-  const model='gpt',config=MODEL_CONFIG.gpt,settings={ratio:assetSettings(item,'gpt').ratio,resolution:'4k'},prompt=ASSET_HD_PROMPT;
-  const body={model:config.generationModel,prompt,size:settings.ratio,n:1};
-  body.resolution=settings.resolution;body.image_urls=[item.url];
-  const job={
-    id:'asset-hd-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),
-    body,endpoint:'/images/generations',prompt,model,settings,
-    createdAt:new Date().toISOString(),taskId:null
-  };
-  await PendingGeneration.save(job);
-  toast('已加入高清队列');
-  runNextPendingGeneration().catch(()=>{});
-}
 function sendAssetToComposer(item){
   try{
     sessionStorage.setItem('mihu_reference_payload',JSON.stringify({url:item.url,prompt:item.prompt||'',replacePrompt:true}));
@@ -331,9 +307,6 @@ function renderAssets(){
     const actions=document.createElement('div');actions.className='asset-actions';
     const favorite=document.createElement('button');favorite.type='button';favorite.className='asset-favorite';favorite.title='收藏到参考';
     favorite.setAttribute('aria-label','收藏到参考');favorite.appendChild(assetIcon(['M12 20.5 4.8 16A5 5 0 0 1 12 9.1 5 5 0 0 1 19.2 16L12 20.5Z']));favorite.onclick=()=>favoriteAsset(item);actions.appendChild(favorite);
-    const hd=document.createElement('button');hd.type='button';hd.className='asset-hd';hd.title='一键高清';hd.setAttribute('aria-label','一键高清');
-    hd.appendChild(assetIcon(['M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5','m12 7 1.25 3.75L17 12l-3.75 1.25L12 17l-1.25-3.75L7 12l3.75-1.25L12 7Z']));
-    hd.onclick=()=>enqueueAssetHD(item);actions.appendChild(hd);
     const edit=document.createElement('button');edit.type='button';edit.className='asset-local-edit';edit.title='局部编辑';edit.setAttribute('aria-label','局部编辑');
     edit.appendChild(assetIcon(['M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3Z','m13-13 3 3']));
     edit.onclick=()=>openLocalEdit(item,edit);actions.appendChild(edit);
