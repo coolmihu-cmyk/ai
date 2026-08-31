@@ -109,6 +109,28 @@ const Settings={
   openModal(){this.openPage()}
 };
 
+const CloudHistory={
+  async token(){
+    const apiKey=Settings.getKey().trim();
+    if(!apiKey||!crypto?.subtle)return null;
+    const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('mihu-history-v1:'+apiKey));
+    return Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,'0')).join('');
+  },
+  async request(path,{method='GET',body}={}){
+    const token=await this.token();
+    if(!token)throw new Error('请先在设置中保存 API Key。');
+    const headers={'Accept':'application/json','X-History-Key':token};
+    if(body!==undefined)headers['Content-Type']='application/json';
+    const response=await fetch(path,{method,headers,body:body===undefined?undefined:JSON.stringify(body)});
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(data.error||'云端历史请求失败。');
+    return data;
+  },
+  async list(cursor){return this.request('/api/history'+(cursor?'?cursor='+encodeURIComponent(cursor):''))},
+  async save(item){return this.request('/api/history',{method:'POST',body:{item}})},
+  async remove(historyKey){return this.request('/api/history',{method:'DELETE',body:{historyKey}})}
+};
+
 const Apimart={
   async chat(apiKey,{messages,model=PROMPT_ANALYSIS_MODEL,temperature=.35,signal}){
     const res=await fetch(APIMART_BASE+'/chat/completions',{
@@ -204,11 +226,14 @@ const Archive={
   isAvailable(){
     return location.protocol==='https:'&&location.hostname.toLowerCase()==='pic.supmihu.cn';
   },
-  async image(sourceUrl){
-    const response=await fetch('/api/archive-image',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({sourceUrl})});
+  async image(sourceUrl,item){
+    const token=await CloudHistory.token();
+    const headers={'Content-Type':'application/json','Accept':'application/json'};
+    if(token)headers['X-History-Key']=token;
+    const response=await fetch('/api/archive-image',{method:'POST',headers,body:JSON.stringify({sourceUrl,item})});
     const data=await response.json().catch(()=>({}));
     if(!response.ok||!data.url)throw new Error(data.error||'图片归档失败。');
-    return data.url;
+    return data;
   }
 };
 

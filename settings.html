@@ -38,7 +38,7 @@
         <input id="settingsApiKey" type="password" autocomplete="off" placeholder="输入 APIMart API Key">
         <button id="settingsToggleKey" type="button">显示</button>
       </div>
-      <p class="settings-key-note">密钥只保存在当前浏览器的 localStorage 中，不会写入项目文件。</p>
+      <p class="settings-key-note">密钥只保存在当前浏览器；同一 KEY 会自动连接同一份云端历史，历史服务只接收不可逆指纹。</p>
       <div class="settings-actions">
         <button class="settings-save" id="settingsSave" type="button">保存设置</button>
         <button class="settings-clear" id="settingsClear" type="button">清除密钥</button>
@@ -52,7 +52,7 @@
 </main>
 
 <div class="toast" id="toast"></div>
-<script src="shared.js?v=20260828-144536"></script>
+<script src="shared.js?v=20260831-120031"></script>
 <script src="settings-page.js?v=20260826-104617"></script>
 </body>
 </html>

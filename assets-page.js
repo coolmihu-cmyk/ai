@@ -141,6 +141,28 @@ function sortAssets(items){
     return dateDiff||Number(b.id||0)-Number(a.id||0);
   });
 }
+function mergeAssets(...groups){
+  const merged=new Map();
+  for(const group of groups)for(const item of group||[])if(item?.id!=null)merged.set(String(item.id),item);
+  return sortAssets([...merged.values()]);
+}
+async function syncCloudHistory(){
+  if(!await CloudHistory.token())return;
+  try{
+    const cloud=await CloudHistory.list();
+    const cloudItems=(cloud.items||[]).filter(item=>(item.type||'image')==='image');
+    const cloudIds=new Set(cloudItems.map(item=>String(item.id)));
+    assetItems=mergeAssets(assetItems,cloudItems);
+    await Promise.all(cloudItems.map(item=>History.save(item)));
+    renderAssets();
+    const pending=assetItems.filter(item=>!cloudIds.has(String(item.id))&&ImageDelivery.isArchivedUrl(item.url)).slice(0,60);
+    for(const item of pending){
+      const saved=await CloudHistory.save(item);
+      item.historyKey=saved.historyKey||item.historyKey;
+      await History.save(item);
+    }
+  }catch(error){console.warn('云端历史同步失败',error)}
+}
 function syncAssetsSummary(){
   assetsEls.count.textContent=`${assetItems.length} 张图片`;
   assetsEls.empty.hidden=assetItems.length>0||!assetsEls.generation.hidden;
@@ -313,6 +335,9 @@ function renderAssets(){
     remove.appendChild(assetIcon(['M4 7h16','M9 7V5h6v2','M7 7l1 13h8l1-13','M10 11v5','M14 11v5']));
     remove.onclick=async()=>{
       remove.disabled=true;
+      if(item.historyKey){
+        try{await CloudHistory.remove(item.historyKey)}catch(error){console.warn('云端历史删除失败',error);remove.disabled=false;toast('云端删除失败，请稍后重试');return}
+      }
       if(!await History.delete(item.id)){remove.disabled=false;toast('删除失败');return}
       assetItems=assetItems.filter(asset=>asset.id!==item.id);renderAssets();toast('已删除记录');
     };
@@ -447,18 +472,22 @@ async function runPendingGeneration(job){
         onProgress:updateGeneration
       });
     }
-    let archived=false;
+    const itemId=Date.now(),createdAt=new Date().toISOString();
+    let archived=false,historyKey='';
     if(Archive.isAvailable()){
       try{
-        url=await Archive.image(url);archived=true;
+        const archive=await Archive.image(url,{
+          id:itemId,prompt:job.prompt||'',model:job.model||'gpt',settings:job.settings||{},createdAt,type:'image'
+        });
+        url=archive.url;archived=true;historyKey=archive.historyKey||'';
       }catch(error){
         console.warn('图片归档失败，暂时保留 APIMart 临时地址',error);
         toast('图片已生成，但永久归档失败；请先下载原图。');
       }
     }
     const item={
-      id:Date.now(),url,prompt:job.prompt||'',model:job.model||'gpt',settings:job.settings||{},archived,
-      createdAt:new Date().toISOString(),durationMs:Math.round(performance.now()-startedAt)
+      id:itemId,url,prompt:job.prompt||'',model:job.model||'gpt',settings:job.settings||{},archived,historyKey,
+      createdAt,durationMs:Math.round(performance.now()-startedAt)
     };
     await History.save(item);
     await PendingGeneration.delete(job.id);
@@ -495,6 +524,7 @@ requestAnimationFrame(async()=>{
   finally{
     assetsEls.loading.hidden=true;renderAssets();
   }
+  syncCloudHistory();
   History.validate([...assetItems],{concurrency:3})
     .then(unavailable=>{
       unavailableAssetIds=new Set(unavailable.map(item=>String(item.id)));

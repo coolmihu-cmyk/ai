@@ -42,6 +42,35 @@ function validateSourceUrl(value){
   if(url.protocol!=='https:'||!APIMART_IMAGE_HOSTS.has(url.hostname))throw new Error('仅允许归档 APIMart 生成的图片。');
   return url;
 }
+function historyToken(request){
+  const token=request.headers.get('X-History-Key')||'';
+  if(!/^[a-f0-9]{64}$/i.test(token))return null;
+  return token.toLowerCase();
+}
+function historyRecord(input,{url,cosKey}){
+  if(!input||typeof input!=='object'||input.id==null)return null;
+  const createdAt=new Date(input.createdAt||Date.now());
+  const id=String(input.id).replace(/[^a-zA-Z0-9_-]/g,'').slice(0,80);
+  if(!id||Number.isNaN(createdAt.getTime()))return null;
+  return {
+    id,url,cosKey,archived:true,type:'image',createdAt:createdAt.toISOString(),
+    prompt:String(input.prompt||'').slice(0,3000),
+    model:String(input.model||'gpt').slice(0,64),
+    settings:input.settings&&typeof input.settings==='object'?input.settings:{}
+  };
+}
+async function saveHistory(env,request,input,archive){
+  if(!input)return null;
+  const token=historyToken(request),record=historyRecord(input,archive),kv=env?.HISTORY_KV;
+  if(!token||!record)throw new Error('云端历史身份验证失败。');
+  if(!kv||typeof kv.put!=='function')throw new Error('云端历史存储尚未绑定。');
+  const timestamp=new Date(record.createdAt).getTime();
+  const order=String(Math.max(0,9999999999999-timestamp)).padStart(13,'0');
+  const historyKey='history:'+token+':'+order+':'+record.id;
+  record.historyKey=historyKey;
+  await kv.put(historyKey,JSON.stringify(record));
+  return historyKey;
+}
 
 export async function onRequestOptions(){return new Response(null,{status:204,headers:{'Allow':'POST, OPTIONS'}})}
 
@@ -49,7 +78,7 @@ export async function onRequestPost(context){
   try{
     const origin=context.request.headers.get('Origin');
     if(origin!=='https://pic.supmihu.cn')return json({error:'不允许跨站归档请求。'},403);
-    const {sourceUrl}=await context.request.json();
+    const {sourceUrl,item}=await context.request.json();
     const source=validateSourceUrl(sourceUrl);
     const config=readConfig(context.env);
     const sourceResponse=await fetch(source.toString(),{redirect:'manual'});
@@ -77,7 +106,9 @@ export async function onRequestPost(context){
     },body:image});
     if(!upload.ok)throw new Error('COS 写入失败（HTTP '+upload.status+'）。');
     const base=config.COS_PUBLIC_BASE_URL.replace(/\/+$/,'');
-    return json({url:base+'/'+objectKey,key:objectKey,contentType});
+    const url=base+'/'+objectKey;
+    const historyKey=await saveHistory(context.env,context.request,item,{url,cosKey:objectKey});
+    return json({url,key:objectKey,contentType,historyKey});
   }catch(error){
     console.error('archive-image',error);
     return json({error:sanitizeError(error)},400);
