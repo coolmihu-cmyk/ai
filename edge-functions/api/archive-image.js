@@ -59,14 +59,20 @@ function historyRecord(input,{url,cosKey}){
     settings:input.settings&&typeof input.settings==='object'?input.settings:{}
   };
 }
+function historyPrefix(token){return 'history_'+token+'_'}
+function historyRecordKey(token,record){
+  const timestamp=new Date(record.createdAt).getTime();
+  const order=String(Math.max(0,9999999999999-timestamp)).padStart(13,'0');
+  const id=String(record.id).replace(/[^a-zA-Z0-9_]/g,'_');
+  return historyPrefix(token)+order+'_'+id;
+}
 async function saveHistory(env,request,input,archive){
   if(!input)return null;
   const token=historyToken(request),record=historyRecord(input,archive),kv=env?.HISTORY_KV;
   if(!token||!record)throw new Error('云端历史身份验证失败。');
-  if(!kv||typeof kv.put!=='function')throw new Error('云端历史存储尚未绑定。');
-  const timestamp=new Date(record.createdAt).getTime();
-  const order=String(Math.max(0,9999999999999-timestamp)).padStart(13,'0');
-  const historyKey='history:'+token+':'+order+':'+record.id;
+  if(!kv)throw new Error('云端历史存储尚未绑定。');
+  if(typeof kv.put!=='function')throw new Error('云端历史存储缺少写入能力。');
+  const historyKey=historyRecordKey(token,record);
   record.historyKey=historyKey;
   await kv.put(historyKey,JSON.stringify(record));
   return historyKey;
