@@ -177,17 +177,16 @@ function assetDay(value){
   return {key,label};
 }
 function assetExpiry(item){
-  if(unavailableAssetIds.has(String(item.id)))return {label:'图片暂不可用',expired:true};
-  if(item.archived||ImageDelivery.isArchivedUrl(item.url))return {label:'',archived:true,expired:false};
-  return {label:'临时地址',expired:false};
+  if(unavailableAssetIds.has(String(item.id)))return {archived:false,expired:true};
+  if(item.archived||ImageDelivery.isArchivedUrl(item.url))return {archived:true,expired:false};
+  return {archived:false,expired:false};
 }
 function markAssetUnavailable(id){
   unavailableAssetIds.add(String(id));
   const card=[...assetsEls.grid.querySelectorAll('[data-asset-id]')].find(node=>node.dataset.assetId===String(id));
   if(!card)return;
   card.classList.add('is-expired');
-  const state=card.querySelector('.asset-expiry');
-  if(state){state.classList.remove('is-archived');state.removeAttribute('aria-label');state.textContent='图片暂不可用'}
+  card.querySelector('.asset-model')?.classList.add('is-warning');
 }
 function setupAssetImageLoading(){
   assetImageObserver?.disconnect();
@@ -315,10 +314,8 @@ function renderAssets(){
     media.onclick=()=>openImage(item.url);
     const meta=document.createElement('div');meta.className='asset-meta';
     const model=document.createElement('span');model.className='asset-model';model.textContent=ASSET_MODEL_NAMES[item.model]||item.model;
-    const state=document.createElement('span');state.className='asset-expiry';
-    if(expiry.archived){state.classList.add('is-archived');state.setAttribute('aria-label','已归档')}
-    else state.textContent=expiry.label;
-    meta.append(model,state);
+    if(!expiry.archived)model.classList.add('is-warning');
+    meta.append(model);
     const actions=document.createElement('div');actions.className='asset-actions';
     const favorite=document.createElement('button');favorite.type='button';favorite.className='asset-favorite';favorite.title='收藏到参考';
     favorite.setAttribute('aria-label','收藏到参考');favorite.appendChild(assetIcon(['M12 20.5 4.8 16A5 5 0 0 1 12 9.1 5 5 0 0 1 19.2 16L12 20.5Z']));favorite.onclick=()=>favoriteAsset(item);actions.appendChild(favorite);
