@@ -11,7 +11,7 @@
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="stylesheet" href="css/base.css?v=20260828-141842">
 <link rel="stylesheet" href="css/pages.css?v=20260826-122714">
-<link rel="stylesheet" href="css/modern-ui.css?v=20260831-124555">
+<link rel="stylesheet" href="css/modern-ui.css?v=20260831-125526">
 </head>
 <body class="settings-page">
 
@@ -38,7 +38,12 @@
         <input id="settingsApiKey" type="password" autocomplete="off" placeholder="输入 APIMart API Key">
         <button id="settingsToggleKey" type="button">显示</button>
       </div>
-      <p class="settings-key-note">密钥只保存在当前浏览器；同一 KEY 会自动连接同一份云端历史，历史服务只接收不可逆指纹。</p>
+      <div class="settings-key-guide" aria-labelledby="keyGuideTitle">
+        <h3 id="keyGuideTitle">KEY 与历史记录</h3>
+        <p><b>关联方式</b><span>相同 KEY 会连接同一份私人云端历史，在手机或其他浏览器中输入同一 KEY 即可同步。</span></p>
+        <p><b>隐私范围</b><span>原始 KEY 只保存在当前浏览器，并直接用于连接 APIMart；本站服务器不会保存或收到你的原始 KEY，历史服务只接收不可逆指纹。</span></p>
+        <p><b>请自行保管</b><span>清除浏览器数据或更换设备后需要重新输入。KEY 遗失或更换后，本站无法替你找回原来关联的云端历史。</span></p>
+      </div>
       <div class="settings-actions">
         <button class="settings-save" id="settingsSave" type="button">保存设置</button>
         <button class="settings-clear" id="settingsClear" type="button">清除密钥</button>

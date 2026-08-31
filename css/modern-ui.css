@@ -1178,6 +1178,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 }
 .settings-key-row input:focus{border-color:var(--ui-ink);box-shadow:inset 3px 0 var(--ui-ink)}
 .settings-key-row button{border-color:var(--ui-line-strong);border-radius:0 13px 13px 0;background:var(--ui-soft)}
+.settings-key-guide{margin-top:14px;padding:15px 16px;border:1px solid var(--ui-line);border-radius:11px;background:var(--ui-soft)}
+.settings-key-guide h3{margin:0 0 11px;color:var(--ui-ink);font-size:12px;font-weight:760;letter-spacing:-.1px}
+.settings-key-guide p{margin:0;padding:8px 0;display:grid;grid-template-columns:72px minmax(0,1fr);gap:12px;border-top:1px solid var(--ui-line);color:var(--ui-muted);font-size:11px;line-height:1.65}
+.settings-key-guide p:first-of-type{padding-top:0;border-top:0}
+.settings-key-guide p:last-child{padding-bottom:0}
+.settings-key-guide b{color:var(--ui-ink);font-family:var(--studio-mono);font-size:9px;font-weight:720;letter-spacing:.35px}
 .settings-actions button{height:42px;border-radius:11px;font-family:inherit;font-size:11px}
 .settings-save{background:var(--ui-ink)}
 .settings-provider-link,.settings-return-link{font-family:inherit}
@@ -1291,6 +1297,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   .asset-date-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .asset-date-group + .asset-date-group{margin-top:28px}
   .settings-connection,.settings-pricing{padding:22px 18px;border-radius:10px}
+  .settings-key-guide p{grid-template-columns:64px minmax(0,1fr);gap:9px}
 }
 
 @media(max-width:430px){
