@@ -1147,17 +1147,17 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 }
 .settings-connection{
   min-width:0;
-  padding:28px;
+  padding:36px;
   display:grid;
   grid-template-columns:minmax(0,1fr) minmax(310px,.72fr);
   grid-template-areas:"head head" "label guide" "key guide" "actions guide" "provider guide";
-  column-gap:28px;
+  column-gap:38px;
   border:1px solid var(--ui-line);
   border-radius:var(--ui-radius-lg);
   background:#fff;
   box-shadow:none;
 }
-.settings-section-head{grid-area:head;min-height:52px;margin-bottom:25px;padding-bottom:21px;display:flex;align-items:flex-start;gap:18px;border-bottom:1px solid var(--ui-line)}
+.settings-section-head{grid-area:head;min-height:58px;margin-bottom:32px;padding-bottom:28px;display:flex;align-items:flex-start;gap:18px;border-bottom:1px solid var(--ui-line)}
 .settings-section-head > div:first-child > span{
   display:block;
   margin-bottom:5px;
@@ -1172,12 +1172,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .connection-status i{width:6px;height:6px;flex:0 0 6px;border-radius:50%;background:var(--ui-faint)}
 .connection-status.configured{border-color:var(--ui-ink);background:var(--ui-ink);color:#fff}
 .connection-status.configured i{background:#fff;box-shadow:none}
-.settings-key-label{grid-area:label;align-self:end;margin:0 0 8px;display:block;color:var(--ui-muted);font-size:11px;font-weight:680}
-.settings-key-row{grid-area:key;display:flex}
+.settings-key-label{grid-area:label;align-self:end;margin:0 0 11px;display:block;color:var(--ui-muted);font-size:12px;font-weight:680}
+.settings-key-row{grid-area:key;height:56px;display:flex;align-items:stretch}
 .settings-key-row input{
   min-width:0;
   flex:1;
-  height:48px;
+  height:56px;
   padding:0 14px;
   border:1px solid var(--ui-line-strong);
   border-right:0;
@@ -1190,21 +1190,21 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   outline:none;
 }
 .settings-key-row input:focus{border-color:var(--ui-ink);box-shadow:inset 3px 0 var(--ui-ink)}
-.settings-key-row button{width:64px;border:1px solid var(--ui-line-strong);border-radius:0 13px 13px 0;background:var(--ui-soft);color:var(--ui-muted);font-size:11px;font-weight:700}
+.settings-key-row button{width:76px;height:56px;flex:0 0 76px;margin:0;display:grid;place-items:center;border:1px solid var(--ui-line-strong);border-radius:0 13px 13px 0;background:var(--ui-soft);color:var(--ui-muted);font-size:11px;font-weight:700;line-height:1}
 .settings-key-row button:hover{background:#e9ebec;color:var(--ui-ink)}
-.settings-key-guide{grid-area:guide;align-self:stretch;margin:0;padding:16px 17px;border:1px solid var(--ui-line);border-radius:11px;background:var(--ui-soft)}
-.settings-key-guide h3{margin:0 0 11px;color:var(--ui-ink);font-size:12px;font-weight:760;letter-spacing:-.1px}
-.settings-key-guide p{margin:0;padding:8px 0;display:grid;grid-template-columns:72px minmax(0,1fr);gap:12px;border-top:1px solid var(--ui-line);color:var(--ui-muted);font-size:11px;line-height:1.65}
+.settings-key-guide{grid-area:guide;align-self:stretch;margin:0;padding:22px 23px;border:1px solid var(--ui-line);border-radius:11px;background:var(--ui-soft)}
+.settings-key-guide h3{margin:0 0 17px;color:var(--ui-ink);font-size:14px;font-weight:760;letter-spacing:-.1px}
+.settings-key-guide p{margin:0;padding:13px 0;display:grid;grid-template-columns:78px minmax(0,1fr);gap:15px;border-top:1px solid var(--ui-line);color:var(--ui-muted);font-size:12px;line-height:1.75}
 .settings-key-guide p:first-of-type{padding-top:0;border-top:0}
 .settings-key-guide p:last-child{padding-bottom:0}
-.settings-key-guide b{color:var(--ui-ink);font-family:var(--studio-mono);font-size:9px;font-weight:720;letter-spacing:.35px}
-.settings-actions{grid-area:actions;margin-top:18px;display:flex;gap:8px}
-.settings-actions button{height:42px;padding:0 16px;border-radius:10px;font-size:11px;font-weight:720}
+.settings-key-guide b{color:var(--ui-ink);font-family:var(--studio-mono);font-size:10px;font-weight:720;letter-spacing:.35px}
+.settings-actions{grid-area:actions;margin-top:27px;display:flex;gap:10px}
+.settings-actions button{height:46px;padding:0 18px;border-radius:10px;font-size:12px;font-weight:720}
 .settings-save{border:1px solid var(--ui-ink);background:var(--ui-ink);color:#fff}
 .settings-save:hover{background:#292c2f}
 .settings-clear{border:1px solid var(--ui-line-strong);background:#fff;color:var(--ui-muted)}
 .settings-clear:hover{border-color:var(--ui-ink);color:var(--ui-ink)}
-.settings-provider-link{grid-area:provider;margin-top:20px;padding-top:14px;border-top:1px solid var(--ui-line);display:flex;align-items:center;color:var(--ui-muted);font-size:11px;font-weight:680;text-decoration:none}
+.settings-provider-link{grid-area:provider;margin-top:27px;padding-top:20px;border-top:1px solid var(--ui-line);display:flex;align-items:center;color:var(--ui-muted);font-size:12px;font-weight:680;text-decoration:none}
 .settings-provider-link svg{width:13px;height:13px;margin-left:auto}
 .settings-provider-link:hover{color:var(--ui-ink)}
 
@@ -1306,9 +1306,16 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   .assets-count{margin-left:auto}
   .asset-date-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .asset-date-group + .asset-date-group{margin-top:28px}
-  .settings-connection{padding:22px 18px;grid-template-columns:1fr;grid-template-areas:"head" "label" "key" "guide" "actions" "provider";border-radius:10px}
+  .settings-connection{padding:24px 20px;grid-template-columns:1fr;grid-template-areas:"head" "label" "key" "guide" "actions" "provider";border-radius:10px}
+  .settings-section-head{margin-bottom:25px;padding-bottom:21px}
+  .settings-key-row,.settings-key-row input,.settings-key-row button{height:52px}
+  .settings-key-row button{width:68px;flex-basis:68px}
   .settings-key-guide{margin-top:18px}
-  .settings-key-guide p{grid-template-columns:64px minmax(0,1fr);gap:9px}
+  .settings-key-guide{padding:17px}
+  .settings-key-guide h3{margin-bottom:12px;font-size:13px}
+  .settings-key-guide p{padding:9px 0;grid-template-columns:64px minmax(0,1fr);gap:9px;font-size:11px;line-height:1.65}
+  .settings-actions{margin-top:20px}
+  .settings-provider-link{margin-top:21px;padding-top:16px}
 }
 
 @media(max-width:430px){
