@@ -66,9 +66,13 @@ function historyRecordKey(token,record){
   const id=String(record.id).replace(/[^a-zA-Z0-9_]/g,'_');
   return historyPrefix(token)+order+'_'+id;
 }
+function historyKV(env){
+  if(typeof HISTORY_KV!=='undefined')return HISTORY_KV;
+  return env?.HISTORY_KV||globalThis?.HISTORY_KV;
+}
 async function saveHistory(env,request,input,archive){
   if(!input)return null;
-  const token=historyToken(request),record=historyRecord(input,archive),kv=env?.HISTORY_KV;
+  const token=historyToken(request),record=historyRecord(input,archive),kv=historyKV(env);
   if(!token||!record)throw new Error('云端历史身份验证失败。');
   if(!kv)throw new Error('云端历史存储尚未绑定。');
   if(typeof kv.put!=='function')throw new Error('云端历史存储缺少写入能力。');

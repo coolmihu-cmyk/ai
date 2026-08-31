@@ -6,8 +6,12 @@ function historyToken(request){
   const token=request.headers.get('X-History-Key')||'';
   return /^[a-f0-9]{64}$/i.test(token)?token.toLowerCase():null;
 }
+function historyKV(env){
+  if(typeof HISTORY_KV!=='undefined')return HISTORY_KV;
+  return env?.HISTORY_KV||globalThis?.HISTORY_KV;
+}
 function getKV(env,methods=[]){
-  const kv=env?.HISTORY_KV;
+  const kv=historyKV(env);
   if(!kv)throw new Error('云端历史存储尚未绑定。');
   const missing=methods.filter(method=>typeof kv[method]!=='function');
   if(missing.length)throw new Error('云端历史存储缺少 '+missing.join('、')+' 能力。');
