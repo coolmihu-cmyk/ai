@@ -32,6 +32,8 @@ function recordKey(token,item){
   const id=String(item.id).replace(/[^a-zA-Z0-9_]/g,'_');
   return prefix(token)+order+'_'+id;
 }
+function cleanId(value){return String(value??'').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,80)}
+function tombstoneKey(token,id){return prefix(token)+'deleted_'+cleanId(id).replace(/-/g,'_')}
 function keyName(entry){return typeof entry==='string'?entry:entry?.key||entry?.name}
 
 export async function onRequestOptions(){return new Response(null,{status:204,headers:{'Allow':'GET, POST, DELETE, OPTIONS'}})}
@@ -56,7 +58,8 @@ export async function onRequestPost(context){
   try{
     if(!isSiteRequest(context.request))return json({error:'不允许跨站访问。'},403);
     const token=historyToken(context.request);if(!token)return json({error:'请先在设置中保存 API Key。'},401);
-    const item=cleanItem((await context.request.json()).item),kv=getKV(context.env,['put']),historyKey=recordKey(token,item);
+    const item=cleanItem((await context.request.json()).item),kv=getKV(context.env,['get','put']),historyKey=recordKey(token,item);
+    if(await kv.get(tombstoneKey(token,item.id)))return json({error:'这条历史记录已经删除。'},409);
     item.historyKey=historyKey;await kv.put(historyKey,JSON.stringify(item));
     return json({item,historyKey});
   }catch(error){console.error('history:post',error);return json({error:error instanceof Error?error.message:'云端历史写入失败。'},400)}
@@ -66,9 +69,19 @@ export async function onRequestDelete(context){
   try{
     if(!isSiteRequest(context.request))return json({error:'不允许跨站访问。'},403);
     const token=historyToken(context.request);if(!token)return json({error:'请先在设置中保存 API Key。'},401);
-    const {historyKey}=await context.request.json();
-    if(typeof historyKey!=='string'||!historyKey.startsWith(prefix(token)))throw new Error('无权删除这条历史记录。');
-    await getKV(context.env,['delete']).delete(historyKey);
-    return json({ok:true});
+    const {historyKey,id}=await context.request.json();
+    if(historyKey&&(!historyKey.startsWith(prefix(token))||historyKey.includes('_deleted_')))throw new Error('无权删除这条历史记录。');
+    const kv=getKV(context.env,['get','put','delete']);
+    let current=null;
+    if(historyKey){
+      const value=await kv.get(historyKey);
+      try{current=typeof value==='string'?JSON.parse(value):value}catch(_){current=null}
+    }
+    const itemId=cleanId(current?.id??id);
+    if(!itemId)throw new Error('无法识别要删除的历史记录。');
+    const deletedAt=new Date().toISOString(),deletedKey=tombstoneKey(token,itemId);
+    await kv.put(deletedKey,JSON.stringify({id:itemId,type:'image',deleted:true,deletedAt,historyKey:deletedKey}));
+    if(historyKey)await kv.delete(historyKey);
+    return json({ok:true,deletedKey});
   }catch(error){console.error('history:delete',error);return json({error:error instanceof Error?error.message:'云端历史删除失败。'},400)}
 }

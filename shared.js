@@ -128,7 +128,7 @@ const CloudHistory={
   },
   async list(cursor){return this.request('/api/history'+(cursor?'?cursor='+encodeURIComponent(cursor):''))},
   async save(item){return this.request('/api/history',{method:'POST',body:{item}})},
-  async remove(historyKey){return this.request('/api/history',{method:'DELETE',body:{historyKey}})}
+  async remove(historyKey,id){return this.request('/api/history',{method:'DELETE',body:{historyKey,id}})}
 };
 
 const Apimart={
@@ -287,7 +287,12 @@ const History={
       const db=await this.openDB();
       await new Promise((resolve,reject)=>{
         const tx=db.transaction(STORE_NAME,'readwrite');
-        for(const id of ids)tx.objectStore(STORE_NAME).delete(id);
+        const store=tx.objectStore(STORE_NAME);
+        for(const id of ids){
+          store.delete(id);
+          const numericId=Number(id);
+          if(Number.isSafeInteger(numericId)&&String(numericId)===String(id))store.delete(typeof id==='number'?String(id):numericId);
+        }
         tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);
       });
       db.close();

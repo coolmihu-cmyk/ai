@@ -149,9 +149,21 @@ function mergeAssets(...groups){
 async function syncCloudHistory(){
   if(!await CloudHistory.token())return;
   try{
-    const cloud=await CloudHistory.list();
-    const cloudItems=(cloud.items||[]).filter(item=>(item.type||'image')==='image');
-    const cloudIds=new Set(cloudItems.map(item=>String(item.id)));
+    const cloudRecords=[];
+    let cursor=null;
+    for(let pageNumber=0;pageNumber<20;pageNumber+=1){
+      const page=await CloudHistory.list(cursor);
+      cloudRecords.push(...(page.items||[]));
+      if(page.complete||!page.cursor)break;
+      cursor=page.cursor;
+    }
+    const deletedIds=new Set(cloudRecords.filter(item=>item?.deleted&&item.id!=null).map(item=>String(item.id)));
+    if(deletedIds.size){
+      assetItems=assetItems.filter(item=>!deletedIds.has(String(item.id)));
+      await Promise.all([...deletedIds].map(id=>History.delete(id)));
+    }
+    const cloudItems=cloudRecords.filter(item=>!item?.deleted&&(item.type||'image')==='image'&&!deletedIds.has(String(item.id)));
+    const cloudIds=new Set([...cloudItems.map(item=>String(item.id)),...deletedIds]);
     assetItems=mergeAssets(assetItems,cloudItems);
     await Promise.all(cloudItems.map(item=>History.save(item)));
     renderAssets();
@@ -332,8 +344,10 @@ function renderAssets(){
     remove.appendChild(assetIcon(['M4 7h16','M9 7V5h6v2','M7 7l1 13h8l1-13','M10 11v5','M14 11v5']));
     remove.onclick=async()=>{
       remove.disabled=true;
-      if(item.historyKey){
-        try{await CloudHistory.remove(item.historyKey)}catch(error){console.warn('云端历史删除失败',error);remove.disabled=false;toast('云端删除失败，请稍后重试');return}
+      if(item.historyKey||ImageDelivery.isArchivedUrl(item.url)){
+        try{
+          if(await CloudHistory.token())await CloudHistory.remove(item.historyKey||'',item.id);
+        }catch(error){console.warn('云端历史删除失败',error);remove.disabled=false;toast('云端删除失败，请稍后重试');return}
       }
       if(!await History.delete(item.id)){remove.disabled=false;toast('删除失败');return}
       assetItems=assetItems.filter(asset=>asset.id!==item.id);renderAssets();toast('已删除记录');
