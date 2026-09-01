@@ -22,7 +22,7 @@ async function refreshAccountBalance(){
   try{
     const balance=await Apimart.getUserBalance(key);
     balanceEl.dataset.state='ready';
-    value.textContent=formatBalance(balance);
+    value.textContent=formatBalance(balance)+' Credits';
   }catch(error){
     balanceEl.dataset.state='error';
     value.textContent='暂不可用';
