@@ -5,21 +5,21 @@ const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
 const MODEL_CONFIG={
   gpt:{
-    name:'GPT',icon:'icon/model-image2.svg',promptLimit:3000,
+    name:'GPT Image2',icon:'icon/model-gpt-chatgpt.svg',promptLimit:3000,
     ratios:['auto','1:1','3:2','2:3','4:3','3:4','16:9','9:16'],
-    resolutions:[{v:'1k',l:'快速',price:'0.085 积分 / 张'},{v:'2k',l:'高清',price:'0.14 积分 / 张'},{v:'4k',l:'超清',price:'0.21 积分 / 张'}],
+    resolutions:[{v:'1k',l:'快速',price:'0.085积分/张'},{v:'2k',l:'高清',price:'0.14积分/张'},{v:'4k',l:'超清',price:'0.21积分/张'}],
     defaultResolution:'1k',generationModel:'gpt-image-2',editModel:'gpt-image-2'
   },
   nano:{
-    name:'NB PRO',icon:'icon/model-nbpro.svg',promptLimit:2000,
+    name:'Nano Banana PRO',icon:'icon/model-nbpro-banana.svg',promptLimit:2000,
     ratios:['auto','1:1','2:3','3:2','3:4','4:3','4:5','5:4','9:16','16:9','21:9'],
-    resolutions:[{v:'1K',l:'标准',price:'0.3 积分 / 张'},{v:'2K',l:'高清',price:'0.3 积分 / 张'},{v:'4K',l:'超清',price:'0.4 积分 / 张'}],
+    resolutions:[{v:'1K',l:'标准',price:'0.3积分/张'},{v:'2K',l:'高清',price:'0.3积分/张'},{v:'4K',l:'超清',price:'0.4积分/张'}],
     defaultResolution:'1K',generationModel:'gemini-3-pro-image-preview',editModel:'gemini-3-pro-image-preview'
   },
   seedream:{
-    name:'SD5 PRO',icon:'icon/model-sd5-jimeng.svg',promptLimit:3000,
+    name:'Seedream 5 PRO',icon:'icon/model-sd5-jimeng.svg',promptLimit:3000,
     ratios:['auto','1:1','4:3','3:4','16:9','9:16','3:2','2:3','2:1','1:2','21:9'],
-    resolutions:[{v:'1K',l:'标准',price:'0.2925 积分 / 张'},{v:'1.5K',l:'推荐',price:'0.2925 积分 / 张'},{v:'2K',l:'高清',price:'0.585 积分 / 张'}],
+    resolutions:[{v:'1K',l:'标准',price:'0.2925积分/张'},{v:'1.5K',l:'推荐',price:'0.2925积分/张'},{v:'2K',l:'高清',price:'0.585积分/张'}],
     defaultResolution:'1.5K',generationModel:'seedream-5-0-pro'
   }
 };

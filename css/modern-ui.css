@@ -659,6 +659,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   color:#686e72;
 }
 .creation-select-visual img{width:17px;height:17px;display:block;object-fit:contain}
+.creation-select-visual .model-mark-gpt{width:19px;height:19px}
+.creation-select-visual .model-mark-nano{width:18px;height:18px}
+.creation-select-visual .model-mark-seedream{width:27px;height:27px}
 .creation-select-chevron{
   width:14px;
   height:14px;
@@ -727,19 +730,16 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   background:transparent;
 }
 .creation-option-visual img{width:27px;height:27px;display:block}
-.creation-option-copy{min-width:0;flex:1;display:block}
+.creation-option-visual .model-mark-gpt{width:25px;height:25px}
+.creation-option-visual .model-mark-nano{width:21px;height:25px}
+.creation-option-visual .model-mark-seedream{width:30px;height:40px}
+.creation-option-copy{min-width:0;flex:1;display:flex;align-items:baseline;gap:5px;white-space:nowrap}
 .creation-option-copy strong{font-size:12px;font-weight:680;line-height:1.15}
-.creation-resolution-select .creation-select-menu{min-width:210px}
-.creation-option-price{display:block;margin-top:3px;color:#84898d;font-family:var(--studio-mono);font-size:9px;font-weight:650;line-height:1.2;letter-spacing:.01em}
+.creation-resolution-select .creation-select-menu{box-sizing:border-box;width:184px;min-width:0}
+.creation-resolution-select .creation-select-option{min-width:0;width:100%}
+.creation-option-price{margin:0;display:inline-flex;align-items:center;gap:2px;color:#84898d;font-family:var(--studio-mono);font-size:10px;font-weight:650;line-height:1.2;letter-spacing:0}
+.creation-credit-mark{width:10px;height:10px;flex:0 0 10px}
 .creation-resolution-mark img{width:19px;height:19px;display:block}
-.creation-option-check{
-  width:16px;
-  height:16px;
-  flex:0 0 16px;
-  color:#17191b;
-  opacity:0;
-}
-.creation-select-option[aria-selected="true"] .creation-option-check{opacity:1}
 .ratio-frame{
   max-width:20px;
   max-height:16px;

@@ -21,6 +21,7 @@ function getRatioFrameSize(ratio){
 function makeCreationVisual(type,value){
   if(type==='model'){
     const img=document.createElement('img');
+    img.className='model-mark model-mark-'+value;
     img.src=CREATION_MODEL_ICONS[value]||CREATION_MODEL_ICONS.gpt;
     img.alt='';
     return img;
@@ -43,6 +44,15 @@ function makeCreationVisual(type,value){
   img.src=RESOLUTION_ICONS[value]||RESOLUTION_ICONS['1K'];
   img.alt='';
   return img;
+}
+
+function createCreditMark(){
+  const icon=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  icon.setAttribute('class','creation-credit-mark');
+  icon.setAttribute('viewBox','0 0 16 16');
+  icon.setAttribute('aria-hidden','true');
+  icon.innerHTML='<circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.35"/><path d="m8 4.7.8 2.5 2.5.8-2.5.8-.8 2.5-.8-2.5-2.5-.8 2.5-.8.8-2.5Z" fill="currentColor"/>';
+  return icon;
 }
 
 function closeCreationDropdowns(except){
@@ -92,16 +102,12 @@ function syncCreationDropdown(dropdown){
     if(type==='resolution'&&option.dataset.price){
       const price=document.createElement('small');
       price.className='creation-option-price';
-      price.textContent=option.dataset.price;
+      const [amount,unit]=option.dataset.price.split('积分');
+      price.append(document.createTextNode(amount),createCreditMark(),document.createTextNode(unit||''));
       copy.appendChild(price);
     }
 
-    const check=document.createElementNS('http://www.w3.org/2000/svg','svg');
-    check.setAttribute('class','creation-option-check');
-    check.setAttribute('viewBox','0 0 16 16');
-    check.setAttribute('fill','none');
-    check.innerHTML='<path d="m3.5 8.2 2.7 2.7 6.3-6.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>';
-    button.append(visual,copy,check);
+    button.append(visual,copy);
     button.onclick=()=>{
       select.value=option.value;
       syncCreationDropdown(dropdown);
@@ -170,9 +176,9 @@ function updateCharLimit(){
 
 function updatePlaceholder(){
   const phs={
-    gpt:'描述你想生成的画面，GPT 擅长文字渲染、写实质感与原生 4K 输出…',
-    nano:'描述你想生成的画面，NB PRO 擅长高质量创作、文字渲染与多参考图一致性…',
-    seedream:'描述你想生成的画面，SD5 PRO 支持文生图与最多 10 张参考图融合…'
+    gpt:'描述你想生成的画面，GPT Image2 擅长文字渲染、写实质感与原生 4K 输出…',
+    nano:'描述你想生成的画面，Nano Banana PRO 擅长高质量创作、文字渲染与多参考图一致性…',
+    seedream:'描述你想生成的画面，Seedream 5 PRO 支持文生图与最多 10 张参考图融合…'
   };
   els.promptInput.placeholder=phs[activeModel]||'描述你想生成的图片…';
 }
@@ -282,8 +288,8 @@ els.clearPromptBtn.onclick=()=>{
 /* ===================== 优化提示词 ===================== */
 const ENHANCE_SYSTEMS={
   gpt:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其结构清晰、具体且适合图片生成模型。不得改变核心意图、主体数量、人物身份和指定元素。只输出优化后的最终提示词，不要解释。',
-  nano:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 NB PRO（Gemini 3 Pro Image）图片生成模型。突出主体、构图、光线、材质、文字内容和参考图一致性。只输出优化后的最终提示词，不要解释。',
-  seedream:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 Seedream 5.0 Pro 的文生图或多参考图图生图。突出主体、构图、镜头、光线、材质与画面文字；有参考图时保留主体与视觉要素的一致性。只输出优化后的最终提示词，不要解释。'
+  nano:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 Nano Banana PRO（Gemini 3 Pro Image）图片生成模型。突出主体、构图、光线、材质、文字内容和参考图一致性。只输出优化后的最终提示词，不要解释。',
+  seedream:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 Seedream 5 PRO 的文生图或多参考图图生图。突出主体、构图、镜头、光线、材质与画面文字；有参考图时保留主体与视觉要素的一致性。只输出优化后的最终提示词，不要解释。'
 };
 
 async function optimizeCurrentPrompt(){
