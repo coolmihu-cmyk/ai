@@ -1157,7 +1157,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   background:#fff;
   box-shadow:none;
 }
-.settings-section-head{grid-area:head;min-height:52px;margin-bottom:25px;padding-bottom:21px;display:flex;align-items:flex-start;gap:18px;border-bottom:1px solid var(--ui-line)}
+.settings-section-head{grid-area:head;min-height:52px;margin-bottom:25px;padding-bottom:21px;display:flex;align-items:flex-start;justify-content:space-between;gap:18px;border-bottom:1px solid var(--ui-line)}
 .settings-section-head > div:first-child > span{
   display:block;
   margin-bottom:5px;
@@ -1168,6 +1168,11 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   letter-spacing:1.2px;
 }
 .settings-section-head h2{margin:0;color:var(--ui-ink);font-size:24px;font-weight:730;line-height:1;letter-spacing:-.55px}
+.settings-account-balance{min-width:146px;padding:2px 0 0;text-align:right;color:var(--ui-faint)}
+.settings-account-balance span{display:block;margin-bottom:5px;font-family:"SFMono-Regular",Consolas,monospace;font-size:9px;font-weight:700;letter-spacing:1px}
+.settings-account-balance strong{display:block;color:var(--ui-ink);font-family:var(--studio-mono);font-size:20px;font-weight:720;line-height:1;font-variant-numeric:tabular-nums}
+.settings-account-balance[data-state="loading"] strong{color:var(--ui-muted);font-family:var(--studio-sans);font-size:12px;font-weight:680}
+.settings-account-balance[data-state="error"] strong{color:#a95656;font-family:var(--studio-sans);font-size:12px;font-weight:680}
 .settings-key-label{grid-area:label;align-self:end;margin:0 0 8px;display:block;color:var(--ui-muted);font-size:11px;font-weight:680}
 .settings-key-row{grid-area:key;height:48px;display:flex;align-items:stretch}
 .settings-key-row input{

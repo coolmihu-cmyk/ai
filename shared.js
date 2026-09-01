@@ -133,6 +133,23 @@ const CloudHistory={
 };
 
 const Apimart={
+  async getUserBalance(apiKey,signal){
+    const key=String(apiKey||'').trim();
+    if(!key)throw new Error('请先在设置中保存 API Key。');
+    const res=await fetch(APIMART_BASE+'/user/balance',{
+      method:'GET',signal,
+      headers:{'Authorization':'Bearer '+key,'Accept':'application/json'}
+    });
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok||data.success!==true){
+      const error=new Error(data.error?.message||data.message||'账户积分余额读取失败。');
+      error.status=res.status;
+      throw error;
+    }
+    const balance=Number(data.remain_balance);
+    if(!Number.isFinite(balance))throw new Error('账户积分余额格式异常。');
+    return balance;
+  },
   async chat(apiKey,{messages,model=PROMPT_ANALYSIS_MODEL,temperature=.35,signal}){
     const res=await fetch(APIMART_BASE+'/chat/completions',{
       method:'POST',signal,
