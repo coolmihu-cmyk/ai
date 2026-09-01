@@ -1168,16 +1168,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   letter-spacing:1.2px;
 }
 .settings-section-head h2{margin:0;color:var(--ui-ink);font-size:24px;font-weight:730;line-height:1;letter-spacing:-.55px}
-.connection-summary{margin-left:auto;display:flex;align-items:center;gap:8px}
-.connection-status{padding:6px 8px;display:flex;align-items:center;gap:6px;border:1px solid var(--ui-line-strong);border-radius:9px;background:var(--ui-soft);color:var(--ui-muted);font-family:var(--studio-mono);font-size:9px;font-weight:700;letter-spacing:.25px}
-.connection-balance{padding:6px 8px;border:1px solid var(--ui-line);border-radius:9px;background:#fff;color:var(--ui-muted);font-family:var(--studio-mono);font-size:9px;font-weight:700;letter-spacing:.1px}
-.connection-status i{width:6px;height:6px;flex:0 0 6px;border-radius:50%;background:var(--ui-faint)}
-.connection-status.configured{border-color:var(--ui-ink);background:var(--ui-ink);color:#fff}
-.connection-status.configured i{background:#fff;box-shadow:none}
-.connection-status.is-verified{border-color:#286a47;background:#286a47;color:#fff}
-.connection-status.is-verified i{background:#fff}
-.connection-status.is-error{border-color:#a45151;background:#fff7f7;color:#9a3f3f}
-.connection-status.is-error i{background:#b64f4f}
 .settings-key-label{grid-area:label;align-self:end;margin:0 0 8px;display:block;color:var(--ui-muted);font-size:11px;font-weight:680}
 .settings-key-row{grid-area:key;height:48px;display:flex;align-items:stretch}
 .settings-key-row input{
@@ -1208,9 +1198,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .settings-actions button{height:42px;padding:0 16px;border-radius:10px;font-size:11px;font-weight:720}
 .settings-save{border:1px solid var(--ui-ink);background:var(--ui-ink);color:#fff}
 .settings-save:hover{background:#292c2f}
-.settings-verify{border:1px solid var(--ui-line-strong);background:var(--ui-soft);color:var(--ui-ink)}
-.settings-verify:hover{border-color:var(--ui-ink);background:#fff}
-.settings-verify:disabled{opacity:.58;cursor:wait}
 .settings-clear{border:1px solid var(--ui-line-strong);background:#fff;color:var(--ui-muted)}
 .settings-clear:hover{border-color:var(--ui-ink);color:var(--ui-ink)}
 .settings-provider-link{grid-area:provider;margin-top:20px;padding-top:14px;border-top:1px solid var(--ui-line);display:flex;align-items:center;color:var(--ui-muted);font-size:11px;font-weight:680;text-decoration:none}

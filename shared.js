@@ -138,24 +138,6 @@ const CloudHistory={
 };
 
 const Apimart={
-  async verifyKey(apiKey,signal){
-    const key=String(apiKey||'').trim();
-    if(!key)throw new Error('请先填写 API Key。');
-    let response,data={};
-    try{
-      response=await fetch(APIMART_BASE+'/balance',{method:'GET',signal,headers:{'Authorization':'Bearer '+key,'Accept':'application/json'}});
-      data=await response.json().catch(()=>({}));
-    }catch(_){throw new Error('无法连接 APIMart，请检查网络后重试。')}
-    if(response.ok&&data.success!==false)return {
-      remaining:data.remain_balance,
-      used:data.used_balance,
-      unlimited:data.unlimited_quota===true
-    };
-    const detail=String(data.message||data.error?.message||data.error||'');
-    if(response.status===401||response.status===403||/(invalid|unauthori[sz]ed|api.?key|token)/i.test(detail))throw new Error('API Key 无效或已失效。');
-    if(response.status===429)throw new Error('APIMart 当前限制了测试请求，请稍后再试。');
-    throw new Error('暂时无法验证连接（HTTP '+response.status+'）。');
-  },
   async chat(apiKey,{messages,model=PROMPT_ANALYSIS_MODEL,temperature=.35,signal}){
     const res=await fetch(APIMART_BASE+'/chat/completions',{
       method:'POST',signal,
