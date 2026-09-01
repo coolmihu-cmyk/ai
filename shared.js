@@ -1,5 +1,6 @@
-﻿"use strict";
-const APIMART_BASE='https://api.apimart.ai/v1';
+"use strict";
+// APIMart requests are relayed by this site's EdgeOne function; API keys are never persisted server-side.
+const APIMART_BASE='/api/apimart/v1';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
