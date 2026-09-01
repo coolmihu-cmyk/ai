@@ -10,6 +10,7 @@ const refManagers={};
 const els={
   composer:$('#composer'),errorMsg:$('#errorMsg'),
   refRow:$('#refRow'),refBtn:$('#refBtn'),fileInput:$('#fileInput'),
+  oneClickStyleBtn:$('#oneClickStyleBtn'),oneClickStyleInput:$('#oneClickStyleInput'),
   promptInput:$('#promptInput'),clearPromptBtn:$('#clearPromptBtn'),charCount:$('#charCount'),
   enhanceBtn:$('#enhanceBtn'),transparentBgBtn:$('#transparentBgBtn'),sendBtn:$('#sendBtn'),
   creationModelSelect:$('#creationModelSelect'),creationModelIcon:$('#creationModelIcon'),

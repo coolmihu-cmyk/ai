@@ -398,7 +398,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   outline:none;
   box-shadow:none;
 }
-.home-page .composer-input::placeholder{color:#a6aaae}
+.home-page .composer-input::placeholder{color:#a6aaae;font-size:15px;line-height:1.6}
 .prompt-input-shell{width:100%}
 .prompt-input-meta{
   min-height:32px;
@@ -476,6 +476,23 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   line-height:1;
   pointer-events:none;
 }
+.one-click-style-btn{
+  height:40px;
+  padding:0 5px;
+  border:0;
+  background:transparent;
+  color:#a2a7ac;
+  font-size:12px;
+  font-weight:650;
+  line-height:1;
+  text-decoration:underline;
+  text-decoration-color:#cfd3d6;
+  text-decoration-thickness:1px;
+  text-underline-offset:3px;
+}
+.one-click-style-btn:hover{background:transparent;color:#64696e;text-decoration-color:#9ba1a6}
+.one-click-style-btn:focus-visible{outline:2px solid var(--ui-ink);outline-offset:3px;border-radius:4px}
+.one-click-style-btn:disabled{opacity:.55;cursor:wait}
 .creation-settings{
   width:100%;
   padding:12px;
@@ -1271,7 +1288,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   .home-page .composer{padding:18px 17px 13px;border-radius:14px}
   .home-page .composer-input{min-height:108px;font-size:16px}
   .creation-settings{padding:0;border-radius:0}
-  .home-page .composer-bar{flex-wrap:wrap}
+.home-page .composer-bar{flex-wrap:wrap}
   .home-page .creation-settings{
     order:-1;
     width:100%;

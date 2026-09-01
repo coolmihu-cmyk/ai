@@ -105,6 +105,9 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V5h6v2"/><path d="m7 7 1 13h8l1-13"/><path d="M10 11v5M14 11v5"/></svg>
         </button>
         <div class="bar-spacer"></div>
+        <button class="one-click-style-btn" id="oneClickStyleBtn" type="button" title="反推提示词：上传外部图片并生成提示词" aria-label="反推提示词：上传外部图片并生成提示词">
+          <span>反推提示词</span>
+        </button>
         <button class="send-btn" id="sendBtn" title="Ctrl + Enter 生成" aria-label="生成图片"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.1 6.9L21 12l-6.9 2.1L12 21l-2.1-6.9L3 12l6.9-2.1L12 3Z"/></svg></button>
       </div>
 
@@ -113,17 +116,18 @@
   </main>
 </div>
 
-<footer class="home-site-address">PIC.SUPMIHU.CN <span id="appVersion">V72.0</span></footer>
+<footer class="home-site-address">PIC.SUPMIHU.CN <span id="appVersion">V80.0</span></footer>
 <a class="home-help-button" href="mj.html" aria-label="打开 Midjourney 创作页" title="Midjourney">?</a>
 
 <!-- 隐藏的文件输入 -->
 <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden>
+<input id="oneClickStyleInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
 
 <div class="toast" id="toast"></div>
 
-<script src="shared.js?v=20260901-191000"></script>
-<script src="core.js?v=20260826-123008"></script>
-<script src="model-ui.js?v=20260901-190000"></script>
+<script src="shared.js?v=20260901-200000"></script>
+<script src="core.js?v=20260901-200000"></script>
+<script src="model-ui.js?v=20260901-200000"></script>
 <script src="generation.js?v=20260901-151827"></script>
 <script src="app.js?v=20260826-113159"></script>
 </body>

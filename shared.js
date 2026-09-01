@@ -1,10 +1,11 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 // 每次完成一次改动并提交时递增。
-const APP_VERSION='72.0';
+const APP_VERSION='80.0';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
+const IMAGE_REVERSE_MODEL='gemini-2.5-flash';
 const MODEL_CONFIG={
   gpt:{
     name:'GPT Image2',icon:'icon/model-gpt-chatgpt.svg',promptLimit:3000,
@@ -172,6 +173,28 @@ const Apimart={
     const content=(json.choices||json.data?.choices)?.[0]?.message?.content?.trim();
     if(!content)throw new Error('接口未返回文本内容');
     return content;
+  },
+  async analyzeImage(apiKey,{imageUrl,instruction,model=IMAGE_REVERSE_MODEL,signal}){
+    const matched=/^data:([^;]+);base64,([\s\S]+)$/i.exec(imageUrl||'');
+    if(!matched)throw new Error('图片读取失败，请重新选择图片。');
+    const res=await fetch('https://api.apimart.ai/v1beta/models/'+encodeURIComponent(model)+':generateContent',{
+      method:'POST',signal,
+      headers:{'Authorization':'Bearer '+apiKey,'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({contents:[{role:'user',parts:[
+        {text:instruction+' 请分析这张图片并按要求输出结果。'},
+        {inline_data:{mime_type:matched[1],data:matched[2]}}
+      ]}]})
+    });
+    const json=await res.json().catch(()=>({}));
+    if(!res.ok){
+      const error=new Error('图片分析失败（HTTP '+res.status+'）'+((json.error?.message||json.message)?': '+(json.error?.message||json.message).slice(0,180):''));
+      error.status=res.status;
+      throw error;
+    }
+    const candidates=json.candidates||json.data?.candidates||[];
+    const output=(candidates[0]?.content?.parts||[]).map(part=>part.text||'').join('\n').trim();
+    if(!output)throw new Error('图片分析未返回提示词。');
+    return output;
   },
   async submitTask(apiKey,body,endpoint,signal){
     const url=endpoint?APIMART_BASE+endpoint:APIMART_BASE+'/images/generations';

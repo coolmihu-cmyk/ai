@@ -303,6 +303,56 @@ els.clearPromptBtn.onclick=()=>{
   els.promptInput.focus();toast('当前提示词已清空');
 };
 
+/* ===================== 一键同款 ===================== */
+const IMAGE_REVERSE_SYSTEM='你是一名严谨的图像反推助手。只根据用户提供的这一张图片，写出一段可直接用于 AI 生图的完整中文提示词。先在内部判断图像类型，再提取真实可见的画幅、构图、主体、空间层次、光线、色彩、材质、成像质感与必要的海报版式关系；按生成优先级将它们重组为连续自然语言。所有左右位置都以观者看到的画面坐标描述。不要猜测品牌、人物身份、镜头型号或不可见细节；不要保留水印、平台界面、署名或来源标记；海报中的文字只描述版式、位置、字重与层级，不抄写具体文案。只输出最终提示词，不要标题、分析、项目符号、解释或署名。';
+
+function readImageFrame(file){
+  return new Promise(resolve=>{
+    const url=URL.createObjectURL(file),image=new Image();
+    image.onload=()=>{const width=image.naturalWidth,height=image.naturalHeight;URL.revokeObjectURL(url);resolve(width&&height?{width,height}:null)};
+    image.onerror=()=>{URL.revokeObjectURL(url);resolve(null)};
+    image.src=url;
+  });
+}
+function getSimplifiedRatio(width,height){
+  const gcd=(a,b)=>b?gcd(b,a%b):a;
+  const divisor=gcd(width,height);
+  return divisor?width/divisor+':'+height/divisor:'';
+}
+
+async function reverseStyleFromImage(file){
+  if(!file)return;
+  const types=new Set(['image/jpeg','image/png','image/webp']);
+  if(!types.has(file.type)){showComposerError('一键同款仅支持 JPG、PNG 或 WebP 图片。');return}
+  if(file.size>10*1024*1024){showComposerError('图片不能超过 10MB。');return}
+  const apiKey=Settings.getKey();
+  if(!apiKey){Settings.openPage();toast('请先保存 API Key');return}
+  const button=els.oneClickStyleBtn,originalMarkup=button.innerHTML;
+  hideComposerError();button.disabled=true;button.replaceChildren(document.createTextNode('正在分析…'));
+  try{
+    const [imageUrl,frame]=await Promise.all([fileToDataURI(file),readImageFrame(file)]);
+    const frameHint=frame?'图片真实尺寸为 '+frame.width+'×'+frame.height+'，最简画幅比例为 '+getSimplifiedRatio(frame.width,frame.height)+'。':'';
+    const prompt=await Apimart.analyzeImage(apiKey,{imageUrl,model:IMAGE_REVERSE_MODEL,instruction:IMAGE_REVERSE_SYSTEM+' '+frameHint+' 输出应适合 '+MODEL_CONFIG[activeModel].name+'。'});
+    els.promptInput.value=prompt.trim().slice(0,MODEL_CONFIG[activeModel].promptLimit);
+    modelState[activeModel].promptText=els.promptInput.value;
+    updateCharLimit();els.promptInput.focus();toast('同款提示词已带入，可继续修改后生成');
+  }catch(error){
+    const message=error?.status===402
+      ?'一键同款失败：APIMart 余额或模型可用额度不足。'
+      :(error?.message||'图片分析失败，请稍后重试。');
+    showComposerError(message);
+  }finally{
+    button.disabled=false;button.innerHTML=originalMarkup;
+  }
+}
+
+els.oneClickStyleBtn?.addEventListener('click',()=>els.oneClickStyleInput?.click());
+els.oneClickStyleInput?.addEventListener('change',async event=>{
+  const [file]=Array.from(event.target.files||[]);
+  event.target.value='';
+  await reverseStyleFromImage(file);
+});
+
 /* ===================== 优化提示词 ===================== */
 const ENHANCE_SYSTEMS={
   gpt:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其结构清晰、具体且适合图片生成模型。不得改变核心意图、主体数量、人物身份和指定元素。只输出优化后的最终提示词，不要解释。',
