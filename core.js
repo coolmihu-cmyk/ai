@@ -16,6 +16,7 @@ const els={
   creationRatioSelect:$('#creationRatioSelect'),
   creationResolutionControl:$('#creationResolutionControl'),creationResolutionSelect:$('#creationResolutionSelect')
 };
+document.querySelector('#appVersion')?.replaceChildren('V'+APP_VERSION);
 els.enhanceBtn?.addEventListener('change',()=>{
   if(els.enhanceBtn.checked&&els.transparentBgBtn)els.transparentBgBtn.checked=false;
 });

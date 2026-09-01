@@ -172,6 +172,13 @@ function switchModel(key){
 function updateCharLimit(){
   els.charCount.textContent=els.promptInput.value.length;
   els.charCount.parentElement.lastChild.textContent='/'+MODEL_CONFIG[activeModel].promptLimit;
+  resizePromptInput();
+}
+
+function resizePromptInput(){
+  const input=els.promptInput;
+  input.style.height='auto';
+  input.style.height=Math.min(input.scrollHeight,Math.round(innerHeight*.42),420)+'px';
 }
 
 function updatePlaceholder(){
@@ -276,6 +283,7 @@ function applyReferenceLibraryPayload(){
 els.promptInput.addEventListener('input',()=>{
   els.charCount.textContent=els.promptInput.value.length;
   modelState[activeModel].promptText=els.promptInput.value;
+  resizePromptInput();
 });
 els.clearPromptBtn.onclick=()=>{
   const state=modelState[activeModel];
@@ -317,7 +325,7 @@ async function optimizeCurrentPrompt(){
         temperature:.35
     });
     els.promptInput.value=enhanced.slice(0,MODEL_CONFIG[activeModel].promptLimit);
-    els.charCount.textContent=els.promptInput.value.length;
+    updateCharLimit();
     modelState[activeModel].promptText=els.promptInput.value;
     toast('提示词已优化');
     return true;

@@ -46,17 +46,21 @@
       <!-- 提示词输入 -->
       <div class="prompt-input-shell">
         <textarea class="composer-input" id="promptInput" placeholder="描述你想生成的图片…" maxlength="3000"></textarea>
-        <span class="char-counter prompt-char-counter"><span id="charCount">0</span>/3000</span>
-        <label class="prompt-enhance-switch" for="enhanceBtn">
-          <span>优化提示词</span>
-          <input id="enhanceBtn" type="checkbox">
-          <i aria-hidden="true"></i>
-        </label>
-        <label class="prompt-transparent-switch" for="transparentBgBtn">
-          <span>透明背景</span>
-          <input id="transparentBgBtn" type="checkbox">
-          <i aria-hidden="true"></i>
-        </label>
+        <div class="prompt-input-meta">
+          <span class="char-counter prompt-char-counter"><span id="charCount">0</span>/3000</span>
+          <div class="prompt-input-actions">
+            <label class="prompt-transparent-switch" for="transparentBgBtn">
+              <span>透明背景</span>
+              <input id="transparentBgBtn" type="checkbox">
+              <i aria-hidden="true"></i>
+            </label>
+            <label class="prompt-enhance-switch" for="enhanceBtn">
+              <span>优化提示词</span>
+              <input id="enhanceBtn" type="checkbox">
+              <i aria-hidden="true"></i>
+            </label>
+          </div>
+        </div>
       </div>
 
       <!-- 底部参数栏 -->
@@ -109,7 +113,7 @@
   </main>
 </div>
 
-<footer class="home-site-address">PIC.SUPMIHU.CN</footer>
+<footer class="home-site-address">PIC.SUPMIHU.CN <span id="appVersion">V70.0</span></footer>
 <a class="home-help-button" href="mj.html" aria-label="打开 Midjourney 创作页" title="Midjourney">?</a>
 
 <!-- 隐藏的文件输入 -->
