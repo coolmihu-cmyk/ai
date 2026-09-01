@@ -140,7 +140,11 @@ const Apimart={
       response=await fetch(APIMART_BASE+'/balance',{method:'GET',signal,headers:{'Authorization':'Bearer '+key,'Accept':'application/json'}});
       data=await response.json().catch(()=>({}));
     }catch(_){throw new Error('无法连接 APIMart，请检查网络后重试。')}
-    if(response.ok&&data.success!==false)return true;
+    if(response.ok&&data.success!==false)return {
+      remaining:data.remain_balance,
+      used:data.used_balance,
+      unlimited:data.unlimited_quota===true
+    };
     const detail=String(data.message||data.error?.message||data.error||'');
     if(response.status===401||response.status===403||/(invalid|unauthori[sz]ed|api.?key|token)/i.test(detail))throw new Error('API Key 无效或已失效。');
     if(response.status===429)throw new Error('APIMart 当前限制了测试请求，请稍后再试。');

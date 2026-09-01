@@ -11,7 +11,7 @@
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="stylesheet" href="css/base.css?v=20260828-141842">
 <link rel="stylesheet" href="css/pages.css?v=20260831-125949">
-<link rel="stylesheet" href="css/modern-ui.css?v=20260831-133110">
+<link rel="stylesheet" href="css/modern-ui.css?v=20260901-144324">
 </head>
 <body class="settings-page">
 
@@ -31,7 +31,10 @@
           <span>APIMART CONNECTION</span>
           <h2 id="connectionTitle">接口连接</h2>
         </div>
-        <div class="connection-status" id="connectionStatus"><i></i><span>未配置</span></div>
+        <div class="connection-summary">
+          <div class="connection-status" id="connectionStatus"><i></i><span>未配置</span></div>
+          <span class="connection-balance" id="connectionBalance" hidden></span>
+        </div>
       </div>
       <label class="settings-key-label" for="settingsApiKey">API Key</label>
       <div class="settings-key-row">
@@ -58,7 +61,7 @@
 </main>
 
 <div class="toast" id="toast"></div>
-<script src="shared.js?v=20260901-144157"></script>
-<script src="settings-page.js?v=20260901-135845"></script>
+<script src="shared.js?v=20260901-144324"></script>
+<script src="settings-page.js?v=20260901-144324"></script>
 </body>
 </html>

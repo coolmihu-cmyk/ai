@@ -1168,7 +1168,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   letter-spacing:1.2px;
 }
 .settings-section-head h2{margin:0;color:var(--ui-ink);font-size:24px;font-weight:730;line-height:1;letter-spacing:-.55px}
-.connection-status{margin-left:auto;padding:6px 8px;display:flex;align-items:center;gap:6px;border:1px solid var(--ui-line-strong);border-radius:9px;background:var(--ui-soft);color:var(--ui-muted);font-family:var(--studio-mono);font-size:9px;font-weight:700;letter-spacing:.25px}
+.connection-summary{margin-left:auto;display:flex;align-items:center;gap:8px}
+.connection-status{padding:6px 8px;display:flex;align-items:center;gap:6px;border:1px solid var(--ui-line-strong);border-radius:9px;background:var(--ui-soft);color:var(--ui-muted);font-family:var(--studio-mono);font-size:9px;font-weight:700;letter-spacing:.25px}
+.connection-balance{padding:6px 8px;border:1px solid var(--ui-line);border-radius:9px;background:#fff;color:var(--ui-muted);font-family:var(--studio-mono);font-size:9px;font-weight:700;letter-spacing:.1px}
 .connection-status i{width:6px;height:6px;flex:0 0 6px;border-radius:50%;background:var(--ui-faint)}
 .connection-status.configured{border-color:var(--ui-ink);background:var(--ui-ink);color:#fff}
 .connection-status.configured i{background:#fff;box-shadow:none}
