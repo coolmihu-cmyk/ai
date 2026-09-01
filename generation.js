@@ -27,10 +27,6 @@ async function buildPendingGeneration(){
     endpoint='/images/generations';
     body={model:MODEL_CONFIG.nano.generationModel,prompt,size:state.ratio,resolution:state.resolution,n:1};
     if(refCount>0)body.image_urls=await refMgr.getDataURIs();
-  }else if(key==='grok'){
-    if(refCount)throw new Error('Grok Imagine 2.0 仅支持文生图，请移除参考图或切换 GPT / NB PRO。');
-    endpoint='/images/generations';
-    body={model:MODEL_CONFIG.grok.generationModel,prompt,size:state.ratio,resolution:'quality',response_format:'url',n:1};
   }else if(key==='seedream'){
     endpoint='/images/generations';
     body={model:MODEL_CONFIG.seedream.generationModel,prompt,size:state.ratio,resolution:state.resolution,n:1};

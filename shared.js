@@ -16,11 +16,6 @@ const MODEL_CONFIG={
     resolutions:[{v:'1K',l:'1K · 标准'},{v:'2K',l:'2K · 高清'},{v:'4K',l:'4K · 超清'}],
     defaultResolution:'1K',generationModel:'gemini-3-pro-image-preview',editModel:'gemini-3-pro-image-preview'
   },
-  grok:{
-    name:'Grok',icon:'icon/model-grok.svg',promptLimit:4000,
-    ratios:['1:1','16:9','9:16','4:3','3:4','3:2','2:3'],resolutions:null,
-    generationModel:'grok-imagine-2.0-ext'
-  },
   seedream:{
     name:'SD5 PRO',icon:'icon/model-sd5.svg',promptLimit:3000,
     ratios:['auto','1:1','4:3','3:4','16:9','9:16','3:2','2:3','2:1','1:2','21:9'],

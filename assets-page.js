@@ -4,6 +4,7 @@ const ASSET_MODEL_NAMES=Object.fromEntries(
   Object.entries(MODEL_CONFIG).map(([key,config])=>[key,config.name])
 );
 ASSET_MODEL_NAMES.midjourney='Midjourney';
+ASSET_MODEL_NAMES.grok='Grok';
 ASSET_MODEL_NAMES.inpaint='GPT · 局部编辑';
 const assetsEls={
   grid:$('#assetsGrid'),loading:$('#assetsLoading'),empty:$('#assetsEmpty'),count:$('#assetsCount'),
