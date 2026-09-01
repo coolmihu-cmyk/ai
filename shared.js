@@ -11,7 +11,7 @@ const MODEL_CONFIG={
     defaultResolution:'1k',generationModel:'gpt-image-2',editModel:'gpt-image-2'
   },
   nano:{
-    name:'NB PRO',icon:'icon/model-nb2.svg',promptLimit:2000,
+    name:'NB PRO',icon:'icon/model-nbpro.svg',promptLimit:2000,
     ratios:['auto','1:1','2:3','3:2','3:4','4:3','4:5','5:4','9:16','16:9','21:9'],
     resolutions:[{v:'1K',l:'1K · 标准'},{v:'2K',l:'2K · 高清'},{v:'4K',l:'4K · 超清'}],
     defaultResolution:'1K',generationModel:'gemini-3-pro-image-preview',editModel:'gemini-3-pro-image-preview'
