@@ -2,6 +2,11 @@
 const CREATION_MODEL_ICONS=Object.fromEntries(
   Object.entries(MODEL_CONFIG).map(([key,config])=>[key,config.icon])
 );
+const RESOLUTION_ICONS={
+  '1k':'icon/resolution-1k.svg','1K':'icon/resolution-1k.svg',
+  '1.5K':'icon/resolution-1k-plus.svg','2k':'icon/resolution-2k.svg',
+  '2K':'icon/resolution-2k.svg','4k':'icon/resolution-4k.svg','4K':'icon/resolution-4k.svg'
+};
 const sharedReferenceManager=createReferenceManager({
   dropzone:null,fileInput:null,grid:null,count:null,error:els.errorMsg
 });
@@ -34,9 +39,10 @@ function makeCreationVisual(type,value){
     frame.style.height=size.height+'px';
     return frame;
   }
-  const mark=document.createElement('span');
-  mark.textContent=(value||'1K').replace(/[^0-9.K]/g,'')||'1K';
-  return mark;
+  const img=document.createElement('img');
+  img.src=RESOLUTION_ICONS[value]||RESOLUTION_ICONS['1K'];
+  img.alt='';
+  return img;
 }
 
 function closeCreationDropdowns(except){
@@ -86,7 +92,7 @@ function syncCreationDropdown(dropdown){
     if(type==='resolution'&&option.dataset.price){
       const price=document.createElement('small');
       price.className='creation-option-price';
-      price.textContent='参考价 · '+option.dataset.price;
+      price.textContent=option.dataset.price;
       copy.appendChild(price);
     }
 

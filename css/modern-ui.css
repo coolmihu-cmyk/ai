@@ -717,21 +717,21 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 }
 .creation-select-option[aria-selected="true"]{background:#eef0f1}
 .creation-option-visual{
-  width:30px;
-  height:30px;
-  flex:0 0 30px;
+  width:36px;
+  height:36px;
+  flex:0 0 36px;
   display:grid;
   place-items:center;
-  border:1px solid #e1e3e5;
-  border-radius:9px;
-  background:#fff;
-  color:#646a6e;
+  border:0;
+  border-radius:0;
+  background:transparent;
 }
-.creation-option-visual img{width:17px;height:17px;display:block}
+.creation-option-visual img{width:27px;height:27px;display:block}
 .creation-option-copy{min-width:0;flex:1;display:block}
 .creation-option-copy strong{font-size:12px;font-weight:680;line-height:1.15}
-.creation-resolution-select .creation-select-menu{min-width:224px}
+.creation-resolution-select .creation-select-menu{min-width:210px}
 .creation-option-price{display:block;margin-top:3px;color:#84898d;font-family:var(--studio-mono);font-size:9px;font-weight:650;line-height:1.2;letter-spacing:.01em}
+.creation-resolution-mark img{width:19px;height:19px;display:block}
 .creation-option-check{
   width:16px;
   height:16px;
@@ -750,7 +750,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .ratio-auto-mark{width:20px;height:16px;display:grid;place-items:center;border:1px solid currentColor;border-radius:4px;background:#eef0f1;font-size:9px;font-weight:760;line-height:1}
 .creation-resolution-mark{
   border-radius:6px;
-  background:#e9ebec;
+  background:transparent;
   color:#676c70;
   font-size:8px;
   font-weight:760;
