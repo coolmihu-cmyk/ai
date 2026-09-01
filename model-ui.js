@@ -270,6 +270,16 @@ function applyReferenceLibraryPayload(){
     const payload=JSON.parse(sessionStorage.getItem('mihu_reference_payload')||'null');
     sessionStorage.removeItem('mihu_reference_payload');
     if(!payload?.url)return;
+    if(payload.model&&MODEL_CONFIG[payload.model]){
+      const config=MODEL_CONFIG[payload.model],settings=payload.settings||{},state=modelState[payload.model];
+      if(config.ratios.includes(settings.ratio))state.ratio=settings.ratio;
+      if(config.resolutions?.some(item=>item.v===settings.resolution))state.resolution=settings.resolution;
+      if(payload.model!==activeModel)switchModel(payload.model);
+      else{
+        renderModelSettings();
+        renderRatioPop();
+      }
+    }
     const manager=refManagers[activeModel];
     if(!manager?.addRemote(payload.url,'参考库图片'))return;
     if(payload.prompt&&(payload.replacePrompt||!els.promptInput.value.trim())){

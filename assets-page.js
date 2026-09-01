@@ -271,7 +271,13 @@ function favoriteAsset(item){
 }
 function sendAssetToComposer(item){
   try{
-    sessionStorage.setItem('mihu_reference_payload',JSON.stringify({url:item.url,prompt:item.prompt||'',replacePrompt:true}));
+    sessionStorage.setItem('mihu_reference_payload',JSON.stringify({
+      url:item.url,
+      prompt:item.prompt||'',
+      replacePrompt:true,
+      model:item.model,
+      settings:item.settings||{}
+    }));
     navigateWithLoading('index.html');
   }catch(_){toast('无法带入图片，请重试')}
 }
