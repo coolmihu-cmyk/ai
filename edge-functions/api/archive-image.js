@@ -28,10 +28,10 @@ async function cosAuthorization({secretId,secretKey,keyTime,method,pathname,head
   const signature=await hmacSha1(signKey,stringToSign);
   return 'q-sign-algorithm=sha1&q-ak='+encodeURIComponent(secretId)+'&q-sign-time='+keyTime+'&q-key-time='+keyTime+'&q-header-list='+headerList+'&q-url-param-list=&q-signature='+signature;
 }
-function makeObjectKey(extension){
+function makeObjectKey(extension,historyKey){
   const date=new Date(),year=date.getUTCFullYear(),month=String(date.getUTCMonth()+1).padStart(2,'0'),day=String(date.getUTCDate()).padStart(2,'0');
   const id=crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
-  return 'generated/'+year+'/'+month+'/'+day+'/'+id+'.'+extension;
+  return 'generated/'+year+'/'+month+'/'+day+'/key-'+historyKey+'/'+id+'.'+extension;
 }
 function readConfig(env){
   const required=['COS_SECRET_ID','COS_SECRET_KEY','COS_BUCKET','COS_REGION','COS_PUBLIC_BASE_URL'];
@@ -108,7 +108,7 @@ export async function onRequestPost(context){
     if(origin!=='https://pic.supmihu.cn')return json({error:'不允许跨站归档请求。'},403);
     const {sourceUrl,item}=await context.request.json();
     const source=validateSourceUrl(sourceUrl);
-    await consumeArchiveQuota(context.env,context.request);
+    const token=await consumeArchiveQuota(context.env,context.request);
     const config=readConfig(context.env);
     const sourceResponse=await fetch(source.toString(),{redirect:'manual'});
     if(!sourceResponse.ok)throw new Error('临时图片下载失败（HTTP '+sourceResponse.status+'）。');
@@ -120,7 +120,7 @@ export async function onRequestPost(context){
     const image=await sourceResponse.arrayBuffer();
     if(!image.byteLength||image.byteLength>MAX_IMAGE_BYTES)throw new Error('图片超过 20MB，无法归档。');
 
-    const objectKey=makeObjectKey(extension),host=config.COS_BUCKET+'.cos.'+config.COS_REGION+'.myqcloud.com';
+    const objectKey=makeObjectKey(extension,token),host=config.COS_BUCKET+'.cos.'+config.COS_REGION+'.myqcloud.com';
     const pathname='/'+objectKey,now=Math.floor(Date.now()/1000),keyTime=now+';'+(now+900);
     const headers={
       'cache-control':'public, max-age=31536000, immutable',
