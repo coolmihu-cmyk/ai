@@ -730,6 +730,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .creation-option-visual img{width:17px;height:17px;display:block}
 .creation-option-copy{min-width:0;flex:1;display:block}
 .creation-option-copy strong{font-size:12px;font-weight:680;line-height:1.15}
+.creation-resolution-select .creation-select-menu{min-width:224px}
+.creation-option-price{display:block;margin-top:3px;color:#84898d;font-family:var(--studio-mono);font-size:9px;font-weight:650;line-height:1.2;letter-spacing:.01em}
 .creation-option-check{
   width:16px;
   height:16px;

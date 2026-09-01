@@ -83,6 +83,12 @@ function syncCreationDropdown(dropdown){
     const title=document.createElement('strong');
     title.textContent=option.textContent;
     copy.appendChild(title);
+    if(type==='resolution'&&option.dataset.price){
+      const price=document.createElement('small');
+      price.className='creation-option-price';
+      price.textContent='参考价 · '+option.dataset.price;
+      copy.appendChild(price);
+    }
 
     const check=document.createElementNS('http://www.w3.org/2000/svg','svg');
     check.setAttribute('class','creation-option-check');
@@ -176,6 +182,7 @@ function renderModelSettings(){
       const option=document.createElement('option');
       option.value=r.v;
       option.textContent=r.l;
+      option.dataset.price=r.price||'';
       option.selected=modelState[activeModel].resolution===r.v;
       els.creationResolutionSelect.appendChild(option);
     }
