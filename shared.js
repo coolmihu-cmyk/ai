@@ -132,6 +132,19 @@ const CloudHistory={
 };
 
 const Apimart={
+  async verifyKey(apiKey,signal){
+    const key=String(apiKey||'').trim();
+    if(!key)throw new Error('请先填写 API Key。');
+    let response,detail='';
+    try{
+      response=await fetch(APIMART_BASE+'/tasks/__mihu_connection_check__',{method:'GET',signal,headers:{'Authorization':'Bearer '+key,'Accept':'application/json'}});
+      detail=await response.text();
+    }catch(_){throw new Error('无法连接 APIMart，请检查网络后重试。')}
+    if(response.ok||response.status===404)return true;
+    if(response.status===401||response.status===403||/(invalid|unauthori[sz]ed|api.?key|token)/i.test(detail))throw new Error('API Key 无效或已失效。');
+    if(response.status===429)throw new Error('APIMart 当前限制了测试请求，请稍后再试。');
+    throw new Error('暂时无法验证连接（HTTP '+response.status+'）。');
+  },
   async chat(apiKey,{messages,model=PROMPT_ANALYSIS_MODEL,temperature=.35,signal}){
     const res=await fetch(APIMART_BASE+'/chat/completions',{
       method:'POST',signal,
@@ -228,8 +241,9 @@ const Archive={
   },
   async image(sourceUrl,item){
     const token=await CloudHistory.token();
+    if(!token)throw new Error('请先在设置中保存 API Key 后再归档图片。');
     const headers={'Content-Type':'application/json','Accept':'application/json'};
-    if(token)headers['X-History-Key']=token;
+    headers['X-History-Key']=token;
     const response=await fetch('/api/archive-image',{method:'POST',headers,body:JSON.stringify({sourceUrl,item})});
     const data=await response.json().catch(()=>({}));
     if(!response.ok||!data.url)throw new Error(data.error||'图片归档失败。');
@@ -498,7 +512,7 @@ function createReferenceManager(els,maxFiles=10,maxBytes=10*1024*1024,maxTotal=5
 }
 
 function initCommonPage(){
-  if(!Settings.getKey())setTimeout(()=>Settings.openPage(),350);
+  // 无 Key 也可浏览作品、历史和参考；仅在实际调用接口时再提示配置。
 }
 
 function lockPageZoom(){

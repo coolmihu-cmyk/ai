@@ -2,11 +2,15 @@
 
 const settingsInput=$('#settingsApiKey');
 const settingsStatus=$('#connectionStatus');
+const settingsVerify=$('#settingsVerify');
 
-function updateConnectionStatus(){
+function updateConnectionStatus(state='pending'){
   const configured=!!Settings.getKey();
-  settingsStatus.classList.toggle('configured',configured);
-  settingsStatus.querySelector('span').textContent=configured?'已配置':'未配置';
+  settingsStatus.classList.toggle('configured',configured&&state!=='error');
+  settingsStatus.classList.toggle('is-verified',state==='verified');
+  settingsStatus.classList.toggle('is-error',state==='error');
+  const label=!configured?'未配置':state==='verified'?'连接正常':state==='error'?'连接异常':'待验证';
+  settingsStatus.querySelector('span').textContent=label;
 }
 settingsInput.value=Settings.getKey();
 updateConnectionStatus();
@@ -19,10 +23,22 @@ $('#settingsToggleKey').onclick=()=>{
 $('#settingsSave').onclick=()=>{
   const key=settingsInput.value.trim();
   if(!key){toast('请填写 API Key');settingsInput.focus();return}
-  Settings.setKey(key);updateConnectionStatus();toast('设置已保存');
+  Settings.setKey(key);updateConnectionStatus('pending');toast('已保存，请测试连接');
+};
+settingsVerify.onclick=async()=>{
+  const key=settingsInput.value.trim();
+  if(!key){toast('请先填写 API Key');settingsInput.focus();return}
+  const original=settingsVerify.textContent;
+  settingsVerify.disabled=true;settingsVerify.textContent='测试中…';
+  try{
+    await Apimart.verifyKey(key);
+    Settings.setKey(key);updateConnectionStatus('verified');toast('连接正常，KEY 已保存');
+  }catch(error){
+    updateConnectionStatus('error');toast(error?.message||'连接测试失败');
+  }finally{settingsVerify.disabled=false;settingsVerify.textContent=original}
 };
 $('#settingsClear').onclick=()=>{
-  settingsInput.value='';Settings.setKey('');updateConnectionStatus();toast('API Key 已清除');
+  settingsInput.value='';Settings.setKey('');updateConnectionStatus('pending');toast('API Key 已清除');
 };
 
 document.addEventListener('keydown',event=>{

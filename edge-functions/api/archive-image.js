@@ -1,4 +1,6 @@
 const MAX_IMAGE_BYTES=20*1024*1024;
+const ARCHIVE_WINDOW_MS=60*60*1000;
+const ARCHIVE_LIMIT_PER_WINDOW=24;
 const APIMART_IMAGE_HOSTS=new Set(['upload.apimart.ai','getapib.org']);
 const ALLOWED_TYPES=new Map([
   ['image/png','png'],['image/jpeg','jpg'],['image/webp','webp']
@@ -70,6 +72,22 @@ function historyKV(env){
   if(typeof HISTORY_KV!=='undefined')return HISTORY_KV;
   return env?.HISTORY_KV||globalThis?.HISTORY_KV;
 }
+function archiveRateKey(token){return 'archive_rate_'+token}
+async function consumeArchiveQuota(env,request){
+  const token=historyToken(request);
+  if(!token)throw new Error('请先在设置中保存 API Key 后再归档图片。');
+  const kv=historyKV(env);
+  if(!kv||typeof kv.get!=='function'||typeof kv.put!=='function')throw new Error('归档限流服务尚未绑定。');
+  const key=archiveRateKey(token),now=Date.now();
+  let current=null;
+  try{const value=await kv.get(key);current=typeof value==='string'?JSON.parse(value):value}catch(_){current=null}
+  const startedAt=Number(current?.startedAt)||now;
+  const inWindow=now-startedAt<ARCHIVE_WINDOW_MS;
+  const count=inWindow?Math.max(0,Number(current?.count)||0):0;
+  if(count>=ARCHIVE_LIMIT_PER_WINDOW)throw new Error('图片归档已达每小时 '+ARCHIVE_LIMIT_PER_WINDOW+' 张上限，请稍后再试。');
+  await kv.put(key,JSON.stringify({startedAt:inWindow?startedAt:now,count:count+1,updatedAt:now}));
+  return token;
+}
 async function saveHistory(env,request,input,archive){
   if(!input)return null;
   const token=historyToken(request),record=historyRecord(input,archive),kv=historyKV(env);
@@ -90,6 +108,7 @@ export async function onRequestPost(context){
     if(origin!=='https://pic.supmihu.cn')return json({error:'不允许跨站归档请求。'},403);
     const {sourceUrl,item}=await context.request.json();
     const source=validateSourceUrl(sourceUrl);
+    await consumeArchiveQuota(context.env,context.request);
     const config=readConfig(context.env);
     const sourceResponse=await fetch(source.toString(),{redirect:'manual'});
     if(!sourceResponse.ok)throw new Error('临时图片下载失败（HTTP '+sourceResponse.status+'）。');
