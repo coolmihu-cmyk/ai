@@ -146,9 +146,9 @@ const Apimart={
       error.status=res.status;
       throw error;
     }
-    const balance=Number(data.remain_balance);
-    if(!Number.isFinite(balance))throw new Error('账户积分余额格式异常。');
-    return balance;
+    const credits=Number(data.remain_credits);
+    if(!Number.isFinite(credits))throw new Error('账户积分余额格式异常。');
+    return credits;
   },
   async chat(apiKey,{messages,model=PROMPT_ANALYSIS_MODEL,temperature=.35,signal}){
     const res=await fetch(APIMART_BASE+'/chat/completions',{
