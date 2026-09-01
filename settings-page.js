@@ -7,10 +7,10 @@ const settingsBalance=$('#connectionBalance');
 
 function renderBalance(account){
   if(!account){settingsBalance.hidden=true;settingsBalance.textContent='';return}
-  if(account.unlimited){settingsBalance.textContent='余额 · 无限额度';settingsBalance.hidden=false;return}
+  if(account.unlimited){settingsBalance.textContent='积分余额 · 无限额度';settingsBalance.hidden=false;return}
   const value=Number(account.remaining);
   if(!Number.isFinite(value)){settingsBalance.hidden=true;settingsBalance.textContent='';return}
-  settingsBalance.textContent='余额 · '+new Intl.NumberFormat('zh-CN',{maximumFractionDigits:2}).format(value);
+  settingsBalance.textContent='积分余额 · '+new Intl.NumberFormat('zh-CN',{maximumFractionDigits:2}).format(value);
   settingsBalance.hidden=false;
 }
 function updateConnectionStatus(state='pending',account=null){
