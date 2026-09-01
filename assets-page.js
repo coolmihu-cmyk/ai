@@ -311,7 +311,7 @@ function renderAssets(){
     edit.appendChild(assetIcon(['M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3Z','m13-13 3 3']));
     edit.onclick=()=>openLocalEdit(item,edit);actions.appendChild(edit);
     const send=document.createElement('button');send.type='button';send.className='asset-send';send.title='重新生成';send.setAttribute('aria-label','重新生成');
-    send.appendChild(assetIcon(['M12 3v12','m7 8 5-5 5 5','M5 21h14']));
+    send.appendChild(assetIcon(['M20 11a8 8 0 0 0-14.9-4L3 10','M3 4v6h6','M4 13a8 8 0 0 0 14.9 4L21 14','M21 20v-6h-6']));
     send.onclick=()=>sendAssetToComposer(item);actions.appendChild(send);
     const remove=document.createElement('button');remove.type='button';remove.className='asset-delete';remove.title='删除记录';
     remove.appendChild(assetIcon(['M4 7h16','M9 7V5h6v2','M7 7l1 13h8l1-13','M10 11v5','M14 11v5']));
