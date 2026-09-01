@@ -5,7 +5,7 @@ const CREATION_MODEL_ICONS=Object.fromEntries(
 const sharedReferenceManager=createReferenceManager({
   dropzone:null,fileInput:null,grid:null,count:null,error:els.errorMsg
 });
-for(const key of ['gpt','nano','grok'])refManagers[key]=sharedReferenceManager;
+for(const key of Object.keys(MODEL_CONFIG))refManagers[key]=sharedReferenceManager;
 function getRatioFrameSize(ratio){
   const parts=ratio.split(':').map(Number);
   const w=parts[0]||1,h=parts[1]||1;
@@ -160,7 +160,8 @@ function updatePlaceholder(){
   const phs={
     gpt:'描述你想生成的画面，GPT 擅长文字渲染、写实质感与原生 4K 输出…',
     nano:'描述你想生成的画面，NB PRO 擅长高质量创作、文字渲染与多参考图一致性…',
-    grok:'描述你想生成的画面，Grok Imagine 2.0 擅长高质量文生图…'
+    grok:'描述你想生成的画面，Grok Imagine 2.0 擅长高质量文生图…',
+    seedream:'描述你想生成的画面，Seedream 5.0 Pro 支持文生图与最多 10 张参考图融合…'
   };
   els.promptInput.placeholder=phs[activeModel]||'描述你想生成的图片…';
 }
@@ -270,7 +271,8 @@ els.clearPromptBtn.onclick=()=>{
 const ENHANCE_SYSTEMS={
   gpt:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其结构清晰、具体且适合图片生成模型。不得改变核心意图、主体数量、人物身份和指定元素。只输出优化后的最终提示词，不要解释。',
   nano:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 NB PRO（Gemini 3 Pro Image）图片生成模型。突出主体、构图、光线、材质、文字内容和参考图一致性。只输出优化后的最终提示词，不要解释。',
-  grok:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 Grok Imagine 2.0 Ext 文生图模型。强调主体、构图、光线、材质和氛围的具体描述。只输出优化后的最终提示词，不要解释。'
+  grok:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 Grok Imagine 2.0 Ext 文生图模型。强调主体、构图、光线、材质和氛围的具体描述。只输出优化后的最终提示词，不要解释。',
+  seedream:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 Seedream 5.0 Pro 的文生图或多参考图图生图。突出主体、构图、镜头、光线、材质与画面文字；有参考图时保留主体与视觉要素的一致性。只输出优化后的最终提示词，不要解释。'
 };
 
 async function optimizeCurrentPrompt(){

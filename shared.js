@@ -20,6 +20,12 @@ const MODEL_CONFIG={
     name:'Grok',icon:'icon/model-grok.svg',promptLimit:4000,
     ratios:['1:1','16:9','9:16','4:3','3:4','3:2','2:3'],resolutions:null,
     generationModel:'grok-imagine-2.0-ext'
+  },
+  seedream:{
+    name:'Seedream 5.0 Pro',icon:'icon/model-seedream.svg',promptLimit:3000,
+    ratios:['auto','1:1','4:3','3:4','16:9','9:16','3:2','2:3','2:1','1:2','21:9'],
+    resolutions:[{v:'1K',l:'1K · 标准'},{v:'1.5K',l:'1.5K · 推荐'},{v:'2K',l:'2K · 高清'}],
+    defaultResolution:'1.5K',generationModel:'seedream-5-0-pro'
   }
 };
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);

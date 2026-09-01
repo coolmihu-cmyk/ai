@@ -594,7 +594,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   flex:0 0 auto;
   color:var(--ui-ink);
 }
-.creation-model-select{width:142px}
+.creation-model-select{width:170px}
 .creation-ratio-select{width:116px}
 .creation-resolution-select{width:142px}
 .creation-select > select{
@@ -697,7 +697,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   transform:translateY(0) scale(1);
 }
 .creation-select-option{
-  min-width:156px;
+  min-width:184px;
   min-height:42px;
   padding:6px 9px;
   display:flex;
