@@ -22,7 +22,7 @@ const MODEL_CONFIG={
     generationModel:'grok-imagine-2.0-ext'
   },
   seedream:{
-    name:'Seedream 5.0 Pro',icon:'icon/model-seedream.svg',promptLimit:3000,
+    name:'SD5 PRO',icon:'icon/model-sd5.svg',promptLimit:3000,
     ratios:['auto','1:1','4:3','3:4','16:9','9:16','3:2','2:3','2:1','1:2','21:9'],
     resolutions:[{v:'1K',l:'1K · 标准'},{v:'1.5K',l:'1.5K · 推荐'},{v:'2K',l:'2K · 高清'}],
     defaultResolution:'1.5K',generationModel:'seedream-5-0-pro'

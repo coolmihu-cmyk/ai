@@ -161,7 +161,7 @@ function updatePlaceholder(){
     gpt:'描述你想生成的画面，GPT 擅长文字渲染、写实质感与原生 4K 输出…',
     nano:'描述你想生成的画面，NB PRO 擅长高质量创作、文字渲染与多参考图一致性…',
     grok:'描述你想生成的画面，Grok Imagine 2.0 擅长高质量文生图…',
-    seedream:'描述你想生成的画面，Seedream 5.0 Pro 支持文生图与最多 10 张参考图融合…'
+    seedream:'描述你想生成的画面，SD5 PRO 支持文生图与最多 10 张参考图融合…'
   };
   els.promptInput.placeholder=phs[activeModel]||'描述你想生成的图片…';
 }
