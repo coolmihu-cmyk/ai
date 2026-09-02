@@ -1566,3 +1566,7 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 .local-edit-conversation .local-edit-resolution-menu{width:52px!important;min-width:52px;max-width:52px;padding:4px}
 .local-edit-conversation .local-edit-resolution-menu .creation-select-option{width:42px;min-width:42px;padding:0 7px}
 @media(max-width:800px){.local-edit-conversation .local-edit-model-picker{width:auto;flex-basis:auto}.local-edit-conversation .local-edit-model-trigger{width:max-content;flex-basis:auto}}
+
+/* Resolution labels read best centered inside their compact fixed-width controls. */
+.local-edit-conversation .local-edit-resolution-trigger{justify-content:center;padding-right:0;padding-left:0;text-align:center}
+.local-edit-conversation .local-edit-resolution-menu .creation-select-option{justify-content:center;padding-right:0;padding-left:0;text-align:center}
