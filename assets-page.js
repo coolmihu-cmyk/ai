@@ -51,7 +51,9 @@ function localEditSetInitialSettings(item){
 }
 function localEditRenderThread(){
   localEdit.thread.replaceChildren(...localEdit.messages.map(message=>{
-    const node=document.createElement('p');node.className='local-edit-message is-'+message.role;node.textContent=message.text;return node;
+    const row=document.createElement('div');row.className='local-edit-message-row is-'+message.role;
+    const avatar=document.createElement('img');avatar.className='local-edit-avatar';avatar.src=message.role==='assistant'?'image/chat-admin.png':'image/chat-user.png';avatar.alt=message.role==='assistant'?'助手头像':'用户头像';
+    const node=document.createElement('p');node.className='local-edit-message is-'+message.role;node.textContent=message.text;row.append(avatar,node);return row;
   }));
   localEdit.thread.scrollTop=localEdit.thread.scrollHeight;
 }
