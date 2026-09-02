@@ -29,7 +29,13 @@ const localEdit={
 };
 
 function localEditSetError(message=''){localEdit.error.hidden=!message;localEdit.error.textContent=message}
-function localEditSetStatus(message=''){localEdit.status.textContent=message}
+function localEditSetStatus(message=''){
+  localEdit.status.textContent='';
+  if(!message)return;
+  const last=localEdit.messages[localEdit.messages.length-1];
+  if(last?.role==='assistant'&&last.text===message)return;
+  localEdit.messages.push({role:'assistant',text:message});localEditRenderThread();
+}
 function localEditClearReference(){localEdit.referenceData=null;localEdit.fileInput.value='';localEdit.upload.classList.remove('is-attached');localEdit.upload.setAttribute('aria-label','添加参考图片');localEdit.upload.title='添加参考图片'}
 function localEditModelKey(value){return MODEL_CONFIG[value]?value:'gpt'}
 function localEditUpdatePromptCount(){localEdit.promptCount.textContent=localEdit.prompt.value.length+'/'+localEdit.prompt.maxLength}
@@ -38,14 +44,14 @@ function localEditRenderModelPicker(){
   localEdit.modelTrigger.textContent=current.name;
   localEdit.modelTrigger.title=current.name;localEdit.modelTrigger.setAttribute('aria-label','编辑模型：'+current.name);
   localEdit.modelMenu.replaceChildren(...Object.entries(MODEL_CONFIG).map(([key,config])=>{
-    const button=document.createElement('button');button.type='button';button.textContent=config.name;button.setAttribute('role','option');button.setAttribute('aria-selected',String(key===localEdit.model));button.title=config.name;button.setAttribute('aria-label',config.name);
+    const button=document.createElement('button');button.type='button';button.className='creation-select-option';button.textContent=config.name;button.setAttribute('role','option');button.setAttribute('aria-selected',String(key===localEdit.model));button.title=config.name;button.setAttribute('aria-label',config.name);
     button.onclick=()=>{localEdit.model=key;localEdit.modelSelect.value=key;localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');localEditSyncSettings()};return button;
   }));
 }
 function localEditRenderRatioPicker(config){
   localEdit.ratioTrigger.textContent=localEdit.ratio;localEdit.ratioTrigger.title=localEdit.ratio;localEdit.ratioTrigger.setAttribute('aria-label','编辑比例：'+localEdit.ratio);
   localEdit.ratioMenu.replaceChildren(...config.ratios.map(value=>{
-    const button=document.createElement('button');button.type='button';button.textContent=value;button.setAttribute('role','option');button.setAttribute('aria-selected',String(value===localEdit.ratio));button.title=value;
+    const button=document.createElement('button');button.type='button';button.className='creation-select-option';button.textContent=value;button.setAttribute('role','option');button.setAttribute('aria-selected',String(value===localEdit.ratio));button.title=value;
     button.onclick=()=>{localEdit.ratio=value;localEdit.ratioSelect.value=value;localEdit.ratioPicker.classList.remove('open');localEdit.ratioTrigger.setAttribute('aria-expanded','false');localEditRenderRatioPicker(config)};return button;
   }));
 }
@@ -53,7 +59,7 @@ function localEditRenderResolutionPicker(config){
   const current=config.resolutions.find(item=>item.v===localEdit.resolution)||config.resolutions[0];
   localEdit.resolutionTrigger.textContent=current.v.toUpperCase();localEdit.resolutionTrigger.title=current.v;localEdit.resolutionTrigger.setAttribute('aria-label','编辑分辨率：'+current.v);
   localEdit.resolutionMenu.replaceChildren(...config.resolutions.map(item=>{
-    const button=document.createElement('button');button.type='button';button.textContent=item.v.toUpperCase();button.setAttribute('role','option');button.setAttribute('aria-selected',String(item.v===localEdit.resolution));button.title=item.v;button.setAttribute('aria-label',item.v);
+    const button=document.createElement('button');button.type='button';button.className='creation-select-option';button.textContent=item.v.toUpperCase();button.setAttribute('role','option');button.setAttribute('aria-selected',String(item.v===localEdit.resolution));button.title=item.v;button.setAttribute('aria-label',item.v);
     button.onclick=()=>{localEdit.resolution=item.v;localEdit.resolutionSelect.value=item.v;localEdit.resolutionPicker.classList.remove('open');localEdit.resolutionTrigger.setAttribute('aria-expanded','false');localEditRenderResolutionPicker(config)};return button;
   }));
 }
@@ -85,7 +91,7 @@ function localEditRenderThread(){
 function localEditMessagesForVersions(versions){
   return versions.slice(1).flatMap((version,index)=>[
     {role:'user',text:version.prompt||'继续编辑这张图片。'},
-    {role:'assistant',text:'已生成第 '+(index+1)+' 版。'}
+    {role:'assistant',text:'第 '+(index+1)+' 版已就绪，可继续编辑。'}
   ]);
 }
 function localEditRenderVersions(){
@@ -157,7 +163,7 @@ async function submitLocalEdit(){
     }
     const version={id:itemId,url,prompt,model:localEdit.model,settings:{ratio:localEdit.ratio,resolution:localEdit.resolution},editRootId:localEdit.editRootId,editGroupId:localEdit.editGroupId,archived,historyKey,createdAt,type:'image'};
     await History.save(version);assetItems=sortAssets([version,...assetItems.filter(asset=>asset.id!==version.id)]);renderAssets();
-    localEdit.versions.push(version);localEdit.messages.push({role:'assistant',text:'已生成第 '+(localEdit.versions.length-1)+' 版。'});localEditRenderThread();
+    localEdit.versions.push(version);
     localEdit.prompt.value='';localEditUpdatePromptCount();localEditSetStatus('第 '+(localEdit.versions.length-1)+' 版已就绪，可继续编辑。');
     await loadLocalEditImage(version,{focus:true});toast('新版本已生成');
   }catch(error){

@@ -1,4 +1,4 @@
-﻿/* Modern light studio — shared visual system */
+/* Modern light studio — shared visual system */
 @font-face{
   font-family:"Montserrat";
   font-style:normal;
@@ -1455,16 +1455,19 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 @media(max-width:800px){.local-edit-conversation .local-edit-settings{grid-template-columns:minmax(124px,1fr) 56px 46px}.local-edit-conversation .local-edit-ratio-picker{width:56px}.local-edit-conversation .local-edit-resolution-picker{width:46px}.local-edit-resolution-menu button{width:46px}}
 
 /* Definitive editor composer and popup system. Keep this block last. */
-.local-edit-conversation .local-edit-composer{height:220px!important;min-height:220px!important;max-height:220px!important;flex:0 0 220px!important}
+.local-edit-conversation .local-edit-composer{height:176px!important;min-height:176px!important;max-height:176px!important;flex:0 0 176px!important}
 .local-edit-conversation .local-edit-composer textarea{min-height:0!important}
-.local-edit-conversation .local-edit-prompt-meta{min-height:50px;padding:8px 9px!important}
-.local-edit-conversation .local-edit-submit-row{height:32px}
-.local-edit-conversation .local-edit-submit-row .primary{height:32px;min-height:32px;min-width:68px;padding:0 12px;border-radius:7px;font-size:11px;line-height:32px}
-.local-edit-conversation .local-edit-control-row{flex:1 1 auto}
-.local-edit-conversation .local-edit-settings{grid-template-columns:138px 58px 48px;width:auto;flex:0 0 auto}
-.local-edit-conversation .local-edit-model-picker{width:138px}
-.local-edit-conversation .local-edit-ratio-picker{width:58px}
-.local-edit-conversation .local-edit-resolution-picker{width:48px}
+.local-edit-conversation .local-edit-prompt-count{bottom:49px}
+.local-edit-conversation .local-edit-prompt-meta{grid-template-columns:auto 62px;justify-content:space-between;min-height:42px;padding:6px 9px!important}
+.local-edit-conversation .local-edit-submit-row{display:flex;width:62px;height:28px;align-items:center;justify-content:flex-end}
+.local-edit-conversation .local-edit-submit-row .primary{width:62px;height:28px;min-height:28px;min-width:62px;padding:0 10px;border-radius:7px;font-size:11px;line-height:28px}
+.local-edit-conversation .local-edit-control-row{display:flex;width:auto;min-width:0;flex:0 0 auto;align-items:center;gap:0}
+.local-edit-conversation .local-edit-upload{width:34px;min-width:34px;height:32px;flex:0 0 34px}
+.local-edit-conversation .local-edit-settings{grid-template-columns:154px 52px 46px;width:252px;min-width:252px;flex:0 0 252px}
+.local-edit-conversation .local-edit-model-picker{width:154px;min-width:154px;flex:0 0 154px}
+.local-edit-conversation .local-edit-ratio-picker{width:52px;min-width:52px;flex:0 0 52px}
+.local-edit-conversation .local-edit-resolution-picker{width:46px;min-width:46px;flex:0 0 46px}
+.local-edit-conversation .local-edit-model-trigger,.local-edit-conversation .local-edit-ratio-trigger,.local-edit-conversation .local-edit-resolution-trigger{height:32px;min-width:0;flex:none;font-size:11px}
 .local-edit-model-menu,.local-edit-ratio-menu,.local-edit-resolution-menu{bottom:calc(100% + 6px);box-sizing:border-box;margin:0;padding:5px;border:1px solid #dfe3e5;border-radius:9px;background:#fff;box-shadow:0 12px 28px rgba(17,19,21,.12);font-family:var(--studio-sans);color:var(--ui-ink)}
 .local-edit-model-menu{left:0;width:max-content;min-width:0;max-width:220px}
 .local-edit-ratio-menu{left:50%;grid-template-columns:repeat(2,52px);width:119px}
@@ -1474,4 +1477,53 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 .local-edit-ratio-menu button{width:52px}
 .local-edit-resolution-menu button{width:48px}
 .local-edit-model-menu button:hover,.local-edit-ratio-menu button:hover,.local-edit-resolution-menu button:hover,.local-edit-model-menu button[aria-selected="true"],.local-edit-ratio-menu button[aria-selected="true"],.local-edit-resolution-menu button[aria-selected="true"]{background:#f0f2f3;color:var(--ui-ink)}
-@media(max-width:800px){.local-edit-conversation .local-edit-settings{grid-template-columns:128px 56px 46px}.local-edit-conversation .local-edit-model-picker{width:128px}.local-edit-conversation .local-edit-ratio-picker{width:56px}.local-edit-conversation .local-edit-resolution-picker{width:46px}}
+@media(max-width:800px){.local-edit-conversation .local-edit-prompt-meta{grid-template-columns:minmax(0,1fr) 58px}.local-edit-conversation .local-edit-settings{grid-template-columns:142px 50px 44px;width:236px;min-width:236px;flex-basis:236px}.local-edit-conversation .local-edit-model-picker{width:142px;min-width:142px;flex-basis:142px}.local-edit-conversation .local-edit-ratio-picker{width:50px;min-width:50px;flex-basis:50px}.local-edit-conversation .local-edit-resolution-picker{width:44px;min-width:44px;flex-basis:44px}.local-edit-conversation .local-edit-submit-row,.local-edit-conversation .local-edit-submit-row .primary{width:58px;min-width:58px}}
+
+/* Reuse the homepage selector system in the editor; text-only, compact, and unclipped. */
+.local-edit-conversation .local-edit-composer{overflow:visible}
+.local-edit-conversation .local-edit-prompt-meta{grid-template-columns:minmax(0,1fr) 62px;align-items:center;padding:6px 9px!important}
+.local-edit-conversation .local-edit-control-row{display:flex;min-width:0;align-items:center;gap:6px}
+.local-edit-conversation .local-edit-upload{width:30px;min-width:30px;height:30px;flex-basis:30px;border:0;border-radius:9px}
+.local-edit-conversation .local-edit-upload img{width:16px;height:16px}
+.local-edit-conversation .local-edit-settings{display:flex;width:auto;min-width:0;flex:0 0 auto;align-items:center;gap:6px}
+.local-edit-conversation .local-edit-model-picker,.local-edit-conversation .local-edit-ratio-picker,.local-edit-conversation .local-edit-resolution-picker{position:relative;height:30px;min-width:0;flex:0 0 auto;border:0}
+.local-edit-conversation .local-edit-model-picker{width:146px;flex-basis:146px}
+.local-edit-conversation .local-edit-ratio-picker{width:58px;flex-basis:58px}
+.local-edit-conversation .local-edit-resolution-picker{width:50px;flex-basis:50px}
+.local-edit-conversation .local-edit-model-trigger,.local-edit-conversation .local-edit-ratio-trigger,.local-edit-conversation .local-edit-resolution-trigger{display:flex;width:100%;height:30px;align-items:center;justify-content:flex-start;padding:0 9px;overflow:hidden;border:1px solid #e4e6e8;border-radius:9px;background:#fff;color:#202326;font-family:var(--studio-sans);font-size:11px;font-weight:680;line-height:1;text-align:left;white-space:nowrap;text-overflow:ellipsis;box-shadow:inset 0 1px 0 rgba(255,255,255,.85)}
+.local-edit-conversation .local-edit-model-trigger:hover,.local-edit-conversation .local-edit-ratio-trigger:hover,.local-edit-conversation .local-edit-resolution-trigger:hover{border-color:#d5d8da;background:#fff;transform:none}
+.local-edit-conversation .local-edit-model-menu,.local-edit-conversation .local-edit-ratio-menu,.local-edit-conversation .local-edit-resolution-menu{bottom:calc(100% + 8px);z-index:80;box-sizing:border-box;padding:6px;gap:3px;overflow-y:auto;border:1px solid #e2e4e6;border-radius:9px;background:rgba(255,255,255,.98);box-shadow:0 18px 50px rgba(17,19,21,.15),0 2px 8px rgba(17,19,21,.05);font-family:var(--studio-sans)}
+.local-edit-conversation .local-edit-model-menu{left:0;width:max-content;min-width:146px;max-width:210px}
+.local-edit-conversation .local-edit-ratio-menu{left:0;width:126px;grid-template-columns:repeat(2,54px);transform:translateY(6px) scale(.98);transform-origin:bottom left}
+.local-edit-conversation .local-edit-ratio-picker.open .local-edit-ratio-menu{transform:translateY(0) scale(1)}
+.local-edit-conversation .local-edit-resolution-menu{left:0;width:58px;transform:translateY(6px) scale(.98);transform-origin:bottom left}
+.local-edit-conversation .local-edit-resolution-picker.open .local-edit-resolution-menu{transform:translateY(0) scale(1)}
+.local-edit-conversation .local-edit-model-menu .creation-select-option,.local-edit-conversation .local-edit-ratio-menu .creation-select-option,.local-edit-conversation .local-edit-resolution-menu .creation-select-option{display:flex;height:32px;min-height:32px;align-items:center;justify-content:flex-start;margin:0;padding:0 9px;border:0;border-radius:7px;background:transparent;color:#202326;font-family:var(--studio-sans);font-size:11px;font-weight:680;line-height:32px;text-align:left;white-space:nowrap}
+.local-edit-conversation .local-edit-model-menu .creation-select-option{width:100%;min-width:132px}
+.local-edit-conversation .local-edit-ratio-menu .creation-select-option{width:54px;min-width:54px}
+.local-edit-conversation .local-edit-resolution-menu .creation-select-option{width:46px;min-width:46px}
+.local-edit-conversation .creation-select-menu .creation-select-option:hover,.local-edit-conversation .creation-select-menu .creation-select-option:focus-visible{background:#f2f3f4;outline:none}
+.local-edit-conversation .creation-select-menu .creation-select-option[aria-selected="true"]{background:#eef0f1;color:#202326}
+.local-edit-conversation .local-edit-submit-row,.local-edit-conversation .local-edit-submit-row .primary{width:62px;min-width:62px;height:30px;min-height:30px}
+.local-edit-conversation .local-edit-submit-row .primary{padding:0 10px;border-radius:9px;line-height:30px}
+@media(max-width:800px){.local-edit-conversation .local-edit-model-picker{width:138px;flex-basis:138px}.local-edit-conversation .local-edit-ratio-picker{width:54px;flex-basis:54px}.local-edit-conversation .local-edit-resolution-picker{width:48px;flex-basis:48px}.local-edit-conversation .local-edit-control-row{gap:4px}.local-edit-conversation .local-edit-settings{gap:4px}}
+/* Preserve the floating menus without sacrificing the composer's visible corners. */
+.local-edit-conversation .local-edit-composer::after{position:absolute;z-index:2;inset:0;border:1px solid #d9dde0;border-radius:10px;content:"";pointer-events:none}
+.local-edit-conversation .local-edit-composer textarea{border-radius:9px 9px 0 0;background-clip:padding-box}
+.local-edit-conversation .local-edit-composer:focus-within::after{border-color:#bfc5c9;box-shadow:0 0 0 3px rgba(17,19,21,.035)}
+.local-edit-conversation .local-edit-prompt-meta{position:relative;z-index:3}
+.local-edit-conversation .local-edit-settings{gap:0}
+.local-edit-conversation .local-edit-ratio-picker,.local-edit-conversation .local-edit-resolution-picker{margin-left:10px}
+@media(max-width:800px){.local-edit-conversation .local-edit-ratio-picker,.local-edit-conversation .local-edit-resolution-picker{margin-left:8px}}
+
+/* The resolution list contains only a few fixed options and never needs scrollbars. */
+.local-edit-conversation .local-edit-resolution-menu{overflow:hidden!important}
+
+/* Conversation surface: one clean white plane with no nested outlines. */
+.local-edit-panel,.local-edit-conversation,.local-edit-conversation .local-edit-composer,.local-edit-conversation .local-edit-composer textarea{background:#fff}
+.local-edit-conversation{border:0;box-shadow:none}
+.local-edit-conversation .local-edit-composer{border:0!important;border-radius:0;box-shadow:none!important}
+.local-edit-conversation .local-edit-composer::after,.local-edit-conversation .local-edit-prompt-meta::before{display:none!important;content:none}
+.local-edit-conversation .local-edit-composer:focus-within,.local-edit-conversation .local-edit-composer:focus-within::after{border:0;box-shadow:none!important}
+.local-edit-conversation .local-edit-composer textarea{border:0;border-radius:0;outline:0;box-shadow:none!important}
+.local-edit-conversation .local-edit-status{display:none!important}
