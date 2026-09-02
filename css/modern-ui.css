@@ -1527,3 +1527,32 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 .local-edit-conversation .local-edit-composer:focus-within,.local-edit-conversation .local-edit-composer:focus-within::after{border:0;box-shadow:none!important}
 .local-edit-conversation .local-edit-composer textarea{border:0;border-radius:0;outline:0;box-shadow:none!important}
 .local-edit-conversation .local-edit-status{display:none!important}
+
+/* Reference hierarchy: a light-gray conversation bay with one white composer card. */
+.local-edit-panel{background:#fff}
+.local-edit-conversation{padding:14px;border:1px solid #d7dbde;border-radius:12px;background:#f6f7f7;box-shadow:none}
+.local-edit-conversation .local-edit-thread{background:transparent}
+.local-edit-conversation .local-edit-composer{overflow:visible;border:0!important;border-radius:14px;background:#fff;box-shadow:none!important}
+.local-edit-conversation .local-edit-composer textarea{border:0;border-radius:14px 14px 0 0;background:#fff;box-shadow:none!important}
+.local-edit-conversation .local-edit-prompt-meta{border-radius:0 0 14px 14px;background:#fff}
+.local-edit-conversation .local-edit-prompt-meta::before{position:absolute;top:0;right:12px;left:12px;display:block!important;height:1px;background:#e8ebed;content:""!important}
+.local-edit-conversation .local-edit-composer::after{display:none!important;content:none}
+.local-edit-conversation .local-edit-composer:focus-within{border:0;box-shadow:none!important}
+@media(max-width:800px){.local-edit-conversation{padding:12px}}
+
+/* Simplified editor controls: model with icon, model-default auto ratio, and resolution. */
+.local-edit-conversation .local-edit-message.is-assistant{border:0!important;background:#fff;box-shadow:none}
+.local-edit-conversation .local-edit-message.is-assistant::before{border-right-color:#fff}
+.local-edit-conversation .local-edit-model-picker{width:176px;flex-basis:176px}
+.local-edit-conversation .local-edit-model-trigger{gap:8px;width:176px;padding:0 10px}
+.local-edit-conversation .local-edit-model-trigger img{display:block;width:18px;height:18px;flex:0 0 18px;object-fit:contain}
+.local-edit-conversation .local-edit-model-trigger .model-mark-nano{width:17px;height:20px}
+.local-edit-conversation .local-edit-model-trigger .model-mark-seedream{width:21px;height:23px}
+.local-edit-conversation .local-edit-model-trigger span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.local-edit-conversation .local-edit-model-menu{min-width:190px;max-width:230px}
+.local-edit-conversation .local-edit-model-menu .creation-select-option{gap:9px;min-width:178px}
+.local-edit-conversation .local-edit-model-menu .creation-select-option img{display:block;width:20px;height:20px;flex:0 0 20px;object-fit:contain}
+.local-edit-conversation .local-edit-model-menu .creation-select-option .model-mark-nano{width:19px;height:22px}
+.local-edit-conversation .local-edit-model-menu .creation-select-option .model-mark-seedream{width:23px;height:25px}
+.local-edit-conversation .local-edit-model-menu .creation-select-option span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:800px){.local-edit-conversation .local-edit-model-picker,.local-edit-conversation .local-edit-model-trigger{width:164px;flex-basis:164px}}
