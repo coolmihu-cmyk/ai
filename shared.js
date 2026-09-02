@@ -1,7 +1,7 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 // 每次完成一次改动并提交时递增。
-const APP_VERSION='109.0';
+const APP_VERSION='111.0';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
@@ -82,7 +82,8 @@ function openImage(url){if(!url)return;const w=window.open(url,'_blank');if(w)w.
 async function downloadImage(url){
   if(!url)return;
   try{
-    const response=await fetch(url,{mode:'cors'});
+    const endpoint=new URL('/api/download-image',location.origin);endpoint.searchParams.set('url',url);
+    const response=await fetch(endpoint.href);
     if(!response.ok)throw new Error('下载请求失败');
     const blob=await response.blob();
     const type=blob.type.split('/')[1]||'png';
@@ -90,7 +91,7 @@ async function downloadImage(url){
     const objectUrl=URL.createObjectURL(blob);
     const link=document.createElement('a');link.href=objectUrl;link.download='mihu-image-'+Date.now()+'.'+extension;document.body.appendChild(link);link.click();link.remove();
     setTimeout(()=>URL.revokeObjectURL(objectUrl),1000);
-  }catch(error){console.warn('图片下载失败',error);toast('下载失败，请检查图片服务器的 CORS 设置')}
+  }catch(error){console.warn('图片下载失败',error);toast('下载失败，请稍后重试')}
 }
 function showError(el,msg){if(!el)return;el.textContent=msg;el.style.display='block'}
 function hideError(el){if(!el)return;el.style.display='none';el.textContent=''}

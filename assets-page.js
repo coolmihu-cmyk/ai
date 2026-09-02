@@ -24,7 +24,7 @@ const localEdit={
   layer:$('#localEditLayer'),close:$('#localEditClose'),image:$('#localEditImage'),
   loading:$('#localEditLoading'),download:$('#localEditDownload'),
   prompt:$('#localEditPrompt'),promptCount:$('#localEditPromptCount'),upload:$('#localEditUpload'),fileInput:$('#localEditFileInput'),error:$('#localEditError'),submit:$('#localEditSubmit'),
-  modelSelect:$('#localEditModel'),modelPicker:$('#localEditModelPicker'),modelTrigger:$('#localEditModelTrigger'),modelMenu:$('#localEditModelMenu'),ratioSelect:$('#localEditRatio'),resolutionSelect:$('#localEditResolution'),
+  modelSelect:$('#localEditModel'),modelPicker:$('#localEditModelPicker'),modelTrigger:$('#localEditModelTrigger'),modelMenu:$('#localEditModelMenu'),ratioSelect:$('#localEditRatio'),resolutionSelect:$('#localEditResolution'),resolutionPicker:$('#localEditResolutionPicker'),resolutionTrigger:$('#localEditResolutionTrigger'),resolutionMenu:$('#localEditResolutionMenu'),
   thread:$('#localEditThread'),status:$('#localEditStatus'),versionsNode:$('#localEditVersions'),
   item:null,model:'gpt',ratio:'1:1',resolution:'1k',editRootId:null,editGroupId:null,referenceData:null,submitting:false,lastFocus:null,versions:[],messages:[]
 };
@@ -46,6 +46,20 @@ function localEditRenderModelPicker(){
     button.onclick=()=>{localEdit.model=key;localEdit.modelSelect.value=key;localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');localEditSyncSettings()};return button;
   }));
 }
+function localEditResolutionIcon(value){
+  const icons={'1k':'icon/resolution-1k.svg','1K':'icon/resolution-1k.svg','1.5K':'icon/resolution-1k-plus.svg','2k':'icon/resolution-2k.svg','2K':'icon/resolution-2k.svg','4k':'icon/resolution-4k.svg','4K':'icon/resolution-4k.svg'};
+  return icons[value]||icons['1k'];
+}
+function localEditRenderResolutionPicker(config){
+  const current=config.resolutions.find(item=>item.v===localEdit.resolution)||config.resolutions[0];
+  const icon=document.createElement('img');icon.src=localEditResolutionIcon(current.v);icon.alt='';
+  localEdit.resolutionTrigger.replaceChildren(icon);localEdit.resolutionTrigger.title=current.v;localEdit.resolutionTrigger.setAttribute('aria-label','编辑分辨率：'+current.v);
+  localEdit.resolutionMenu.replaceChildren(...config.resolutions.map(item=>{
+    const button=document.createElement('button');button.type='button';button.setAttribute('role','option');button.setAttribute('aria-selected',String(item.v===localEdit.resolution));button.title=item.v;button.setAttribute('aria-label',item.v);
+    const optionIcon=document.createElement('img');optionIcon.src=localEditResolutionIcon(item.v);optionIcon.alt='';button.append(optionIcon);
+    button.onclick=()=>{localEdit.resolution=item.v;localEdit.resolutionSelect.value=item.v;localEdit.resolutionPicker.classList.remove('open');localEdit.resolutionTrigger.setAttribute('aria-expanded','false');localEditRenderResolutionPicker(config)};return button;
+  }));
+}
 function localEditSyncSettings(){
   const config=MODEL_CONFIG[localEdit.model];
   if(!config.ratios.includes(localEdit.ratio))localEdit.ratio=config.ratios.includes('auto')?'auto':config.ratios[0];
@@ -53,7 +67,7 @@ function localEditSyncSettings(){
   localEdit.modelSelect.replaceChildren(...Object.keys(MODEL_CONFIG).map(key=>new Option(key[0].toUpperCase(),key,key===localEdit.model,key===localEdit.model)));
   localEditRenderModelPicker();
   localEdit.ratioSelect.replaceChildren(...config.ratios.map(value=>new Option(value,value,value===localEdit.ratio,value===localEdit.ratio)));
-  localEdit.resolutionSelect.replaceChildren(...config.resolutions.map(item=>new Option(item.v.toUpperCase(),item.v,item.v===localEdit.resolution,item.v===localEdit.resolution)));
+  localEdit.resolutionSelect.replaceChildren(...config.resolutions.map(item=>new Option(item.v.toUpperCase(),item.v,item.v===localEdit.resolution,item.v===localEdit.resolution)));localEditRenderResolutionPicker(config);
   localEdit.prompt.maxLength=config.promptLimit;localEdit.prompt.value=localEdit.prompt.value.slice(0,config.promptLimit);localEditUpdatePromptCount();
 }
 function localEditSetInitialSettings(item){
@@ -167,12 +181,13 @@ localEdit.fileInput.onchange=async()=>{
   catch(_){localEditSetError('参考图片读取失败，请重试。')}
 };
 localEdit.modelTrigger.onclick=event=>{event.stopPropagation();const opening=!localEdit.modelPicker.classList.contains('open');localEdit.modelPicker.classList.toggle('open',opening);localEdit.modelTrigger.setAttribute('aria-expanded',String(opening))};
+localEdit.resolutionTrigger.onclick=event=>{event.stopPropagation();const opening=!localEdit.resolutionPicker.classList.contains('open');localEdit.resolutionPicker.classList.toggle('open',opening);localEdit.resolutionTrigger.setAttribute('aria-expanded',String(opening))};
 localEdit.modelSelect.onchange=()=>{localEdit.model=localEditModelKey(localEdit.modelSelect.value);localEditSyncSettings()};
 localEdit.ratioSelect.onchange=()=>{localEdit.ratio=localEdit.ratioSelect.value};
-localEdit.resolutionSelect.onchange=()=>{localEdit.resolution=localEdit.resolutionSelect.value};
+localEdit.resolutionSelect.onchange=()=>{localEdit.resolution=localEdit.resolutionSelect.value;localEditRenderResolutionPicker(MODEL_CONFIG[localEdit.model])};
 localEdit.close.onclick=closeLocalEdit;localEdit.submit.onclick=submitLocalEdit;
 localEdit.download.onclick=()=>{if(localEdit.item)downloadImage(localEdit.item.url)};
-localEdit.layer.addEventListener('pointerdown',event=>{if(event.target===localEdit.layer)closeLocalEdit()});document.addEventListener('click',()=>{localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false')});document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!localEdit.layer.hidden){localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');closeLocalEdit()}});
+localEdit.layer.addEventListener('pointerdown',event=>{if(event.target===localEdit.layer)closeLocalEdit()});document.addEventListener('click',()=>{localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');localEdit.resolutionPicker.classList.remove('open');localEdit.resolutionTrigger.setAttribute('aria-expanded','false')});document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!localEdit.layer.hidden){localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');localEdit.resolutionPicker.classList.remove('open');localEdit.resolutionTrigger.setAttribute('aria-expanded','false');closeLocalEdit()}});
 
 function sortAssets(items){
   return items.sort((a,b)=>{
