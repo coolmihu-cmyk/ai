@@ -1556,3 +1556,13 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 .local-edit-conversation .local-edit-model-menu .creation-select-option .model-mark-seedream{width:23px;height:25px}
 .local-edit-conversation .local-edit-model-menu .creation-select-option span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media(max-width:800px){.local-edit-conversation .local-edit-model-picker,.local-edit-conversation .local-edit-model-trigger{width:164px;flex-basis:164px}}
+
+/* Content-sized selectors: no decorative empty tail after short labels. */
+.local-edit-conversation .local-edit-model-picker{width:auto;flex-basis:auto}
+.local-edit-conversation .local-edit-model-trigger{width:max-content;min-width:0;max-width:none}
+.local-edit-conversation .local-edit-model-trigger span{overflow:visible;text-overflow:clip}
+.local-edit-conversation .local-edit-model-menu{width:174px!important;min-width:174px;max-width:174px}
+.local-edit-conversation .local-edit-model-menu .creation-select-option{width:100%!important;min-width:0}
+.local-edit-conversation .local-edit-resolution-menu{width:52px!important;min-width:52px;max-width:52px;padding:4px}
+.local-edit-conversation .local-edit-resolution-menu .creation-select-option{width:42px;min-width:42px;padding:0 7px}
+@media(max-width:800px){.local-edit-conversation .local-edit-model-picker{width:auto;flex-basis:auto}.local-edit-conversation .local-edit-model-trigger{width:max-content;flex-basis:auto}}

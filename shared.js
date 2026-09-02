@@ -1,7 +1,7 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 // 每次完成一次改动并提交时递增。
-const APP_VERSION='130.0';
+const APP_VERSION='131.0';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
@@ -13,17 +13,17 @@ const MODEL_CONFIG={
     resolutions:[{v:'1k',l:'快速',price:'0.085积分/张'},{v:'2k',l:'高清',price:'0.14积分/张'},{v:'4k',l:'超清',price:'0.21积分/张'}],
     defaultResolution:'1k',generationModel:'gpt-image-2',editModel:'gpt-image-2'
   },
-  nano:{
-    name:'Nano Banana PRO',icon:'icon/model-nbpro-banana.svg',promptLimit:2000,
-    ratios:['auto','1:1','2:3','3:2','3:4','4:3','4:5','5:4','9:16','16:9','21:9'],
-    resolutions:[{v:'1K',l:'标准',price:'0.3积分/张'},{v:'2K',l:'高清',price:'0.3积分/张'},{v:'4K',l:'超清',price:'0.4积分/张'}],
-    defaultResolution:'1K',generationModel:'gemini-3-pro-image-preview',editModel:'gemini-3-pro-image-preview'
-  },
   seedream:{
     name:'Seedream 5 PRO',icon:'icon/model-sd5-jimeng.svg',promptLimit:3000,
     ratios:['auto','1:1','4:3','3:4','16:9','9:16','3:2','2:3','2:1','1:2','21:9'],
     resolutions:[{v:'1K',l:'标准',price:'0.2925积分/张'},{v:'1.5K',l:'推荐',price:'0.2925积分/张'},{v:'2K',l:'高清',price:'0.585积分/张'}],
     defaultResolution:'1.5K',generationModel:'seedream-5-0-pro'
+  },
+  nano:{
+    name:'Nano Banana PRO',icon:'icon/model-nbpro-banana.svg',promptLimit:2000,
+    ratios:['auto','1:1','2:3','3:2','3:4','4:3','4:5','5:4','9:16','16:9','21:9'],
+    resolutions:[{v:'1K',l:'标准',price:'0.3积分/张'},{v:'2K',l:'高清',price:'0.3积分/张'},{v:'4K',l:'超清',price:'0.4积分/张'}],
+    defaultResolution:'1K',generationModel:'gemini-3-pro-image-preview',editModel:'gemini-3-pro-image-preview'
   }
 };
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
