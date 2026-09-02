@@ -47,7 +47,7 @@ function localEditRenderModelPicker(){
   }));
 }
 function localEditResolutionIcon(value){
-  const icons={'1k':'icon/resolution-1k.svg','1K':'icon/resolution-1k.svg','1.5K':'icon/resolution-1k-plus.svg','2k':'icon/resolution-2k.svg','2K':'icon/resolution-2k.svg','4k':'icon/resolution-4k.svg','4K':'icon/resolution-4k.svg'};
+  const icons={'1k':'icon/resolution-1k-plain.svg','1K':'icon/resolution-1k-plain.svg','1.5K':'icon/resolution-1k-plus-plain.svg','2k':'icon/resolution-2k-plain.svg','2K':'icon/resolution-2k-plain.svg','4k':'icon/resolution-4k-plain.svg','4K':'icon/resolution-4k-plain.svg'};
   return icons[value]||icons['1k'];
 }
 function localEditRenderResolutionPicker(config){
@@ -407,6 +407,8 @@ function renderAssets(){
     const send=document.createElement('button');send.type='button';send.className='asset-send';send.title='重新生成';send.setAttribute('aria-label','重新生成');
     send.appendChild(assetIcon(['M20 11a8 8 0 0 0-14.9-4L3 10','M3 4v6h6','M4 13a8 8 0 0 0 14.9 4L21 14','M21 20v-6h-6']));
     send.onclick=()=>sendAssetToComposer(item);actions.appendChild(send);
+    const download=document.createElement('button');download.type='button';download.className='asset-download';download.title='下载图片';download.setAttribute('aria-label','下载图片');
+    download.appendChild(assetIcon(['M12 3v11','m7.5 10.5 4.5 4.5 4.5-4.5','M5 20h14']));download.onclick=()=>downloadImage(item.url);actions.appendChild(download);
     const remove=document.createElement('button');remove.type='button';remove.className='asset-delete';remove.title='删除记录';
     remove.appendChild(assetIcon(['M4 7h16','M9 7V5h6v2','M7 7l1 13h8l1-13','M10 11v5','M14 11v5']));
     remove.onclick=()=>deleteAssetRecords([item],remove);
