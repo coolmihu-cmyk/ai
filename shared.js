@@ -1,7 +1,7 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 // 每次完成一次改动并提交时递增。
-const APP_VERSION='93.0';
+const APP_VERSION='94.0';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
@@ -195,16 +195,6 @@ const Apimart={
     const output=(candidates[0]?.content?.parts||[]).map(part=>part.text||'').join('\n').trim();
     if(!output)throw new Error('图片分析未返回提示词。');
     return output;
-  },
-  async analyzeRemoteImage(apiKey,{sourceUrl,instruction,model=IMAGE_REVERSE_MODEL,signal}){
-    const res=await fetch('/api/extract-image-prompt',{
-      method:'POST',signal,headers:{'Authorization':'Bearer '+apiKey,'Content-Type':'application/json','Accept':'application/json'},
-      body:JSON.stringify({sourceUrl,instruction,model})
-    });
-    const data=await res.json().catch(()=>({}));
-    if(!res.ok)throw new Error(data.error||('图片分析失败（HTTP '+res.status+'）'));
-    if(!data.prompt)throw new Error('图片分析未返回提示词。');
-    return data.prompt;
   },
   async submitTask(apiKey,body,endpoint,signal){
     const url=endpoint?APIMART_BASE+endpoint:APIMART_BASE+'/images/generations';

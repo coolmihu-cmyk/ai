@@ -18,12 +18,11 @@ const assetsEls={
 let assetItems=[],generationElapsedTimer=null,queueAdvancing=false;
 let unavailableAssetIds=new Set(),assetImageObserver=null;
 const REFERENCE_LIBRARY_KEY='mihu-reference-library-v1',REFERENCE_LIBRARY_LIMIT=300;
-const LOCAL_EDIT_REVERSE_SYSTEM='你是一名严谨的图像反推助手。只根据输入图片，写出一段可直接用于 AI 图片编辑的完整中文提示词。提取真实可见的主体、构图、空间层次、光线、色彩、材质与成像质感；不要猜测不可见细节，不要抄写水印、署名或来源标记。只输出最终提示词，不要标题、分析或解释。';
 
 const localEdit={
   layer:$('#localEditLayer'),close:$('#localEditClose'),image:$('#localEditImage'),
   loading:$('#localEditLoading'),
-  prompt:$('#localEditPrompt'),promptCount:$('#localEditPromptCount'),clearPrompt:$('#localEditClearPrompt'),extractPrompt:$('#localEditExtractPrompt'),error:$('#localEditError'),submit:$('#localEditSubmit'),
+  prompt:$('#localEditPrompt'),promptCount:$('#localEditPromptCount'),clearPrompt:$('#localEditClearPrompt'),error:$('#localEditError'),submit:$('#localEditSubmit'),
   modelSelect:$('#localEditModel'),ratioSelect:$('#localEditRatio'),resolutionSelect:$('#localEditResolution'),
   thread:$('#localEditThread'),status:$('#localEditStatus'),versionsNode:$('#localEditVersions'),
   item:null,model:'gpt',ratio:'1:1',resolution:'1k',editRootId:null,editGroupId:null,submitting:false,lastFocus:null,versions:[],messages:[]
@@ -37,7 +36,7 @@ function localEditSyncSettings(){
   const config=MODEL_CONFIG[localEdit.model];
   if(!config.ratios.includes(localEdit.ratio))localEdit.ratio=config.ratios.includes('auto')?'auto':config.ratios[0];
   if(!config.resolutions.some(option=>option.v===localEdit.resolution))localEdit.resolution=config.defaultResolution||config.resolutions[0]?.v||'';
-  localEdit.modelSelect.replaceChildren(...Object.entries(MODEL_CONFIG).map(([key,item])=>new Option(item.name,key,key===localEdit.model,key===localEdit.model)));
+  localEdit.modelSelect.replaceChildren(...Object.keys(MODEL_CONFIG).map(key=>new Option(key[0].toUpperCase(),key,key===localEdit.model,key===localEdit.model)));
   localEdit.ratioSelect.replaceChildren(...config.ratios.map(value=>new Option(value,value,value===localEdit.ratio,value===localEdit.ratio)));
   localEdit.resolutionSelect.replaceChildren(...config.resolutions.map(item=>new Option(item.v+' · '+item.l,item.v,item.v===localEdit.resolution,item.v===localEdit.resolution)));
   localEdit.prompt.maxLength=config.promptLimit;localEdit.prompt.value=localEdit.prompt.value.slice(0,config.promptLimit);localEditUpdatePromptCount();
@@ -96,18 +95,6 @@ function openLocalEdit(item,trigger){
   localEdit.layer.hidden=false;document.body.classList.add('local-edit-open');
   loadLocalEditImage(item,{focus:true}).catch(()=>{});
 }
-async function localEditExtractOriginalPrompt(){
-  if(localEdit.submitting||!localEdit.item?.url)return;
-  const apiKey=Settings.getKey();
-  if(!apiKey){Settings.openPage();toast('请先保存 API Key');return}
-  const button=localEdit.extractPrompt;button.disabled=true;button.textContent='提取中';localEditSetError();localEditSetStatus('正在分析原图');
-  try{
-    const prompt=await Apimart.analyzeRemoteImage(apiKey,{sourceUrl:localEdit.item.url,model:IMAGE_REVERSE_MODEL,instruction:LOCAL_EDIT_REVERSE_SYSTEM+' 输出应适合 '+MODEL_CONFIG[localEdit.model].name+'。'});
-    localEdit.prompt.value=prompt.trim().slice(0,localEdit.prompt.maxLength);localEditUpdatePromptCount();localEdit.prompt.focus();localEditSetStatus('原图提示词已提取，可继续修改。');toast('已提取原图提示词');
-  }catch(error){
-    localEditSetError(error?.message||'原图提示词提取失败。');localEditSetStatus('提取失败，请稍后重试。');
-  }finally{button.disabled=false;button.textContent='提取原图提示词'}
-}
 async function submitLocalEdit(){
   if(localEdit.submitting)return;
   const apiKey=Settings.getKey(),prompt=localEdit.prompt.value.trim();
@@ -143,7 +130,6 @@ async function submitLocalEdit(){
 
 localEdit.prompt.addEventListener('input',()=>{localEditUpdatePromptCount();localEditSetError()});
 localEdit.clearPrompt.onclick=()=>{localEdit.prompt.value='';localEditUpdatePromptCount();localEditSetError();localEdit.prompt.focus()};
-localEdit.extractPrompt.onclick=localEditExtractOriginalPrompt;
 localEdit.modelSelect.onchange=()=>{localEdit.model=localEditModelKey(localEdit.modelSelect.value);localEditSyncSettings()};
 localEdit.ratioSelect.onchange=()=>{localEdit.ratio=localEdit.ratioSelect.value};
 localEdit.resolutionSelect.onchange=()=>{localEdit.resolution=localEdit.resolutionSelect.value};
