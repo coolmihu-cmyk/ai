@@ -1,7 +1,7 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 // 每次完成一次改动并提交时递增。
-const APP_VERSION='107.0';
+const APP_VERSION='109.0';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
@@ -79,6 +79,19 @@ function toast(text){const t=$('#toast');if(!t)return;t.textContent=text;t.class
 function formatDuration(ms){const t=Math.max(0,Math.floor(ms/1000)),m=Math.floor(t/60),s=t%60;return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
 function fileToDataURI(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)})}
 function openImage(url){if(!url)return;const w=window.open(url,'_blank');if(w)w.opener=null;else toast('浏览器拦截了弹出窗口，请允许后重试')}
+async function downloadImage(url){
+  if(!url)return;
+  try{
+    const response=await fetch(url,{mode:'cors'});
+    if(!response.ok)throw new Error('下载请求失败');
+    const blob=await response.blob();
+    const type=blob.type.split('/')[1]||'png';
+    const extension=type==='jpeg'?'jpg':type;
+    const objectUrl=URL.createObjectURL(blob);
+    const link=document.createElement('a');link.href=objectUrl;link.download='mihu-image-'+Date.now()+'.'+extension;document.body.appendChild(link);link.click();link.remove();
+    setTimeout(()=>URL.revokeObjectURL(objectUrl),1000);
+  }catch(error){console.warn('图片下载失败',error);toast('下载失败，请检查图片服务器的 CORS 设置')}
+}
 function showError(el,msg){if(!el)return;el.textContent=msg;el.style.display='block'}
 function hideError(el){if(!el)return;el.style.display='none';el.textContent=''}
 const APP_RAIL_ITEMS=[

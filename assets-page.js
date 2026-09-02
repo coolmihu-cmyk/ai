@@ -18,10 +18,11 @@ const assetsEls={
 let assetItems=[],generationElapsedTimer=null,queueAdvancing=false;
 let unavailableAssetIds=new Set(),assetImageObserver=null;
 const REFERENCE_LIBRARY_KEY='mihu-reference-library-v1',REFERENCE_LIBRARY_LIMIT=300;
+const LOCAL_EDIT_MODEL_LABELS={gpt:'GPT',nano:'NBPRO',seedream:'SDPRO'};
 
 const localEdit={
   layer:$('#localEditLayer'),close:$('#localEditClose'),image:$('#localEditImage'),
-  loading:$('#localEditLoading'),
+  loading:$('#localEditLoading'),download:$('#localEditDownload'),
   prompt:$('#localEditPrompt'),promptCount:$('#localEditPromptCount'),upload:$('#localEditUpload'),fileInput:$('#localEditFileInput'),error:$('#localEditError'),submit:$('#localEditSubmit'),
   modelSelect:$('#localEditModel'),modelPicker:$('#localEditModelPicker'),modelTrigger:$('#localEditModelTrigger'),modelMenu:$('#localEditModelMenu'),ratioSelect:$('#localEditRatio'),resolutionSelect:$('#localEditResolution'),
   thread:$('#localEditThread'),status:$('#localEditStatus'),versionsNode:$('#localEditVersions'),
@@ -35,11 +36,13 @@ function localEditModelKey(value){return MODEL_CONFIG[value]?value:'gpt'}
 function localEditUpdatePromptCount(){localEdit.promptCount.textContent=localEdit.prompt.value.length+'/'+localEdit.prompt.maxLength}
 function localEditRenderModelPicker(){
   const current=MODEL_CONFIG[localEdit.model];
-  const icon=document.createElement('img');icon.src=current.icon;icon.alt='';icon.className='model-mark model-mark-'+localEdit.model;localEdit.modelTrigger.replaceChildren(icon);
+  const icon=document.createElement('img');icon.src=current.icon;icon.alt='';icon.className='model-mark model-mark-'+localEdit.model;
+  const label=document.createElement('span');label.textContent=LOCAL_EDIT_MODEL_LABELS[localEdit.model];localEdit.modelTrigger.replaceChildren(icon,label);
   localEdit.modelTrigger.title=current.name;localEdit.modelTrigger.setAttribute('aria-label','编辑模型：'+current.name);
   localEdit.modelMenu.replaceChildren(...Object.entries(MODEL_CONFIG).map(([key,config])=>{
     const button=document.createElement('button');button.type='button';button.setAttribute('role','option');button.setAttribute('aria-selected',String(key===localEdit.model));button.title=config.name;button.setAttribute('aria-label',config.name);
-    const optionIcon=document.createElement('img');optionIcon.src=config.icon;optionIcon.alt='';optionIcon.className='model-mark model-mark-'+key;button.append(optionIcon);
+    const optionIcon=document.createElement('img');optionIcon.src=config.icon;optionIcon.alt='';optionIcon.className='model-mark model-mark-'+key;
+    const optionLabel=document.createElement('span');optionLabel.textContent=LOCAL_EDIT_MODEL_LABELS[key];button.append(optionIcon,optionLabel);
     button.onclick=()=>{localEdit.model=key;localEdit.modelSelect.value=key;localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');localEditSyncSettings()};return button;
   }));
 }
@@ -76,10 +79,11 @@ function localEditMessagesForVersions(versions){
 }
 function localEditRenderVersions(){
   localEdit.versionsNode.replaceChildren(...localEdit.versions.map((version,index)=>{
-    const link=document.createElement('a');link.className='local-edit-version'+(version===localEdit.item?' is-current':'');link.href=version.url;link.target='_blank';link.rel='noopener';
-    link.title=(index===0?'原图':'第 '+index+' 版')+'（新标签页打开）';link.setAttribute('aria-label',link.title);
-    const image=document.createElement('img');image.src=ImageDelivery.thumbnail(version.url);image.alt='';link.append(image);
-    const label=document.createElement('span');label.textContent=index===0?'原':'V'+index;link.append(label);return link;
+    const button=document.createElement('button');button.type='button';button.className='local-edit-version'+(version===localEdit.item?' is-current':'');
+    button.title='在预览区查看'+(index===0?'原图':'第 '+index+' 版');button.setAttribute('aria-label',button.title);
+    button.onclick=()=>loadLocalEditImage(version).catch(()=>{});
+    const image=document.createElement('img');image.src=ImageDelivery.thumbnail(version.url);image.alt='';button.append(image);
+    const label=document.createElement('span');label.textContent=index===0?'原':'V'+index;button.append(label);return button;
   }));
 }
 function localEditClosestRatio(width,height){
@@ -124,14 +128,14 @@ async function submitLocalEdit(){
   const apiKey=Settings.getKey(),prompt=localEdit.prompt.value.trim();
   if(!apiKey){Settings.openPage();toast('请先保存 API Key');return}
   if(!prompt){localEditSetError('请描述你希望怎样修改这张图片。');localEdit.prompt.focus();return}
-  localEdit.submitting=true;localEdit.submit.disabled=true;localEdit.close.disabled=true;localEdit.submit.textContent='正在提交';localEditSetError();
+  localEdit.submitting=true;localEdit.submit.disabled=true;localEdit.close.disabled=true;localEdit.submit.textContent='提交中';localEditSetError();
   localEdit.messages.push({role:'user',text:prompt});localEditRenderThread();localEditSetStatus('正在提交图片编辑请求');
   try{
     const editPrompt=prompt+'。以输入图片为基础进行编辑，保留用户未明确要求改变的主体、构图和重要视觉特征。';
     const config=MODEL_CONFIG[localEdit.model];
     const body={model:config.editModel||config.generationModel,prompt:editPrompt,size:localEdit.ratio,resolution:localEdit.resolution,n:1,image_urls:[localEdit.item.url,...(localEdit.referenceData?[localEdit.referenceData]:[])]};
     let url=await Apimart.generate({apiKey,body,endpoint:'/images/generations',onProgress:(status,progress)=>{
-      const percent=Math.max(0,Math.min(100,Number(progress)||0));localEdit.submit.textContent=percent?'生成中 '+percent+'%':'正在生成';localEditSetStatus(status==='processing'?'模型正在生成新版本':'正在处理图片');
+      const percent=Math.max(0,Math.min(100,Number(progress)||0));localEdit.submit.textContent=percent?'生成 '+percent+'%':'生成中';localEditSetStatus(status==='processing'?'模型正在生成新版本':'正在处理图片');
     }});
     const itemId=Date.now(),createdAt=new Date().toISOString();let archived=false,historyKey='';
     if(Archive.isAvailable()){
@@ -153,6 +157,7 @@ async function submitLocalEdit(){
 }
 
 localEdit.prompt.addEventListener('input',()=>{localEditUpdatePromptCount();localEditSetError()});
+localEdit.prompt.addEventListener('keydown',event=>{if(event.ctrlKey&&event.key==='Enter'){event.preventDefault();submitLocalEdit()}});
 localEdit.upload.onclick=()=>localEdit.fileInput.click();
 localEdit.fileInput.onchange=async()=>{
   const file=localEdit.fileInput.files?.[0];if(!file)return;
@@ -166,6 +171,7 @@ localEdit.modelSelect.onchange=()=>{localEdit.model=localEditModelKey(localEdit.
 localEdit.ratioSelect.onchange=()=>{localEdit.ratio=localEdit.ratioSelect.value};
 localEdit.resolutionSelect.onchange=()=>{localEdit.resolution=localEdit.resolutionSelect.value};
 localEdit.close.onclick=closeLocalEdit;localEdit.submit.onclick=submitLocalEdit;
+localEdit.download.onclick=()=>{if(localEdit.item)downloadImage(localEdit.item.url)};
 localEdit.layer.addEventListener('pointerdown',event=>{if(event.target===localEdit.layer)closeLocalEdit()});document.addEventListener('click',()=>{localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false')});document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!localEdit.layer.hidden){localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');closeLocalEdit()}});
 
 function sortAssets(items){
@@ -314,6 +320,22 @@ function sendAssetToComposer(item){
     navigateWithLoading('index.html');
   }catch(_){toast('无法带入图片，请重试')}
 }
+async function deleteAssetRecords(items,button){
+  const ids=new Set(items.map(item=>String(item.id)));
+  button.disabled=true;
+  try{
+    const needsCloudDelete=items.filter(item=>item.historyKey||ImageDelivery.isArchivedUrl(item.url));
+    if(needsCloudDelete.length&&await CloudHistory.token()){
+      await Promise.all(needsCloudDelete.map(item=>CloudHistory.remove(item.historyKey||'',item.id)));
+    }
+    const results=await Promise.all(items.map(item=>History.delete(item.id)));
+    if(results.some(result=>!result))throw new Error('删除失败');
+    assetItems=assetItems.filter(item=>!ids.has(String(item.id)));renderAssets();
+    toast(items.length>1?'已删除图组':'已删除记录');
+  }catch(error){
+    console.warn('历史删除失败',error);button.disabled=false;toast('删除失败，请稍后重试');
+  }
+}
 function buildEditGroupCard(root,edits){
   const versions=[root,...edits].sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
   const card=document.createElement('article');card.className='asset-card asset-edit-group';card.dataset.assetId=root.id;
@@ -322,6 +344,8 @@ function buildEditGroupCard(root,edits){
   const badge=document.createElement('span');badge.className='asset-group-badge';badge.textContent='图组 · '+versions.length+' 张';media.appendChild(badge);
   const actions=document.createElement('div');actions.className='asset-actions';
   const edit=document.createElement('button');edit.type='button';edit.className='asset-local-edit';edit.title='恢复图组对话';edit.setAttribute('aria-label','恢复图组对话');edit.appendChild(assetIcon(['M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3Z','m13-13 3 3']));edit.onclick=()=>openLocalEditGroup(root,edits,edit);actions.appendChild(edit);
+  const remove=document.createElement('button');remove.type='button';remove.className='asset-delete';remove.title='删除整个图组';remove.setAttribute('aria-label','删除整个图组');remove.appendChild(assetIcon(['M4 7h16','M9 7V5h6v2','M7 7l1 13h8l1-13','M10 11v5','M14 11v5']));
+  remove.onclick=()=>{if(confirm('删除这个图组及其全部 '+versions.length+' 张图片记录？'))deleteAssetRecords(versions,remove)};actions.appendChild(remove);
   card.append(media,actions);return card;
 }
 function renderAssets(){
@@ -370,16 +394,7 @@ function renderAssets(){
     send.onclick=()=>sendAssetToComposer(item);actions.appendChild(send);
     const remove=document.createElement('button');remove.type='button';remove.className='asset-delete';remove.title='删除记录';
     remove.appendChild(assetIcon(['M4 7h16','M9 7V5h6v2','M7 7l1 13h8l1-13','M10 11v5','M14 11v5']));
-    remove.onclick=async()=>{
-      remove.disabled=true;
-      if(item.historyKey||ImageDelivery.isArchivedUrl(item.url)){
-        try{
-          if(await CloudHistory.token())await CloudHistory.remove(item.historyKey||'',item.id);
-        }catch(error){console.warn('云端历史删除失败',error);remove.disabled=false;toast('云端删除失败，请稍后重试');return}
-      }
-      if(!await History.delete(item.id)){remove.disabled=false;toast('删除失败');return}
-      assetItems=assetItems.filter(asset=>asset.id!==item.id);renderAssets();toast('已删除记录');
-    };
+    remove.onclick=()=>deleteAssetRecords([item],remove);
     actions.appendChild(remove);card.append(media,meta,actions);dayGrid.appendChild(card);
   }
   assetsEls.grid.appendChild(fragment);
