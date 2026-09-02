@@ -54,13 +54,18 @@ function localEditRenderThread(){
   }));
   localEdit.thread.scrollTop=localEdit.thread.scrollHeight;
 }
+function localEditMessagesForVersions(versions){
+  return versions.slice(1).flatMap((version,index)=>[
+    {role:'user',text:version.prompt||'继续编辑这张图片。'},
+    {role:'assistant',text:'已生成第 '+(index+1)+' 版。'}
+  ]);
+}
 function localEditRenderVersions(){
   localEdit.versionsNode.replaceChildren(...localEdit.versions.map((version,index)=>{
-    const button=document.createElement('button');button.type='button';button.className='local-edit-version'+(version===localEdit.item?' is-current':'');
-    button.title=index===0?'原图':'第 '+index+' 版';button.setAttribute('aria-label',button.title);
-    const image=document.createElement('img');image.src=ImageDelivery.thumbnail(version.url);image.alt='';button.append(image);
-    const label=document.createElement('span');label.textContent=index===0?'原':'V'+index;button.append(label);
-    button.onclick=()=>{if(!localEdit.submitting)loadLocalEditImage(version,{focus:true}).catch(()=>{})};return button;
+    const link=document.createElement('a');link.className='local-edit-version'+(version===localEdit.item?' is-current':'');link.href=version.url;link.target='_blank';link.rel='noopener';
+    link.title=(index===0?'原图':'第 '+index+' 版')+'（新标签页打开）';link.setAttribute('aria-label',link.title);
+    const image=document.createElement('img');image.src=ImageDelivery.thumbnail(version.url);image.alt='';link.append(image);
+    const label=document.createElement('span');label.textContent=index===0?'原':'V'+index;link.append(label);return link;
   }));
 }
 function localEditClosestRatio(width,height){
@@ -88,12 +93,17 @@ function loadLocalEditImage(item,{focus=false}={}){
     localEdit.image.src=item.url;
   });
 }
-function openLocalEdit(item,trigger){
+function openLocalEdit(item,trigger,{versions=[item],resume=false}={}){
   if(assetExpiry(item).expired){toast('原图已过期，无法编辑');return}
-  localEdit.lastFocus=trigger||document.activeElement;localEdit.versions=[item];localEdit.editRootId=String(item.editRootId||item.id);localEdit.editGroupId=item.editGroupId||'edit-'+localEdit.editRootId;localEdit.messages=[];
+  const orderedVersions=[...versions].sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
+  localEdit.lastFocus=trigger||document.activeElement;localEdit.versions=orderedVersions;localEdit.editRootId=String(orderedVersions[0]?.id||item.editRootId||item.id);localEdit.editGroupId=item.editGroupId||'edit-'+localEdit.editRootId;localEdit.messages=resume?localEditMessagesForVersions(orderedVersions):[];
   localEditSetInitialSettings(item);localEditSetError();localEditSetStatus('');localEditRenderThread();localEditRenderVersions();
   localEdit.layer.hidden=false;document.body.classList.add('local-edit-open');
   loadLocalEditImage(item,{focus:true}).catch(()=>{});
+}
+function openLocalEditGroup(root,edits,trigger){
+  const versions=[root,...edits].sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
+  openLocalEdit(versions[versions.length-1],trigger,{versions,resume:true});
 }
 async function submitLocalEdit(){
   if(localEdit.submitting)return;
@@ -118,7 +128,7 @@ async function submitLocalEdit(){
     }
     const version={id:itemId,url,prompt,model:localEdit.model,settings:{ratio:localEdit.ratio,resolution:localEdit.resolution},editRootId:localEdit.editRootId,editGroupId:localEdit.editGroupId,archived,historyKey,createdAt,type:'image'};
     await History.save(version);assetItems=sortAssets([version,...assetItems.filter(asset=>asset.id!==version.id)]);renderAssets();
-    localEdit.versions.push(version);localEdit.messages.push({role:'assistant',text:'新版本已生成。你可以继续描述下一步修改，或点击左侧缩略图回到任一旧版本。'});localEditRenderThread();
+    localEdit.versions.push(version);localEdit.messages.push({role:'assistant',text:'已生成第 '+(localEdit.versions.length-1)+' 版。'});localEditRenderThread();
     localEdit.prompt.value='';localEditUpdatePromptCount();localEditSetStatus('第 '+(localEdit.versions.length-1)+' 版已就绪，可继续编辑。');
     await loadLocalEditImage(version,{focus:true});toast('新版本已生成');
   }catch(error){
@@ -283,13 +293,13 @@ function sendAssetToComposer(item){
   }catch(_){toast('无法带入图片，请重试')}
 }
 function buildEditGroupCard(root,edits){
-  const versions=[root,...edits].sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0)),latest=versions[versions.length-1];
+  const versions=[root,...edits].sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
   const card=document.createElement('article');card.className='asset-card asset-edit-group';card.dataset.assetId=root.id;
-  const media=document.createElement('button');media.type='button';media.className='asset-group-media';media.title='查看图组最新图片';media.onclick=()=>openImage(latest.url);
-  versions.slice(-4).forEach(version=>{const image=document.createElement('img');image.src=ImageDelivery.thumbnail(version.url);image.alt='';image.loading='lazy';image.decoding='async';media.appendChild(image)});
+  const media=document.createElement('button');media.type='button';media.className='asset-group-media';media.title='恢复图组对话';media.onclick=()=>openLocalEditGroup(root,edits,media);
+  const image=document.createElement('img');image.src=ImageDelivery.thumbnail(root.url);image.alt='原始图片';image.loading='lazy';image.decoding='async';media.appendChild(image);
   const badge=document.createElement('span');badge.className='asset-group-badge';badge.textContent='图组 · '+versions.length+' 张';media.appendChild(badge);
   const actions=document.createElement('div');actions.className='asset-actions';
-  const edit=document.createElement('button');edit.type='button';edit.className='asset-local-edit';edit.title='继续编辑最新版本';edit.setAttribute('aria-label','继续编辑最新版本');edit.appendChild(assetIcon(['M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3Z','m13-13 3 3']));edit.onclick=()=>openLocalEdit(latest,edit);actions.appendChild(edit);
+  const edit=document.createElement('button');edit.type='button';edit.className='asset-local-edit';edit.title='恢复图组对话';edit.setAttribute('aria-label','恢复图组对话');edit.appendChild(assetIcon(['M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3Z','m13-13 3 3']));edit.onclick=()=>openLocalEditGroup(root,edits,edit);actions.appendChild(edit);
   card.append(media,actions);return card;
 }
 function renderAssets(){
