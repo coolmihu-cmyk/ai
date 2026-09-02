@@ -58,7 +58,9 @@ function historyRecord(input,{url,cosKey}){
     id,url,cosKey,archived:true,type:'image',createdAt:createdAt.toISOString(),
     prompt:String(input.prompt||'').slice(0,3000),
     model:String(input.model||'gpt').slice(0,64),
-    settings:input.settings&&typeof input.settings==='object'?input.settings:{}
+    settings:input.settings&&typeof input.settings==='object'?input.settings:{},
+    editRootId:String(input.editRootId||'').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,80),
+    editGroupId:String(input.editGroupId||'').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,100)
   };
 }
 function historyPrefix(token){return 'history_'+token+'_'}

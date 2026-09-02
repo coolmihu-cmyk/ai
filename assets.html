@@ -11,7 +11,7 @@
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="stylesheet" href="css/base.css?v=20260828-141842">
 <link rel="stylesheet" href="css/pages.css?v=20260831-125949">
-<link rel="stylesheet" href="css/modern-ui.css?v=20260902-125000">
+<link rel="stylesheet" href="css/modern-ui.css?v=20260902-128000">
 </head>
 <body class="assets-page">
 
@@ -82,26 +82,28 @@
         <div class="local-edit-versions" id="localEditVersions" aria-label="编辑版本"></div>
       </div>
       <div class="local-edit-panel">
-        <div class="local-edit-thread" id="localEditThread" role="log" aria-live="polite"></div>
-        <p class="local-edit-status" id="localEditStatus" role="status"></p>
-        <div class="local-edit-settings" aria-label="图片编辑参数">
-          <label>模型 <select id="localEditModel" aria-label="编辑模型"></select></label>
-          <label>比例 <select id="localEditRatio" aria-label="图片比例"></select></label>
-          <label>分辨率 <select id="localEditResolution" aria-label="图片分辨率"></select></label>
+        <div class="local-edit-conversation">
+          <div class="local-edit-thread" id="localEditThread" role="log" aria-live="polite"></div>
+          <p class="local-edit-status" id="localEditStatus" role="status"></p>
+          <div class="local-edit-settings" aria-label="图片编辑参数">
+            <label>模型 <select id="localEditModel" aria-label="编辑模型"></select></label>
+            <label>比例 <select id="localEditRatio" aria-label="图片比例"></select></label>
+            <label>分辨率 <select id="localEditResolution" aria-label="图片分辨率"></select></label>
+          </div>
+          <div class="local-edit-composer">
+            <label for="localEditPrompt">想怎么修改？</label>
+            <textarea id="localEditPrompt" maxlength="3000" rows="7" placeholder="例如：把背景换成雨后的城市街道，保留人物的姿势、服装和构图"></textarea>
+            <div class="local-edit-prompt-meta"><b id="localEditPromptCount">0/3000</b><span><button type="button" class="clear" id="localEditClearPrompt" aria-label="清空提示词" title="清空提示词"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg></button><button type="button" class="extract" id="localEditExtractPrompt">提取原图提示词</button><button type="button" class="primary" id="localEditSubmit">生成</button></span></div>
+          </div>
+          <p class="local-edit-error" id="localEditError" hidden></p>
         </div>
-        <div class="local-edit-composer">
-          <label for="localEditPrompt">想怎么修改？</label>
-          <textarea id="localEditPrompt" maxlength="3000" rows="7" placeholder="例如：把背景换成雨后的城市街道，保留人物的姿势、服装和构图"></textarea>
-          <div class="local-edit-prompt-meta"><b id="localEditPromptCount">0/3000</b><span><button type="button" class="clear" id="localEditClearPrompt" aria-label="清空提示词" title="清空提示词"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg></button><button type="button" class="extract" id="localEditExtractPrompt">提取原图提示词</button><button type="button" class="primary" id="localEditSubmit">生成</button></span></div>
-        </div>
-        <p class="local-edit-error" id="localEditError" hidden></p>
       </div>
     </div>
   </section>
 </div>
 
 <div class="toast" id="toast"></div>
-<script src="shared.js?v=20260902-126000"></script>
-<script src="assets-page.js?v=20260902-126000"></script>
+<script src="shared.js?v=20260902-128000"></script>
+<script src="assets-page.js?v=20260902-128000"></script>
 </body>
 </html>

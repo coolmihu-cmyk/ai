@@ -25,7 +25,7 @@ function cleanItem(value){
   const createdAt=new Date(value.createdAt||Date.now());
   const id=String(value.id).replace(/[^a-zA-Z0-9_-]/g,'').slice(0,80);
   if(!id||Number.isNaN(createdAt.getTime()))throw new Error('历史记录格式无效。');
-  return {id,url:url.href,cosKey:String(value.cosKey||'').slice(0,600),archived:true,type:'image',createdAt:createdAt.toISOString(),prompt:String(value.prompt||'').slice(0,3000),model:String(value.model||'gpt').slice(0,64),settings:value.settings&&typeof value.settings==='object'?value.settings:{}};
+  return {id,url:url.href,cosKey:String(value.cosKey||'').slice(0,600),archived:true,type:'image',createdAt:createdAt.toISOString(),prompt:String(value.prompt||'').slice(0,3000),model:String(value.model||'gpt').slice(0,64),settings:value.settings&&typeof value.settings==='object'?value.settings:{},editRootId:String(value.editRootId||'').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,80),editGroupId:String(value.editGroupId||'').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,100)};
 }
 function recordKey(token,item){
   const order=String(Math.max(0,9999999999999-new Date(item.createdAt).getTime())).padStart(13,'0');

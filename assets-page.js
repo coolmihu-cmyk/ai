@@ -26,7 +26,7 @@ const localEdit={
   prompt:$('#localEditPrompt'),promptCount:$('#localEditPromptCount'),clearPrompt:$('#localEditClearPrompt'),extractPrompt:$('#localEditExtractPrompt'),error:$('#localEditError'),submit:$('#localEditSubmit'),
   modelSelect:$('#localEditModel'),ratioSelect:$('#localEditRatio'),resolutionSelect:$('#localEditResolution'),
   thread:$('#localEditThread'),status:$('#localEditStatus'),versionsNode:$('#localEditVersions'),
-  item:null,model:'gpt',ratio:'1:1',resolution:'1k',submitting:false,lastFocus:null,versions:[],messages:[]
+  item:null,model:'gpt',ratio:'1:1',resolution:'1k',editRootId:null,editGroupId:null,submitting:false,lastFocus:null,versions:[],messages:[]
 };
 
 function localEditSetError(message=''){localEdit.error.hidden=!message;localEdit.error.textContent=message}
@@ -91,7 +91,7 @@ function loadLocalEditImage(item,{focus=false}={}){
 }
 function openLocalEdit(item,trigger){
   if(assetExpiry(item).expired){toast('原图已过期，无法编辑');return}
-  localEdit.lastFocus=trigger||document.activeElement;localEdit.versions=[item];localEdit.messages=[];
+  localEdit.lastFocus=trigger||document.activeElement;localEdit.versions=[item];localEdit.editRootId=String(item.editRootId||item.id);localEdit.editGroupId=item.editGroupId||'edit-'+localEdit.editRootId;localEdit.messages=[];
   localEditSetInitialSettings(item);localEditSetError();localEditSetStatus('');localEditRenderThread();localEditRenderVersions();
   localEdit.layer.hidden=false;document.body.classList.add('local-edit-open');
   loadLocalEditImage(item,{focus:true}).catch(()=>{});
@@ -125,11 +125,11 @@ async function submitLocalEdit(){
     const itemId=Date.now(),createdAt=new Date().toISOString();let archived=false,historyKey='';
     if(Archive.isAvailable()){
       try{
-        const archive=await Archive.image(url,{id:itemId,prompt,model:localEdit.model,settings:{ratio:localEdit.ratio,resolution:localEdit.resolution},createdAt,type:'image'});
+        const archive=await Archive.image(url,{id:itemId,prompt,model:localEdit.model,settings:{ratio:localEdit.ratio,resolution:localEdit.resolution},editRootId:localEdit.editRootId,editGroupId:localEdit.editGroupId,createdAt,type:'image'});
         url=archive.url;archived=true;historyKey=archive.historyKey||'';
       }catch(error){console.warn('图片编辑归档失败',error);localEditSetStatus('新版本已生成，但永久归档失败；请及时下载。')}
     }
-    const version={id:itemId,url,prompt,model:localEdit.model,settings:{ratio:localEdit.ratio,resolution:localEdit.resolution},archived,historyKey,createdAt,type:'image'};
+    const version={id:itemId,url,prompt,model:localEdit.model,settings:{ratio:localEdit.ratio,resolution:localEdit.resolution},editRootId:localEdit.editRootId,editGroupId:localEdit.editGroupId,archived,historyKey,createdAt,type:'image'};
     await History.save(version);assetItems=sortAssets([version,...assetItems.filter(asset=>asset.id!==version.id)]);renderAssets();
     localEdit.versions.push(version);localEdit.messages.push({role:'assistant',text:'新版本已生成。你可以继续描述下一步修改，或点击左侧缩略图回到任一旧版本。'});localEditRenderThread();
     localEdit.prompt.value='';localEditUpdatePromptCount();localEditSetStatus('第 '+(localEdit.versions.length-1)+' 版已就绪，可继续编辑。');
@@ -296,13 +296,26 @@ function sendAssetToComposer(item){
     navigateWithLoading('index.html');
   }catch(_){toast('无法带入图片，请重试')}
 }
+function buildEditGroupCard(root,edits){
+  const versions=[root,...edits].sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0)),latest=versions[versions.length-1];
+  const card=document.createElement('article');card.className='asset-card asset-edit-group';card.dataset.assetId=root.id;
+  const media=document.createElement('button');media.type='button';media.className='asset-group-media';media.title='查看图组最新图片';media.onclick=()=>openImage(latest.url);
+  versions.slice(-4).forEach(version=>{const image=document.createElement('img');image.src=ImageDelivery.thumbnail(version.url);image.alt='';image.loading='lazy';image.decoding='async';media.appendChild(image)});
+  const badge=document.createElement('span');badge.className='asset-group-badge';badge.textContent='图组 · '+versions.length+' 张';media.appendChild(badge);
+  const actions=document.createElement('div');actions.className='asset-actions';
+  const edit=document.createElement('button');edit.type='button';edit.className='asset-local-edit';edit.title='继续编辑最新版本';edit.setAttribute('aria-label','继续编辑最新版本');edit.appendChild(assetIcon(['M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3Z','m13-13 3 3']));edit.onclick=()=>openLocalEdit(latest,edit);actions.appendChild(edit);
+  card.append(media,actions);return card;
+}
 function renderAssets(){
   assetsEls.grid.innerHTML='';
   syncAssetsSummary();
   if(!assetItems.length)return;
   const fragment=document.createDocumentFragment();
+  const editGroups=new Map(),rootIds=new Set(assetItems.map(item=>String(item.id)));
+  assetItems.forEach(item=>{if(item.editRootId&&rootIds.has(String(item.editRootId))){const key=String(item.editRootId);if(!editGroups.has(key))editGroups.set(key,[]);editGroups.get(key).push(item)}});
   let currentDayKey='',dayGrid=null;
   for(const item of assetItems){
+    if(item.editRootId&&rootIds.has(String(item.editRootId)))continue;
     const day=assetDay(item.createdAt);
     if(day.key!==currentDayKey){
       currentDayKey=day.key;
@@ -315,6 +328,8 @@ function renderAssets(){
       dayGrid=document.createElement('div');dayGrid.className='asset-date-grid';
       group.append(heading,dayGrid);fragment.appendChild(group);
     }
+    const edits=editGroups.get(String(item.id));
+    if(edits?.length){dayGrid.appendChild(buildEditGroupCard(item,edits));continue}
     const expiry=assetExpiry(item);
     const card=document.createElement('article');card.className='asset-card'+(expiry.expired?' is-expired':'');card.dataset.assetId=item.id;
     const media=document.createElement('button');
