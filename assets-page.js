@@ -18,13 +18,12 @@ const assetsEls={
 let assetItems=[],generationElapsedTimer=null,queueAdvancing=false;
 let unavailableAssetIds=new Set(),assetImageObserver=null;
 const REFERENCE_LIBRARY_KEY='mihu-reference-library-v1',REFERENCE_LIBRARY_LIMIT=300;
-const LOCAL_EDIT_MODEL_LABELS={gpt:'GPT',nano:'NBPRO',seedream:'SDPRO'};
 
 const localEdit={
   layer:$('#localEditLayer'),close:$('#localEditClose'),image:$('#localEditImage'),
   loading:$('#localEditLoading'),download:$('#localEditDownload'),
   prompt:$('#localEditPrompt'),promptCount:$('#localEditPromptCount'),upload:$('#localEditUpload'),fileInput:$('#localEditFileInput'),error:$('#localEditError'),submit:$('#localEditSubmit'),
-  modelSelect:$('#localEditModel'),modelPicker:$('#localEditModelPicker'),modelTrigger:$('#localEditModelTrigger'),modelMenu:$('#localEditModelMenu'),ratioSelect:$('#localEditRatio'),resolutionSelect:$('#localEditResolution'),resolutionPicker:$('#localEditResolutionPicker'),resolutionTrigger:$('#localEditResolutionTrigger'),resolutionMenu:$('#localEditResolutionMenu'),
+  modelSelect:$('#localEditModel'),modelPicker:$('#localEditModelPicker'),modelTrigger:$('#localEditModelTrigger'),modelMenu:$('#localEditModelMenu'),ratioSelect:$('#localEditRatio'),ratioPicker:$('#localEditRatioPicker'),ratioTrigger:$('#localEditRatioTrigger'),ratioMenu:$('#localEditRatioMenu'),resolutionSelect:$('#localEditResolution'),resolutionPicker:$('#localEditResolutionPicker'),resolutionTrigger:$('#localEditResolutionTrigger'),resolutionMenu:$('#localEditResolutionMenu'),
   thread:$('#localEditThread'),status:$('#localEditStatus'),versionsNode:$('#localEditVersions'),
   item:null,model:'gpt',ratio:'1:1',resolution:'1k',editRootId:null,editGroupId:null,referenceData:null,submitting:false,lastFocus:null,versions:[],messages:[]
 };
@@ -36,27 +35,25 @@ function localEditModelKey(value){return MODEL_CONFIG[value]?value:'gpt'}
 function localEditUpdatePromptCount(){localEdit.promptCount.textContent=localEdit.prompt.value.length+'/'+localEdit.prompt.maxLength}
 function localEditRenderModelPicker(){
   const current=MODEL_CONFIG[localEdit.model];
-  const icon=document.createElement('img');icon.src=current.icon;icon.alt='';icon.className='model-mark model-mark-'+localEdit.model;
-  const label=document.createElement('span');label.textContent=LOCAL_EDIT_MODEL_LABELS[localEdit.model];localEdit.modelTrigger.replaceChildren(icon,label);
+  localEdit.modelTrigger.textContent=current.name;
   localEdit.modelTrigger.title=current.name;localEdit.modelTrigger.setAttribute('aria-label','编辑模型：'+current.name);
   localEdit.modelMenu.replaceChildren(...Object.entries(MODEL_CONFIG).map(([key,config])=>{
-    const button=document.createElement('button');button.type='button';button.setAttribute('role','option');button.setAttribute('aria-selected',String(key===localEdit.model));button.title=config.name;button.setAttribute('aria-label',config.name);
-    const optionIcon=document.createElement('img');optionIcon.src=config.icon;optionIcon.alt='';optionIcon.className='model-mark model-mark-'+key;
-    const optionLabel=document.createElement('span');optionLabel.textContent=LOCAL_EDIT_MODEL_LABELS[key];button.append(optionIcon,optionLabel);
+    const button=document.createElement('button');button.type='button';button.textContent=config.name;button.setAttribute('role','option');button.setAttribute('aria-selected',String(key===localEdit.model));button.title=config.name;button.setAttribute('aria-label',config.name);
     button.onclick=()=>{localEdit.model=key;localEdit.modelSelect.value=key;localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');localEditSyncSettings()};return button;
   }));
 }
-function localEditResolutionIcon(value){
-  const icons={'1k':'icon/resolution-1k-plain.svg','1K':'icon/resolution-1k-plain.svg','1.5K':'icon/resolution-1k-plus-plain.svg','2k':'icon/resolution-2k-plain.svg','2K':'icon/resolution-2k-plain.svg','4k':'icon/resolution-4k-plain.svg','4K':'icon/resolution-4k-plain.svg'};
-  return icons[value]||icons['1k'];
+function localEditRenderRatioPicker(config){
+  localEdit.ratioTrigger.textContent=localEdit.ratio;localEdit.ratioTrigger.title=localEdit.ratio;localEdit.ratioTrigger.setAttribute('aria-label','编辑比例：'+localEdit.ratio);
+  localEdit.ratioMenu.replaceChildren(...config.ratios.map(value=>{
+    const button=document.createElement('button');button.type='button';button.textContent=value;button.setAttribute('role','option');button.setAttribute('aria-selected',String(value===localEdit.ratio));button.title=value;
+    button.onclick=()=>{localEdit.ratio=value;localEdit.ratioSelect.value=value;localEdit.ratioPicker.classList.remove('open');localEdit.ratioTrigger.setAttribute('aria-expanded','false');localEditRenderRatioPicker(config)};return button;
+  }));
 }
 function localEditRenderResolutionPicker(config){
   const current=config.resolutions.find(item=>item.v===localEdit.resolution)||config.resolutions[0];
-  const icon=document.createElement('img');icon.src=localEditResolutionIcon(current.v);icon.alt='';
-  localEdit.resolutionTrigger.replaceChildren(icon);localEdit.resolutionTrigger.title=current.v;localEdit.resolutionTrigger.setAttribute('aria-label','编辑分辨率：'+current.v);
+  localEdit.resolutionTrigger.textContent=current.v.toUpperCase();localEdit.resolutionTrigger.title=current.v;localEdit.resolutionTrigger.setAttribute('aria-label','编辑分辨率：'+current.v);
   localEdit.resolutionMenu.replaceChildren(...config.resolutions.map(item=>{
-    const button=document.createElement('button');button.type='button';button.setAttribute('role','option');button.setAttribute('aria-selected',String(item.v===localEdit.resolution));button.title=item.v;button.setAttribute('aria-label',item.v);
-    const optionIcon=document.createElement('img');optionIcon.src=localEditResolutionIcon(item.v);optionIcon.alt='';button.append(optionIcon);
+    const button=document.createElement('button');button.type='button';button.textContent=item.v.toUpperCase();button.setAttribute('role','option');button.setAttribute('aria-selected',String(item.v===localEdit.resolution));button.title=item.v;button.setAttribute('aria-label',item.v);
     button.onclick=()=>{localEdit.resolution=item.v;localEdit.resolutionSelect.value=item.v;localEdit.resolutionPicker.classList.remove('open');localEdit.resolutionTrigger.setAttribute('aria-expanded','false');localEditRenderResolutionPicker(config)};return button;
   }));
 }
@@ -66,7 +63,7 @@ function localEditSyncSettings(){
   if(!config.resolutions.some(option=>option.v===localEdit.resolution))localEdit.resolution=config.defaultResolution||config.resolutions[0]?.v||'';
   localEdit.modelSelect.replaceChildren(...Object.keys(MODEL_CONFIG).map(key=>new Option(key[0].toUpperCase(),key,key===localEdit.model,key===localEdit.model)));
   localEditRenderModelPicker();
-  localEdit.ratioSelect.replaceChildren(...config.ratios.map(value=>new Option(value,value,value===localEdit.ratio,value===localEdit.ratio)));
+  localEdit.ratioSelect.replaceChildren(...config.ratios.map(value=>new Option(value,value,value===localEdit.ratio,value===localEdit.ratio)));localEditRenderRatioPicker(config);
   localEdit.resolutionSelect.replaceChildren(...config.resolutions.map(item=>new Option(item.v.toUpperCase(),item.v,item.v===localEdit.resolution,item.v===localEdit.resolution)));localEditRenderResolutionPicker(config);
   localEdit.prompt.maxLength=config.promptLimit;localEdit.prompt.value=localEdit.prompt.value.slice(0,config.promptLimit);localEditUpdatePromptCount();
 }
@@ -180,14 +177,15 @@ localEdit.fileInput.onchange=async()=>{
   try{localEdit.referenceData=await fileToDataURI(file);localEdit.upload.classList.add('is-attached');localEdit.upload.setAttribute('aria-label','已添加参考图片，点击替换');localEdit.upload.title='已添加参考图片，点击替换';localEditSetError();toast('已添加参考图片')}
   catch(_){localEditSetError('参考图片读取失败，请重试。')}
 };
-localEdit.modelTrigger.onclick=event=>{event.stopPropagation();const opening=!localEdit.modelPicker.classList.contains('open');localEdit.modelPicker.classList.toggle('open',opening);localEdit.modelTrigger.setAttribute('aria-expanded',String(opening))};
-localEdit.resolutionTrigger.onclick=event=>{event.stopPropagation();const opening=!localEdit.resolutionPicker.classList.contains('open');localEdit.resolutionPicker.classList.toggle('open',opening);localEdit.resolutionTrigger.setAttribute('aria-expanded',String(opening))};
+localEdit.modelTrigger.onclick=event=>{event.stopPropagation();const opening=!localEdit.modelPicker.classList.contains('open');localEdit.ratioPicker.classList.remove('open');localEdit.resolutionPicker.classList.remove('open');localEdit.ratioTrigger.setAttribute('aria-expanded','false');localEdit.resolutionTrigger.setAttribute('aria-expanded','false');localEdit.modelPicker.classList.toggle('open',opening);localEdit.modelTrigger.setAttribute('aria-expanded',String(opening))};
+localEdit.ratioTrigger.onclick=event=>{event.stopPropagation();const opening=!localEdit.ratioPicker.classList.contains('open');localEdit.modelPicker.classList.remove('open');localEdit.resolutionPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');localEdit.resolutionTrigger.setAttribute('aria-expanded','false');localEdit.ratioPicker.classList.toggle('open',opening);localEdit.ratioTrigger.setAttribute('aria-expanded',String(opening))};
+localEdit.resolutionTrigger.onclick=event=>{event.stopPropagation();const opening=!localEdit.resolutionPicker.classList.contains('open');localEdit.modelPicker.classList.remove('open');localEdit.ratioPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');localEdit.ratioTrigger.setAttribute('aria-expanded','false');localEdit.resolutionPicker.classList.toggle('open',opening);localEdit.resolutionTrigger.setAttribute('aria-expanded',String(opening))};
 localEdit.modelSelect.onchange=()=>{localEdit.model=localEditModelKey(localEdit.modelSelect.value);localEditSyncSettings()};
-localEdit.ratioSelect.onchange=()=>{localEdit.ratio=localEdit.ratioSelect.value};
+localEdit.ratioSelect.onchange=()=>{localEdit.ratio=localEdit.ratioSelect.value;localEditRenderRatioPicker(MODEL_CONFIG[localEdit.model])};
 localEdit.resolutionSelect.onchange=()=>{localEdit.resolution=localEdit.resolutionSelect.value;localEditRenderResolutionPicker(MODEL_CONFIG[localEdit.model])};
 localEdit.close.onclick=closeLocalEdit;localEdit.submit.onclick=submitLocalEdit;
 localEdit.download.onclick=()=>{if(localEdit.item)downloadImage(localEdit.item.url)};
-localEdit.layer.addEventListener('pointerdown',event=>{if(event.target===localEdit.layer)closeLocalEdit()});document.addEventListener('click',()=>{localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');localEdit.resolutionPicker.classList.remove('open');localEdit.resolutionTrigger.setAttribute('aria-expanded','false')});document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!localEdit.layer.hidden){localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');localEdit.resolutionPicker.classList.remove('open');localEdit.resolutionTrigger.setAttribute('aria-expanded','false');closeLocalEdit()}});
+localEdit.layer.addEventListener('pointerdown',event=>{if(event.target===localEdit.layer)closeLocalEdit()});document.addEventListener('click',()=>{localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');localEdit.ratioPicker.classList.remove('open');localEdit.ratioTrigger.setAttribute('aria-expanded','false');localEdit.resolutionPicker.classList.remove('open');localEdit.resolutionTrigger.setAttribute('aria-expanded','false')});document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!localEdit.layer.hidden){localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');localEdit.ratioPicker.classList.remove('open');localEdit.ratioTrigger.setAttribute('aria-expanded','false');localEdit.resolutionPicker.classList.remove('open');localEdit.resolutionTrigger.setAttribute('aria-expanded','false');closeLocalEdit()}});
 
 function sortAssets(items){
   return items.sort((a,b)=>{
@@ -303,15 +301,8 @@ async function renderTaskCenter(){
     row.append(copy,actions);assetsEls.taskList.appendChild(row);
   }
 }
-function assetIcon(paths){
-  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
-  svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('fill','none');
-  svg.setAttribute('stroke','currentColor');svg.setAttribute('stroke-width','1.8');
-  for(const d of paths){
-    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-    path.setAttribute('d',d);svg.appendChild(path);
-  }
-  return svg;
+function assetImageIcon(name){
+  const image=document.createElement('img');image.src='icon/asset-'+name+'.svg';image.alt='';image.setAttribute('aria-hidden','true');return image;
 }
 function favoriteAsset(item){
   try{
@@ -346,7 +337,7 @@ async function deleteAssetRecords(items,button){
     const results=await Promise.all(items.map(item=>History.delete(item.id)));
     if(results.some(result=>!result))throw new Error('删除失败');
     assetItems=assetItems.filter(item=>!ids.has(String(item.id)));renderAssets();
-    toast(items.length>1?'已删除图组':'已删除记录');
+    toast(items.length>1?'已删除图组记录和文件':'已删除记录和文件');
   }catch(error){
     console.warn('历史删除失败',error);button.disabled=false;toast('删除失败，请稍后重试');
   }
@@ -358,9 +349,9 @@ function buildEditGroupCard(root,edits){
   const image=document.createElement('img');image.src=ImageDelivery.thumbnail(root.url);image.alt='原始图片';image.loading='lazy';image.decoding='async';media.appendChild(image);
   const badge=document.createElement('span');badge.className='asset-group-badge';badge.textContent='图组 · '+versions.length+' 张';media.appendChild(badge);
   const actions=document.createElement('div');actions.className='asset-actions';
-  const edit=document.createElement('button');edit.type='button';edit.className='asset-local-edit';edit.title='恢复图组对话';edit.setAttribute('aria-label','恢复图组对话');edit.appendChild(assetIcon(['M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3Z','m13-13 3 3']));edit.onclick=()=>openLocalEditGroup(root,edits,edit);actions.appendChild(edit);
-  const remove=document.createElement('button');remove.type='button';remove.className='asset-delete';remove.title='删除整个图组';remove.setAttribute('aria-label','删除整个图组');remove.appendChild(assetIcon(['M4 7h16','M9 7V5h6v2','M7 7l1 13h8l1-13','M10 11v5','M14 11v5']));
-  remove.onclick=()=>{if(confirm('删除这个图组及其全部 '+versions.length+' 张图片记录？'))deleteAssetRecords(versions,remove)};actions.appendChild(remove);
+  const edit=document.createElement('button');edit.type='button';edit.className='asset-local-edit';edit.title='恢复图组对话';edit.setAttribute('aria-label','恢复图组对话');edit.appendChild(assetImageIcon('edit'));edit.onclick=()=>openLocalEditGroup(root,edits,edit);actions.appendChild(edit);
+  const remove=document.createElement('button');remove.type='button';remove.className='asset-delete';remove.title='删除图组记录和文件';remove.setAttribute('aria-label','删除图组记录和文件');remove.appendChild(assetImageIcon('delete'));
+  remove.onclick=()=>{if(confirm('删除这个图组的全部 '+versions.length+' 张图片、记录和 COS 文件？'))deleteAssetRecords(versions,remove)};actions.appendChild(remove);
   card.append(media,actions);return card;
 }
 function renderAssets(){
@@ -400,17 +391,17 @@ function renderAssets(){
     meta.append(model);
     const actions=document.createElement('div');actions.className='asset-actions';
     const favorite=document.createElement('button');favorite.type='button';favorite.className='asset-favorite';favorite.title='收藏到参考';
-    favorite.setAttribute('aria-label','收藏到参考');favorite.appendChild(assetIcon(['M12 20.5 4.8 16A5 5 0 0 1 12 9.1 5 5 0 0 1 19.2 16L12 20.5Z']));favorite.onclick=()=>favoriteAsset(item);actions.appendChild(favorite);
+    favorite.setAttribute('aria-label','收藏到参考');favorite.appendChild(assetImageIcon('favorite'));favorite.onclick=()=>favoriteAsset(item);meta.append(favorite);
     const edit=document.createElement('button');edit.type='button';edit.className='asset-local-edit';edit.title='编辑图片';edit.setAttribute('aria-label','编辑图片');
-    edit.appendChild(assetIcon(['M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3Z','m13-13 3 3']));
+    edit.appendChild(assetImageIcon('edit'));
     edit.onclick=()=>openLocalEdit(item,edit);actions.appendChild(edit);
     const send=document.createElement('button');send.type='button';send.className='asset-send';send.title='重新生成';send.setAttribute('aria-label','重新生成');
-    send.appendChild(assetIcon(['M20 11a8 8 0 0 0-14.9-4L3 10','M3 4v6h6','M4 13a8 8 0 0 0 14.9 4L21 14','M21 20v-6h-6']));
+    send.appendChild(assetImageIcon('redo'));
     send.onclick=()=>sendAssetToComposer(item);actions.appendChild(send);
     const download=document.createElement('button');download.type='button';download.className='asset-download';download.title='下载图片';download.setAttribute('aria-label','下载图片');
-    download.appendChild(assetIcon(['M12 3v11','m7.5 10.5 4.5 4.5 4.5-4.5','M5 20h14']));download.onclick=()=>downloadImage(item.url);actions.appendChild(download);
-    const remove=document.createElement('button');remove.type='button';remove.className='asset-delete';remove.title='删除记录';
-    remove.appendChild(assetIcon(['M4 7h16','M9 7V5h6v2','M7 7l1 13h8l1-13','M10 11v5','M14 11v5']));
+    download.appendChild(assetImageIcon('download'));download.onclick=()=>downloadImage(item.url);actions.appendChild(download);
+    const remove=document.createElement('button');remove.type='button';remove.className='asset-delete';remove.title='删除记录和文件';remove.setAttribute('aria-label','删除记录和文件');
+    remove.appendChild(assetImageIcon('delete'));
     remove.onclick=()=>deleteAssetRecords([item],remove);
     actions.appendChild(remove);card.append(media,meta,actions);dayGrid.appendChild(card);
   }
