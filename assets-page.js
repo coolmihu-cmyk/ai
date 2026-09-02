@@ -5,7 +5,7 @@ const ASSET_MODEL_NAMES=Object.fromEntries(
 );
 ASSET_MODEL_NAMES.midjourney='Midjourney';
 ASSET_MODEL_NAMES.grok='Grok';
-ASSET_MODEL_NAMES.inpaint='GPT · 局部编辑';
+ASSET_MODEL_NAMES.edit='GPT Image2 · 图片编辑';
 const assetsEls={
   grid:$('#assetsGrid'),loading:$('#assetsLoading'),empty:$('#assetsEmpty'),count:$('#assetsCount'),
   generation:$('#assetsGeneration'),generationModel:$('#assetsGenerationModel'),
@@ -18,42 +18,51 @@ const assetsEls={
 let assetItems=[],generationElapsedTimer=null,queueAdvancing=false;
 let unavailableAssetIds=new Set(),assetImageObserver=null;
 const REFERENCE_LIBRARY_KEY='mihu-reference-library-v1',REFERENCE_LIBRARY_LIMIT=300;
-const LOCAL_EDIT_MODEL='gpt-image-2-official';
+const LOCAL_EDIT_REVERSE_SYSTEM='你是一名严谨的图像反推助手。只根据输入图片，写出一段可直接用于 AI 图片编辑的完整中文提示词。提取真实可见的主体、构图、空间层次、光线、色彩、材质与成像质感；不要猜测不可见细节，不要抄写水印、署名或来源标记。只输出最终提示词，不要标题、分析或解释。';
 
 const localEdit={
-  layer:$('#localEditLayer'),close:$('#localEditClose'),cancel:$('#localEditCancel'),image:$('#localEditImage'),
-  canvas:$('#localEditCanvas'),loading:$('#localEditLoading'),brush:$('#localEditBrush'),eraser:$('#localEditEraser'),
-  size:$('#localEditSize'),sizeValue:$('#localEditSizeValue'),undo:$('#localEditUndo'),clear:$('#localEditClear'),
-  prompt:$('#localEditPrompt'),promptCount:$('#localEditPromptCount'),error:$('#localEditError'),submit:$('#localEditSubmit'),
-  item:null,tool:'brush',strokes:[],activeStroke:null,maskCanvas:document.createElement('canvas'),ratio:'1:1',submitting:false,lastFocus:null
+  layer:$('#localEditLayer'),close:$('#localEditClose'),image:$('#localEditImage'),
+  loading:$('#localEditLoading'),
+  prompt:$('#localEditPrompt'),promptCount:$('#localEditPromptCount'),clearPrompt:$('#localEditClearPrompt'),extractPrompt:$('#localEditExtractPrompt'),error:$('#localEditError'),submit:$('#localEditSubmit'),
+  modelSelect:$('#localEditModel'),ratioSelect:$('#localEditRatio'),resolutionSelect:$('#localEditResolution'),
+  thread:$('#localEditThread'),status:$('#localEditStatus'),versionsNode:$('#localEditVersions'),
+  item:null,model:'gpt',ratio:'1:1',resolution:'1k',submitting:false,lastFocus:null,versions:[],messages:[]
 };
 
 function localEditSetError(message=''){localEdit.error.hidden=!message;localEdit.error.textContent=message}
-function localEditSetTool(tool){
-  localEdit.tool=tool;const brush=tool==='brush';
-  localEdit.brush.classList.toggle('is-active',brush);localEdit.brush.setAttribute('aria-pressed',String(brush));
-  localEdit.eraser.classList.toggle('is-active',!brush);localEdit.eraser.setAttribute('aria-pressed',String(!brush));
+function localEditSetStatus(message=''){localEdit.status.textContent=message}
+function localEditModelKey(value){return MODEL_CONFIG[value]?value:'gpt'}
+function localEditUpdatePromptCount(){localEdit.promptCount.textContent=localEdit.prompt.value.length+'/'+localEdit.prompt.maxLength}
+function localEditSyncSettings(){
+  const config=MODEL_CONFIG[localEdit.model];
+  if(!config.ratios.includes(localEdit.ratio))localEdit.ratio=config.ratios.includes('auto')?'auto':config.ratios[0];
+  if(!config.resolutions.some(option=>option.v===localEdit.resolution))localEdit.resolution=config.defaultResolution||config.resolutions[0]?.v||'';
+  localEdit.modelSelect.replaceChildren(...Object.entries(MODEL_CONFIG).map(([key,item])=>new Option(item.name,key,key===localEdit.model,key===localEdit.model)));
+  localEdit.ratioSelect.replaceChildren(...config.ratios.map(value=>new Option(value,value,value===localEdit.ratio,value===localEdit.ratio)));
+  localEdit.resolutionSelect.replaceChildren(...config.resolutions.map(item=>new Option(item.v+' · '+item.l,item.v,item.v===localEdit.resolution,item.v===localEdit.resolution)));
+  localEdit.prompt.maxLength=config.promptLimit;localEdit.prompt.value=localEdit.prompt.value.slice(0,config.promptLimit);localEditUpdatePromptCount();
 }
-function localEditDrawStroke(context,stroke,isMask){
-  if(!stroke.points.length)return;
-  const scale=localEdit.canvas.width/Math.max(1,localEdit.canvas.getBoundingClientRect().width);
-  context.save();context.lineCap='round';context.lineJoin='round';context.lineWidth=stroke.size*scale;
-  if(isMask){context.globalCompositeOperation=stroke.tool==='brush'?'destination-out':'source-over';context.strokeStyle='#000';context.fillStyle='#000'}
-  else{context.globalCompositeOperation=stroke.tool==='brush'?'source-over':'destination-out';context.strokeStyle='rgba(255,74,74,.68)';context.fillStyle='rgba(255,74,74,.68)'}
-  const first=stroke.points[0];context.beginPath();context.arc(first.x,first.y,context.lineWidth/2,0,Math.PI*2);context.fill();
-  if(stroke.points.length>1){context.beginPath();context.moveTo(first.x,first.y);for(const point of stroke.points.slice(1))context.lineTo(point.x,point.y);context.stroke()}
-  context.restore();
+function localEditSetInitialSettings(item){
+  const config=MODEL_CONFIG[localEditModelKey(item.model)],settings=item.settings||{};
+  localEdit.model=localEditModelKey(item.model);
+  localEdit.ratio=config.ratios.includes(settings.ratio)?settings.ratio:(config.ratios.includes('auto')?'auto':config.ratios[0]);
+  localEdit.resolution=config.resolutions.some(option=>option.v===settings.resolution)?settings.resolution:(config.defaultResolution||config.resolutions[0]?.v||'');
+  localEdit.prompt.value='';localEditSyncSettings();
 }
-function localEditRenderMask(){
-  const visible=localEdit.canvas.getContext('2d'),mask=localEdit.maskCanvas.getContext('2d');
-  visible.clearRect(0,0,localEdit.canvas.width,localEdit.canvas.height);
-  mask.globalCompositeOperation='source-over';mask.fillStyle='#000';mask.fillRect(0,0,localEdit.maskCanvas.width,localEdit.maskCanvas.height);
-  for(const stroke of localEdit.strokes){localEditDrawStroke(visible,stroke,false);localEditDrawStroke(mask,stroke,true)}
-  localEdit.undo.disabled=!localEdit.strokes.length;localEdit.clear.disabled=!localEdit.strokes.length;
+function localEditRenderThread(){
+  localEdit.thread.replaceChildren(...localEdit.messages.map(message=>{
+    const node=document.createElement('p');node.className='local-edit-message is-'+message.role;node.textContent=message.text;return node;
+  }));
+  localEdit.thread.scrollTop=localEdit.thread.scrollHeight;
 }
-function localEditPoint(event){
-  const rect=localEdit.canvas.getBoundingClientRect();
-  return {x:(event.clientX-rect.left)*localEdit.canvas.width/rect.width,y:(event.clientY-rect.top)*localEdit.canvas.height/rect.height};
+function localEditRenderVersions(){
+  localEdit.versionsNode.replaceChildren(...localEdit.versions.map((version,index)=>{
+    const button=document.createElement('button');button.type='button';button.className='local-edit-version'+(version===localEdit.item?' is-current':'');
+    button.title=index===0?'原图':'第 '+index+' 版';button.setAttribute('aria-label',button.title);
+    const image=document.createElement('img');image.src=ImageDelivery.thumbnail(version.url);image.alt='';button.append(image);
+    const label=document.createElement('span');label.textContent=index===0?'原':'V'+index;button.append(label);
+    button.onclick=()=>{if(!localEdit.submitting)loadLocalEditImage(version,{focus:true}).catch(()=>{})};return button;
+  }));
 }
 function localEditClosestRatio(width,height){
   const ratios=['1:1','3:2','2:3','4:3','3:4','5:4','4:5','16:9','9:16','2:1','1:2','3:1','1:3','21:9','9:21'];
@@ -63,77 +72,83 @@ function localEditClosestRatio(width,height){
     return Math.abs(Math.log(w/h/target))<Math.abs(Math.log(best.value/target))?{name:ratio,value:w/h}:best;
   },{name:'1:1',value:1}).name;
 }
-function localEditFitCanvas(){
-  if(localEdit.canvas.hidden||!localEdit.image.naturalWidth)return;
-  const stage=localEdit.image.parentElement.getBoundingClientRect(),ratio=localEdit.image.naturalWidth/localEdit.image.naturalHeight;
-  let width=stage.width,height=width/ratio;
-  if(height>stage.height){height=stage.height;width=height*ratio}
-  localEdit.canvas.style.width=width+'px';localEdit.canvas.style.height=height+'px';
-  localEdit.canvas.style.left=(stage.width-width)/2+'px';localEdit.canvas.style.top=(stage.height-height)/2+'px';
-}
 function closeLocalEdit(){
   if(localEdit.submitting)return;
-  localEdit.layer.hidden=true;document.body.classList.remove('local-edit-open');localEdit.item=null;localEdit.image.removeAttribute('src');localEdit.lastFocus?.focus?.();
+  localEdit.layer.hidden=true;document.body.classList.remove('local-edit-open');localEdit.item=null;localEdit.versions=[];localEdit.messages=[];localEdit.image.removeAttribute('src');localEdit.lastFocus?.focus?.();
+}
+function loadLocalEditImage(item,{focus=false}={}){
+  return new Promise((resolve,reject)=>{
+    localEdit.item=item;localEdit.loading.hidden=false;localEdit.submit.disabled=true;localEditRenderVersions();
+    localEdit.image.onload=()=>{
+      const width=localEdit.image.naturalWidth,height=localEdit.image.naturalHeight;
+      if(!width||!height){const error=new Error('无法读取图片尺寸。');localEditSetError(error.message);reject(error);return}
+      localEdit.loading.hidden=true;localEdit.submit.disabled=false;localEditRenderVersions();
+      if(focus)localEdit.prompt.focus();resolve();
+    };
+    localEdit.image.onerror=()=>{const error=new Error('图片加载失败，可能已经过期。');localEdit.loading.hidden=true;localEditSetError(error.message);localEdit.submit.disabled=true;reject(error)};
+    localEdit.image.src=item.url;
+  });
 }
 function openLocalEdit(item,trigger){
-  if(assetExpiry(item).expired){toast('原图已过期，无法局部编辑');return}
-  localEdit.lastFocus=trigger||document.activeElement;localEdit.item=item;localEdit.strokes=[];localEdit.activeStroke=null;
-  localEdit.prompt.value='';localEdit.promptCount.textContent='0/3000';localEditSetTool('brush');localEditSetError();
-  localEdit.loading.hidden=false;localEdit.canvas.hidden=true;localEdit.submit.disabled=true;localEdit.layer.hidden=false;document.body.classList.add('local-edit-open');
-  localEdit.image.onload=()=>{
-    const width=localEdit.image.naturalWidth,height=localEdit.image.naturalHeight;
-    if(!width||!height){localEditSetError('无法读取原图尺寸。');return}
-    localEdit.canvas.width=width;localEdit.canvas.height=height;localEdit.maskCanvas.width=width;localEdit.maskCanvas.height=height;localEdit.ratio=localEditClosestRatio(width,height);
-    localEdit.canvas.hidden=false;localEdit.loading.hidden=true;localEdit.submit.disabled=false;localEditFitCanvas();localEditRenderMask();localEdit.canvas.focus();
-  };
-  localEdit.image.onerror=()=>{localEdit.loading.hidden=true;localEditSetError('原图加载失败，可能已经过期。');localEdit.submit.disabled=true};
-  localEdit.image.src=item.url;
+  if(assetExpiry(item).expired){toast('原图已过期，无法编辑');return}
+  localEdit.lastFocus=trigger||document.activeElement;localEdit.versions=[item];localEdit.messages=[];
+  localEditSetInitialSettings(item);localEditSetError();localEditSetStatus('');localEditRenderThread();localEditRenderVersions();
+  localEdit.layer.hidden=false;document.body.classList.add('local-edit-open');
+  loadLocalEditImage(item,{focus:true}).catch(()=>{});
 }
-function canvasToBlob(canvas){return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('无法生成蒙版图片。')),'image/png'))}
-async function uploadLocalEditMask(apiKey,blob){
-  const form=new FormData();form.append('file',blob,'mihu-local-edit-mask.png');
-  const response=await fetch(APIMART_BASE+'/uploads/images',{method:'POST',headers:{'Authorization':'Bearer '+apiKey,'Accept':'application/json'},body:form});
-  const text=await response.text();let data={};try{data=JSON.parse(text)}catch(_){}
-  if(!response.ok)throw new Error(data.error?.message||data.message||('蒙版上传失败（HTTP '+response.status+'）'));
-  const url=data.url||data.data?.url;if(!url)throw new Error('蒙版上传成功，但接口没有返回图片地址。');
-  return url;
+async function localEditExtractOriginalPrompt(){
+  if(localEdit.submitting||!localEdit.item?.url)return;
+  const apiKey=Settings.getKey();
+  if(!apiKey){Settings.openPage();toast('请先保存 API Key');return}
+  const button=localEdit.extractPrompt;button.disabled=true;button.textContent='提取中';localEditSetError();localEditSetStatus('正在分析原图');
+  try{
+    const prompt=await Apimart.analyzeRemoteImage(apiKey,{sourceUrl:localEdit.item.url,model:IMAGE_REVERSE_MODEL,instruction:LOCAL_EDIT_REVERSE_SYSTEM+' 输出应适合 '+MODEL_CONFIG[localEdit.model].name+'。'});
+    localEdit.prompt.value=prompt.trim().slice(0,localEdit.prompt.maxLength);localEditUpdatePromptCount();localEdit.prompt.focus();localEditSetStatus('原图提示词已提取，可继续修改。');toast('已提取原图提示词');
+  }catch(error){
+    localEditSetError(error?.message||'原图提示词提取失败。');localEditSetStatus('提取失败，请稍后重试。');
+  }finally{button.disabled=false;button.textContent='提取原图提示词'}
 }
 async function submitLocalEdit(){
   if(localEdit.submitting)return;
   const apiKey=Settings.getKey(),prompt=localEdit.prompt.value.trim();
   if(!apiKey){Settings.openPage();toast('请先保存 API Key');return}
-  if(!localEdit.strokes.some(stroke=>stroke.tool==='brush')){localEditSetError('请先涂抹需要修改的区域。');return}
-  if(!prompt){localEditSetError('请填写希望如何修改涂抹区域。');localEdit.prompt.focus();return}
-  localEdit.submitting=true;localEdit.submit.disabled=true;localEdit.close.disabled=true;localEdit.cancel.disabled=true;localEdit.submit.textContent='正在上传蒙版';localEditSetError();
+  if(!prompt){localEditSetError('请描述你希望怎样修改这张图片。');localEdit.prompt.focus();return}
+  localEdit.submitting=true;localEdit.submit.disabled=true;localEdit.close.disabled=true;localEdit.submit.textContent='正在提交';localEditSetError();
+  localEdit.messages.push({role:'user',text:prompt});localEditRenderThread();localEditSetStatus('正在提交图片编辑请求');
   try{
-    const maskUrl=await uploadLocalEditMask(apiKey,await canvasToBlob(localEdit.maskCanvas));
-    const editPrompt=prompt+'。仅修改蒙版透明区域，未涂抹区域必须保持原图不变。';
-    const body={model:LOCAL_EDIT_MODEL,prompt:editPrompt,size:localEdit.ratio,resolution:'1k',quality:'medium',n:1,image_urls:[localEdit.item.url],mask_url:maskUrl};
-    const job={id:'local-edit-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),body,endpoint:'/images/generations',prompt,model:'inpaint',settings:{ratio:localEdit.ratio,resolution:'1k'},createdAt:new Date().toISOString(),taskId:null};
-    await PendingGeneration.save(job);toast('局部编辑已加入任务列表');
-    localEdit.submitting=false;localEdit.submit.textContent='加入任务列表';localEdit.close.disabled=false;localEdit.cancel.disabled=false;closeLocalEdit();runNextPendingGeneration().catch(()=>{});
+    const editPrompt=prompt+'。以输入图片为基础进行编辑，保留用户未明确要求改变的主体、构图和重要视觉特征。';
+    const config=MODEL_CONFIG[localEdit.model];
+    const body={model:config.editModel||config.generationModel,prompt:editPrompt,size:localEdit.ratio,resolution:localEdit.resolution,n:1,image_urls:[localEdit.item.url]};
+    let url=await Apimart.generate({apiKey,body,endpoint:'/images/generations',onProgress:(status,progress)=>{
+      const percent=Math.max(0,Math.min(100,Number(progress)||0));localEdit.submit.textContent=percent?'生成中 '+percent+'%':'正在生成';localEditSetStatus(status==='processing'?'模型正在生成新版本':'正在处理图片');
+    }});
+    const itemId=Date.now(),createdAt=new Date().toISOString();let archived=false,historyKey='';
+    if(Archive.isAvailable()){
+      try{
+        const archive=await Archive.image(url,{id:itemId,prompt,model:localEdit.model,settings:{ratio:localEdit.ratio,resolution:localEdit.resolution},createdAt,type:'image'});
+        url=archive.url;archived=true;historyKey=archive.historyKey||'';
+      }catch(error){console.warn('图片编辑归档失败',error);localEditSetStatus('新版本已生成，但永久归档失败；请及时下载。')}
+    }
+    const version={id:itemId,url,prompt,model:localEdit.model,settings:{ratio:localEdit.ratio,resolution:localEdit.resolution},archived,historyKey,createdAt,type:'image'};
+    await History.save(version);assetItems=sortAssets([version,...assetItems.filter(asset=>asset.id!==version.id)]);renderAssets();
+    localEdit.versions.push(version);localEdit.messages.push({role:'assistant',text:'新版本已生成。你可以继续描述下一步修改，或点击左侧缩略图回到任一旧版本。'});localEditRenderThread();
+    localEdit.prompt.value='';localEditUpdatePromptCount();localEditSetStatus('第 '+(localEdit.versions.length-1)+' 版已就绪，可继续编辑。');
+    await loadLocalEditImage(version,{focus:true});toast('新版本已生成');
   }catch(error){
-    localEditSetError(error?.message||'局部编辑任务创建失败。');localEdit.submitting=false;localEdit.submit.disabled=false;localEdit.close.disabled=false;localEdit.cancel.disabled=false;localEdit.submit.textContent='加入任务列表';
+    localEditSetError(error?.message||'图片编辑任务创建失败。');localEditSetStatus('生成未完成，请修改描述后重试。');
+  }finally{
+    localEdit.submitting=false;localEdit.submit.disabled=false;localEdit.close.disabled=false;localEdit.submit.textContent='生成';
   }
 }
 
-localEdit.canvas.tabIndex=0;
-localEdit.canvas.addEventListener('pointerdown',event=>{
-  if(localEdit.canvas.hidden)return;event.preventDefault();localEdit.canvas.setPointerCapture(event.pointerId);
-  localEdit.activeStroke={tool:localEdit.tool,size:Number(localEdit.size.value),points:[localEditPoint(event)]};localEdit.strokes.push(localEdit.activeStroke);localEditRenderMask();
-});
-localEdit.canvas.addEventListener('pointermove',event=>{
-  if(!localEdit.activeStroke)return;event.preventDefault();localEdit.activeStroke.points.push(localEditPoint(event));
-  const segment={...localEdit.activeStroke,points:localEdit.activeStroke.points.slice(-2)};
-  localEditDrawStroke(localEdit.canvas.getContext('2d'),segment,false);localEditDrawStroke(localEdit.maskCanvas.getContext('2d'),segment,true);
-});
-['pointerup','pointercancel'].forEach(type=>localEdit.canvas.addEventListener(type,()=>{localEdit.activeStroke=null}));
-localEdit.brush.onclick=()=>localEditSetTool('brush');localEdit.eraser.onclick=()=>localEditSetTool('eraser');
-localEdit.size.oninput=()=>localEdit.sizeValue.textContent=localEdit.size.value;localEdit.undo.onclick=()=>{localEdit.strokes.pop();localEditRenderMask()};localEdit.clear.onclick=()=>{localEdit.strokes=[];localEditRenderMask()};
-localEdit.prompt.addEventListener('input',()=>{localEdit.promptCount.textContent=localEdit.prompt.value.length+'/3000';localEditSetError()});
-localEdit.close.onclick=closeLocalEdit;localEdit.cancel.onclick=closeLocalEdit;localEdit.submit.onclick=submitLocalEdit;
+localEdit.prompt.addEventListener('input',()=>{localEditUpdatePromptCount();localEditSetError()});
+localEdit.clearPrompt.onclick=()=>{localEdit.prompt.value='';localEditUpdatePromptCount();localEditSetError();localEdit.prompt.focus()};
+localEdit.extractPrompt.onclick=localEditExtractOriginalPrompt;
+localEdit.modelSelect.onchange=()=>{localEdit.model=localEditModelKey(localEdit.modelSelect.value);localEditSyncSettings()};
+localEdit.ratioSelect.onchange=()=>{localEdit.ratio=localEdit.ratioSelect.value};
+localEdit.resolutionSelect.onchange=()=>{localEdit.resolution=localEdit.resolutionSelect.value};
+localEdit.close.onclick=closeLocalEdit;localEdit.submit.onclick=submitLocalEdit;
 localEdit.layer.addEventListener('pointerdown',event=>{if(event.target===localEdit.layer)closeLocalEdit()});document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!localEdit.layer.hidden)closeLocalEdit()});
-window.addEventListener('resize',localEditFitCanvas,{passive:true});
 
 function sortAssets(items){
   return items.sort((a,b)=>{
@@ -314,7 +329,7 @@ function renderAssets(){
     const actions=document.createElement('div');actions.className='asset-actions';
     const favorite=document.createElement('button');favorite.type='button';favorite.className='asset-favorite';favorite.title='收藏到参考';
     favorite.setAttribute('aria-label','收藏到参考');favorite.appendChild(assetIcon(['M12 20.5 4.8 16A5 5 0 0 1 12 9.1 5 5 0 0 1 19.2 16L12 20.5Z']));favorite.onclick=()=>favoriteAsset(item);actions.appendChild(favorite);
-    const edit=document.createElement('button');edit.type='button';edit.className='asset-local-edit';edit.title='局部编辑';edit.setAttribute('aria-label','局部编辑');
+    const edit=document.createElement('button');edit.type='button';edit.className='asset-local-edit';edit.title='编辑图片';edit.setAttribute('aria-label','编辑图片');
     edit.appendChild(assetIcon(['M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3Z','m13-13 3 3']));
     edit.onclick=()=>openLocalEdit(item,edit);actions.appendChild(edit);
     const send=document.createElement('button');send.type='button';send.className='asset-send';send.title='重新生成';send.setAttribute('aria-label','重新生成');

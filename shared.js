@@ -1,7 +1,7 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 // 每次完成一次改动并提交时递增。
-const APP_VERSION='80.0';
+const APP_VERSION='90.0';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
@@ -83,8 +83,8 @@ function showError(el,msg){if(!el)return;el.textContent=msg;el.style.display='bl
 function hideError(el){if(!el)return;el.style.display='none';el.textContent=''}
 const APP_RAIL_ITEMS=[
   {key:'index',href:'index.html',title:'创意',icon:'icon/chuangzuo.svg'},
-  {key:'assets',href:'assets.html',title:'历史',icon:'icon/photo.svg'},
-  {key:'reference',href:'reference.html',title:'参考',icon:'icon/reference.svg'},
+  {key:'assets',href:'assets.html',title:'资产',icon:'icon/folder.svg'},
+  {key:'reference',href:'reference.html',title:'参考',icon:'icon/reference-library.svg'},
   {key:'settings',href:'settings.html',title:'设置',icon:'icon/shezhi.svg'}
 ];
 function renderAppRails(){
@@ -195,6 +195,16 @@ const Apimart={
     const output=(candidates[0]?.content?.parts||[]).map(part=>part.text||'').join('\n').trim();
     if(!output)throw new Error('图片分析未返回提示词。');
     return output;
+  },
+  async analyzeRemoteImage(apiKey,{sourceUrl,instruction,model=IMAGE_REVERSE_MODEL,signal}){
+    const res=await fetch('/api/extract-image-prompt',{
+      method:'POST',signal,headers:{'Authorization':'Bearer '+apiKey,'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({sourceUrl,instruction,model})
+    });
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok)throw new Error(data.error||('图片分析失败（HTTP '+res.status+'）'));
+    if(!data.prompt)throw new Error('图片分析未返回提示词。');
+    return data.prompt;
   },
   async submitTask(apiKey,body,endpoint,signal){
     const url=endpoint?APIMART_BASE+endpoint:APIMART_BASE+'/images/generations';
