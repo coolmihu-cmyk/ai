@@ -89,6 +89,7 @@ function localEditMessagesForVersions(versions){
     {role:'assistant',text:'第 '+(index+1)+' 版已就绪，可继续编辑。'}
   ]);
 }
+const LOCAL_EDIT_WELCOME='例如：把背景换成雨后的城市街道，保留人物的姿势、服装和构图。';
 function localEditRenderVersions(){
   localEdit.versionsNode.replaceChildren(...localEdit.versions.map((version,index)=>{
     const button=document.createElement('button');button.type='button';button.className='local-edit-version'+(version===localEdit.item?' is-current':'');
@@ -126,7 +127,7 @@ function loadLocalEditImage(item,{focus=false}={}){
 function openLocalEdit(item,trigger,{versions=[item],resume=false}={}){
   if(assetExpiry(item).expired){toast('原图已过期，无法编辑');return}
   const orderedVersions=[...versions].sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
-  localEdit.lastFocus=trigger||document.activeElement;localEdit.versions=orderedVersions;localEdit.editRootId=String(orderedVersions[0]?.id||item.editRootId||item.id);localEdit.editGroupId=item.editGroupId||'edit-'+localEdit.editRootId;localEdit.messages=resume?localEditMessagesForVersions(orderedVersions):[];localEditClearReference();localEdit.referenceUrl=[...orderedVersions].reverse().find(version=>version.referenceUrl)?.referenceUrl||'';if(localEdit.referenceUrl){localEdit.upload.classList.add('is-attached');localEdit.upload.setAttribute('aria-label','已恢复参考图片，点击替换');localEdit.upload.title='已恢复参考图片，点击替换'}
+  localEdit.lastFocus=trigger||document.activeElement;localEdit.versions=orderedVersions;localEdit.editRootId=String(orderedVersions[0]?.id||item.editRootId||item.id);localEdit.editGroupId=item.editGroupId||'edit-'+localEdit.editRootId;localEdit.messages=resume?localEditMessagesForVersions(orderedVersions):[{role:'assistant',text:LOCAL_EDIT_WELCOME}];localEditClearReference();localEdit.referenceUrl=[...orderedVersions].reverse().find(version=>version.referenceUrl)?.referenceUrl||'';if(localEdit.referenceUrl){localEdit.upload.classList.add('is-attached');localEdit.upload.setAttribute('aria-label','已恢复参考图片，点击替换');localEdit.upload.title='已恢复参考图片，点击替换'}
   localEditSetInitialSettings(item);localEditSetError();localEditSetStatus('');localEditRenderThread();localEditRenderVersions();
   localEdit.layer.hidden=false;document.body.classList.add('local-edit-open');
   loadLocalEditImage(item,{focus:true}).catch(()=>{});
