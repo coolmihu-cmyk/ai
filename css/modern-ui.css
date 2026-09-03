@@ -1611,3 +1611,7 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 .local-edit-conversation .local-edit-settings-models,.local-edit-conversation .local-edit-settings-resolutions,.local-edit-conversation .local-edit-settings-ratios{gap:4px}
 .local-edit-conversation .local-edit-settings-option{height:28px;gap:4px;padding:0 5px;border-radius:6px;font-size:10px;font-weight:650;line-height:28px}
 .local-edit-conversation .local-edit-settings-option img{width:13px;height:13px;flex-basis:13px}
+
+.local-edit-conversation .local-edit-prompt-count{display:none!important}
+.local-edit-conversation .local-edit-prompt-meta{border-top:0!important}
+.local-edit-conversation .local-edit-prompt-meta::before,.local-edit-conversation .local-edit-prompt-meta::after{display:none!important;content:none!important}
