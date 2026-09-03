@@ -16,7 +16,7 @@ export async function onRequestPost(context){
     if(context.request.headers.get('Origin')!=='https://pic.supmihu.cn')return json({error:'不允许跨站上传参考图。'},403);
     const token=historyToken(context.request);if(!token)throw new Error('请先在设置中保存 API Key 后再上传参考图。');
     const form=await context.request.formData(),file=form.get('file');
-    if(!(file instanceof File))throw new Error('没有收到参考图片。');
+    if(!file||typeof file.arrayBuffer!=='function')throw new Error('没有收到参考图片。');
     const contentType=(file.type||'').toLowerCase(),extension=ALLOWED_TYPES.get(contentType);
     if(!extension)throw new Error('仅支持 PNG、JPG 或 WebP 图片。');
     if(file.size>MAX_IMAGE_BYTES)throw new Error('图片超过 20MB，无法上传。');
