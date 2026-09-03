@@ -27,6 +27,7 @@ const localEdit={
   thread:$('#localEditThread'),status:$('#localEditStatus'),
   item:null,model:'gpt',ratio:'auto',resolution:'1k',editRootId:null,editGroupId:null,referenceData:null,submitting:false,lastFocus:null,versions:[],messages:[],view:{scale:1,x:0,y:0,pointerId:null,startX:0,startY:0,originX:0,originY:0}
 };
+localEdit.image.draggable=false;
 
 function localEditSetError(message=''){localEdit.error.hidden=!message;localEdit.error.textContent=message}
 function localEditSetStatus(message=''){
@@ -191,10 +192,11 @@ localEdit.resolutionSelect.onchange=()=>{localEdit.resolution=localEdit.resoluti
 localEdit.close.onclick=closeLocalEdit;localEdit.submit.onclick=submitLocalEdit;
 localEdit.download.onclick=()=>{if(localEdit.item)downloadImage(localEdit.item.url)};
 localEdit.stage.addEventListener('wheel',event=>{if(!localEdit.image.src)return;event.preventDefault();const next=Math.max(1,Math.min(4,localEdit.view.scale*Math.exp(-event.deltaY*.0015)));if(next===localEdit.view.scale)return;localEdit.view.scale=next;localEditApplyViewport()},{passive:false});
-localEdit.stage.addEventListener('pointerdown',event=>{if(event.button!==0||event.target===localEdit.download||!localEdit.image.src)return;const view=localEdit.view;view.pointerId=event.pointerId;view.startX=event.clientX;view.startY=event.clientY;view.originX=view.x;view.originY=view.y;localEdit.stage.setPointerCapture(event.pointerId);localEdit.stage.classList.add('is-panning')});
+localEdit.stage.addEventListener('pointerdown',event=>{if(event.button!==0||event.target===localEdit.download||!localEdit.image.src)return;event.preventDefault();const view=localEdit.view;view.pointerId=event.pointerId;view.startX=event.clientX;view.startY=event.clientY;view.originX=view.x;view.originY=view.y;localEdit.stage.setPointerCapture(event.pointerId);localEdit.stage.classList.add('is-panning')});
 localEdit.stage.addEventListener('pointermove',event=>{const view=localEdit.view;if(view.pointerId!==event.pointerId)return;view.x=view.originX+event.clientX-view.startX;view.y=view.originY+event.clientY-view.startY;localEditApplyViewport()});
 function localEditEndPan(event){const view=localEdit.view;if(view.pointerId!==event.pointerId)return;view.pointerId=null;localEdit.stage.classList.remove('is-panning')}
 localEdit.stage.addEventListener('pointerup',localEditEndPan);localEdit.stage.addEventListener('pointercancel',localEditEndPan);localEdit.stage.addEventListener('dblclick',()=>localEditResetViewport());
+localEdit.stage.addEventListener('dragstart',event=>event.preventDefault());
 localEdit.layer.addEventListener('pointerdown',event=>{if(event.target===localEdit.layer)closeLocalEdit()});document.addEventListener('click',()=>{localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');localEdit.resolutionPicker.classList.remove('open');localEdit.resolutionTrigger.setAttribute('aria-expanded','false')});document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!localEdit.layer.hidden){localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');localEdit.resolutionPicker.classList.remove('open');localEdit.resolutionTrigger.setAttribute('aria-expanded','false');closeLocalEdit()}});
 
 function sortAssets(items){
