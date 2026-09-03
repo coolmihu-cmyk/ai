@@ -1586,3 +1586,19 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 /* Resolution labels read best centered inside their compact fixed-width controls. */
 .local-edit-conversation .local-edit-resolution-trigger{justify-content:center;padding-right:0;padding-left:0;text-align:center}
 .local-edit-conversation .local-edit-resolution-menu .creation-select-option{justify-content:center;padding-right:0;padding-left:0;text-align:center}
+
+/* One compact settings panel keeps editor parameters together instead of competing in the toolbar. */
+.local-edit-conversation .local-edit-settings{width:auto!important;min-width:0!important;flex:0 0 auto!important;margin-left:0!important}
+.local-edit-conversation .local-edit-settings > .creation-dropdown,.local-edit-conversation .local-edit-settings > .local-edit-setting-divider{display:none!important}
+.local-edit-conversation .local-edit-settings-trigger{height:30px;max-width:210px;padding:0 9px;border:0;border-radius:7px;background:transparent;color:#25292c;font:700 11px/30px var(--studio-sans);letter-spacing:.01em;overflow:hidden;cursor:pointer;text-align:left;text-overflow:ellipsis;white-space:nowrap}
+.local-edit-conversation .local-edit-settings-trigger:hover,.local-edit-conversation .local-edit-settings-trigger[aria-expanded="true"]{background:#f0f2f2}
+.local-edit-conversation .local-edit-settings-popover{position:absolute;right:8px;bottom:47px;z-index:20;width:min(360px,calc(100% - 16px));padding:12px;border:0;border-radius:12px;background:#202224;box-shadow:0 18px 42px rgba(17,19,21,.25);color:#f5f6f6}
+.local-edit-conversation .local-edit-settings-popover[hidden]{display:none}
+.local-edit-conversation .local-edit-settings-section{display:grid;gap:7px}.local-edit-conversation .local-edit-settings-section + .local-edit-settings-section{margin-top:11px}
+.local-edit-conversation .local-edit-settings-section > b{color:#c6cbd0;font-size:11px;font-weight:680}
+.local-edit-conversation .local-edit-settings-models,.local-edit-conversation .local-edit-settings-resolutions,.local-edit-conversation .local-edit-settings-ratios{display:grid;gap:5px}
+.local-edit-conversation .local-edit-settings-models{grid-template-columns:repeat(3,minmax(0,1fr))}.local-edit-conversation .local-edit-settings-resolutions{grid-template-columns:repeat(3,minmax(0,1fr))}.local-edit-conversation .local-edit-settings-ratios{grid-template-columns:repeat(5,minmax(0,1fr))}
+.local-edit-conversation .local-edit-settings-option{display:flex;min-width:0;height:32px;align-items:center;justify-content:center;gap:5px;padding:0 6px;border:0;border-radius:7px;background:#2b2e31;color:#cbd0d4;font:650 11px/32px var(--studio-sans);cursor:pointer;overflow:hidden;text-align:center;text-overflow:ellipsis;white-space:nowrap}
+.local-edit-conversation .local-edit-settings-option.is-model{justify-content:flex-start}.local-edit-conversation .local-edit-settings-option img{width:15px;height:15px;flex:0 0 15px;object-fit:contain}.local-edit-conversation .local-edit-settings-option span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.local-edit-conversation .local-edit-settings-option:hover{background:#393d40;color:#fff}.local-edit-conversation .local-edit-settings-option.is-selected{background:#4a4e52;color:#fff}
+@media(max-width:800px){.local-edit-conversation .local-edit-settings-trigger{max-width:126px}.local-edit-conversation .local-edit-settings-popover{right:5px;bottom:44px;width:min(340px,calc(100% - 10px))}.local-edit-conversation .local-edit-settings-models{grid-template-columns:1fr}.local-edit-conversation .local-edit-settings-ratios{grid-template-columns:repeat(4,minmax(0,1fr))}}

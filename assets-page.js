@@ -22,17 +22,17 @@ const REFERENCE_LIBRARY_KEY='mihu-reference-library-v1',REFERENCE_LIBRARY_LIMIT=
 const localEdit={
   layer:$('#localEditLayer'),close:$('#localEditClose'),stage:$('#localEditStage'),image:$('#localEditImage'),
   loading:$('#localEditLoading'),reset:$('#localEditReset'),
-  prompt:$('#localEditPrompt'),promptCount:$('#localEditPromptCount'),upload:$('#localEditUpload'),fileInput:$('#localEditFileInput'),referencePreview:$('#localEditReferencePreview'),referencePreviewImage:$('#localEditReferencePreviewImage'),referenceClear:$('#localEditReferenceClear'),error:$('#localEditError'),submit:$('#localEditSubmit'),
+  composer:$('.local-edit-composer'),prompt:$('#localEditPrompt'),promptCount:$('#localEditPromptCount'),upload:$('#localEditUpload'),fileInput:$('#localEditFileInput'),referencePreview:$('#localEditReferencePreview'),referencePreviewImage:$('#localEditReferencePreviewImage'),referenceClear:$('#localEditReferenceClear'),settings:$('.local-edit-settings'),error:$('#localEditError'),submit:$('#localEditSubmit'),
   modelSelect:$('#localEditModel'),modelPicker:$('#localEditModelPicker'),modelTrigger:$('#localEditModelTrigger'),modelMenu:$('#localEditModelMenu'),ratioSelect:$('#localEditRatio'),ratioPicker:$('#localEditRatioPicker'),ratioTrigger:$('#localEditRatioTrigger'),ratioMenu:$('#localEditRatioMenu'),resolutionSelect:$('#localEditResolution'),resolutionPicker:$('#localEditResolutionPicker'),resolutionTrigger:$('#localEditResolutionTrigger'),resolutionMenu:$('#localEditResolutionMenu'),
   thread:$('#localEditThread'),status:$('#localEditStatus'),
   item:null,model:'gpt',ratio:'auto',resolution:'1k',editRootId:null,editGroupId:null,referenceData:null,submitting:false,lastFocus:null,versions:[],messages:[],view:{scale:1,x:0,y:0,pointerId:null,startX:0,startY:0,originX:0,originY:0}
 };
 let localEditScrollTimer=0;
 localEdit.image.draggable=false;
-const localEditSettingDivider=()=>{const divider=document.createElement('span');divider.className='local-edit-setting-divider';divider.setAttribute('aria-hidden','true');return divider};
-localEdit.modelPicker.after(localEditSettingDivider());
-localEdit.ratioPicker.after(localEditSettingDivider());
 const localEditAttachmentIcon=document.createElement('img');localEditAttachmentIcon.src='image/chat-attachment.svg';localEditAttachmentIcon.alt='';localEditAttachmentIcon.setAttribute('aria-hidden','true');localEdit.upload.replaceChildren(localEditAttachmentIcon);
+const localEditSettingsTrigger=document.createElement('button');localEditSettingsTrigger.type='button';localEditSettingsTrigger.className='local-edit-settings-trigger';localEditSettingsTrigger.setAttribute('aria-haspopup','dialog');localEditSettingsTrigger.setAttribute('aria-expanded','false');localEdit.settings.append(localEditSettingsTrigger);
+const localEditSettingsPopover=document.createElement('section');localEditSettingsPopover.className='local-edit-settings-popover';localEditSettingsPopover.hidden=true;localEditSettingsPopover.setAttribute('role','dialog');localEditSettingsPopover.setAttribute('aria-label','图片生成设置');localEditSettingsPopover.innerHTML='<div class="local-edit-settings-section"><b>模型</b><div class="local-edit-settings-models"></div></div><div class="local-edit-settings-section"><b>分辨率</b><div class="local-edit-settings-resolutions"></div></div><div class="local-edit-settings-section"><b>比例</b><div class="local-edit-settings-ratios"></div></div>';localEdit.composer.append(localEditSettingsPopover);
+Object.assign(localEdit,{settingsTrigger:localEditSettingsTrigger,settingsPopover:localEditSettingsPopover,settingsModels:localEditSettingsPopover.querySelector('.local-edit-settings-models'),settingsResolutions:localEditSettingsPopover.querySelector('.local-edit-settings-resolutions'),settingsRatios:localEditSettingsPopover.querySelector('.local-edit-settings-ratios')});
 
 function localEditSetError(message=''){localEdit.error.hidden=!message;localEdit.error.textContent=message}
 function localEditSetStatus(message=''){
@@ -71,13 +71,20 @@ function localEditRenderRatioPicker(config){
   localEdit.ratioTrigger.textContent=current;localEdit.ratioTrigger.title=current;localEdit.ratioTrigger.setAttribute('aria-label','编辑比例：'+current);
   localEdit.ratioMenu.replaceChildren(...config.ratios.map(value=>{const button=document.createElement('button');button.type='button';button.className='creation-select-option';button.textContent=value;button.setAttribute('role','option');button.setAttribute('aria-selected',String(value===current));button.onclick=()=>{localEdit.ratio=value;localEdit.ratioSelect.value=value;localEdit.ratioPicker.classList.remove('open');localEdit.ratioTrigger.setAttribute('aria-expanded','false');localEditRenderRatioPicker(config)};return button}));
 }
+function localEditRenderUnifiedSettings(config){
+  const current=MODEL_CONFIG[localEdit.model];
+  localEdit.settingsTrigger.textContent=current.name+' · '+localEdit.ratio+' · '+localEdit.resolution.toUpperCase();localEdit.settingsTrigger.title='打开模型、比例与分辨率设置';localEdit.settingsTrigger.setAttribute('aria-label','图片设置：'+localEdit.settingsTrigger.textContent);
+  localEdit.settingsModels.replaceChildren(...Object.entries(MODEL_CONFIG).map(([key,item])=>{const button=document.createElement('button');button.type='button';button.className='local-edit-settings-option is-model';button.classList.toggle('is-selected',key===localEdit.model);const icon=document.createElement('img');icon.src=item.icon;icon.alt='';const label=document.createElement('span');label.textContent=item.name;button.append(icon,label);button.onclick=()=>{localEdit.model=key;localEdit.modelSelect.value=key;localEditSyncSettings()};return button}));
+  localEdit.settingsResolutions.replaceChildren(...config.resolutions.map(item=>{const button=document.createElement('button');button.type='button';button.className='local-edit-settings-option';button.classList.toggle('is-selected',item.v===localEdit.resolution);button.textContent=item.v.toUpperCase();button.onclick=()=>{localEdit.resolution=item.v;localEdit.resolutionSelect.value=item.v;localEditRenderResolutionPicker(config);localEditRenderUnifiedSettings(config)};return button}));
+  localEdit.settingsRatios.replaceChildren(...config.ratios.map(value=>{const button=document.createElement('button');button.type='button';button.className='local-edit-settings-option';button.classList.toggle('is-selected',value===localEdit.ratio);button.textContent=value==='auto'?'智能':value;button.title=value;button.onclick=()=>{localEdit.ratio=value;localEdit.ratioSelect.value=value;localEditRenderRatioPicker(config);localEditRenderUnifiedSettings(config)};return button}));
+}
 function localEditSyncSettings(){
   const config=MODEL_CONFIG[localEdit.model];
   if(!config.ratios.includes(localEdit.ratio))localEdit.ratio='auto';
   if(!config.resolutions.some(option=>option.v===localEdit.resolution))localEdit.resolution=config.defaultResolution||config.resolutions[0]?.v||'';
   localEdit.modelSelect.replaceChildren(...Object.keys(MODEL_CONFIG).map(key=>new Option(key[0].toUpperCase(),key,key===localEdit.model,key===localEdit.model)));localEdit.ratioSelect.replaceChildren(...config.ratios.map(value=>new Option(value,value,value===localEdit.ratio,value===localEdit.ratio)));
   localEditRenderModelPicker();
-  localEditRenderRatioPicker(config);localEdit.resolutionSelect.replaceChildren(...config.resolutions.map(item=>new Option(item.v.toUpperCase(),item.v,item.v===localEdit.resolution,item.v===localEdit.resolution)));localEditRenderResolutionPicker(config);
+  localEditRenderRatioPicker(config);localEdit.resolutionSelect.replaceChildren(...config.resolutions.map(item=>new Option(item.v.toUpperCase(),item.v,item.v===localEdit.resolution,item.v===localEdit.resolution)));localEditRenderResolutionPicker(config);localEditRenderUnifiedSettings(config);
   localEdit.prompt.maxLength=config.promptLimit;localEdit.prompt.value=localEdit.prompt.value.slice(0,config.promptLimit);localEditUpdatePromptCount();
 }
 function localEditSetInitialSettings(item){
@@ -197,7 +204,9 @@ localEdit.fileInput.onchange=async()=>{
   catch(_){localEditSetError('参考图片读取失败，请重试。')}
 };
 localEdit.referenceClear.onclick=()=>localEditClearReference();
-function localEditClosePickers(){localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');localEdit.ratioPicker.classList.remove('open');localEdit.ratioTrigger.setAttribute('aria-expanded','false');localEdit.resolutionPicker.classList.remove('open');localEdit.resolutionTrigger.setAttribute('aria-expanded','false')}
+function localEditClosePickers(){localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');localEdit.ratioPicker.classList.remove('open');localEdit.ratioTrigger.setAttribute('aria-expanded','false');localEdit.resolutionPicker.classList.remove('open');localEdit.resolutionTrigger.setAttribute('aria-expanded','false');localEdit.settingsPopover.hidden=true;localEdit.settingsTrigger.setAttribute('aria-expanded','false')}
+localEdit.settingsTrigger.onclick=event=>{event.stopPropagation();const opening=localEdit.settingsPopover.hidden;localEditClosePickers();localEdit.settingsPopover.hidden=!opening;localEdit.settingsTrigger.setAttribute('aria-expanded',String(opening))};
+localEdit.settingsPopover.onclick=event=>event.stopPropagation();
 localEdit.modelTrigger.onclick=event=>{event.stopPropagation();const opening=!localEdit.modelPicker.classList.contains('open');localEditClosePickers();localEdit.modelPicker.classList.toggle('open',opening);localEdit.modelTrigger.setAttribute('aria-expanded',String(opening))};
 localEdit.ratioTrigger.onclick=event=>{event.stopPropagation();const opening=!localEdit.ratioPicker.classList.contains('open');localEditClosePickers();localEdit.ratioPicker.classList.toggle('open',opening);localEdit.ratioTrigger.setAttribute('aria-expanded',String(opening))};
 localEdit.resolutionTrigger.onclick=event=>{event.stopPropagation();const opening=!localEdit.resolutionPicker.classList.contains('open');localEditClosePickers();localEdit.resolutionPicker.classList.toggle('open',opening);localEdit.resolutionTrigger.setAttribute('aria-expanded',String(opening))};
