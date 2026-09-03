@@ -90,10 +90,15 @@ function localEditRenderThread(){
   }));
   localEdit.thread.scrollTop=localEdit.thread.scrollHeight;
 }
+function localEditGeneratedDate(value){
+  const date=new Date(value||Date.now());
+  if(Number.isNaN(date.getTime()))return '';
+  return date.getFullYear()+'.'+String(date.getMonth()+1).padStart(2,'0')+'.'+String(date.getDate()).padStart(2,'0');
+}
 function localEditMessagesForVersions(versions){
   return versions.slice(1).flatMap((version,index)=>[
     {role:'user',text:version.prompt||'继续编辑这张图片。'},
-    {role:'assistant',text:'第 '+(index+1)+' 版已就绪，点击图片可在预览区查看。',imageUrl:version.url,versionId:version.id}
+    {role:'assistant',text:localEditGeneratedDate(version.createdAt),imageUrl:version.url,versionId:version.id}
   ]);
 }
 const LOCAL_EDIT_WELCOME='例如：把背景换成雨后的城市街道，保留人物的姿势、服装和构图。';
@@ -157,7 +162,7 @@ async function submitLocalEdit(){
     }
     const version={id:itemId,url,prompt,model:localEdit.model,settings:{ratio:localEdit.ratio,resolution:localEdit.resolution},referenceUrl:localEdit.referenceUrl,editRootId:localEdit.editRootId,editGroupId:localEdit.editGroupId,archived,historyKey,createdAt,type:'image'};
     await History.save(version);assetItems=sortAssets([version,...assetItems.filter(asset=>asset.id!==version.id)]);renderAssets();
-    localEdit.versions.push(version);localEdit.messages.push({role:'assistant',text:'第 '+(localEdit.versions.length-1)+' 版已就绪，点击图片可在预览区查看。',imageUrl:version.url,versionId:version.id});localEditRenderThread();
+    localEdit.versions.push(version);localEdit.messages.push({role:'assistant',text:localEditGeneratedDate(createdAt),imageUrl:version.url,versionId:version.id});localEditRenderThread();
     await loadLocalEditImage(version,{focus:true});toast('新版本已生成');
   }catch(error){
     localEditSetError(error?.message||'图片编辑任务创建失败。');localEditSetStatus('生成未完成，请修改描述后重试。');
