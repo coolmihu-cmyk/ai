@@ -1639,3 +1639,4 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 .local-edit-workspace{background:transparent!important}
 .local-edit-stage{width:100%!important;height:100%!important;max-width:none;max-height:none;aspect-ratio:auto;background:transparent!important}
 .local-edit-conversation .local-edit-message.is-assistant.is-image img,.local-edit-conversation .local-edit-message.is-assistant.is-image .local-edit-message-image img{height:auto!important;aspect-ratio:auto!important;object-fit:contain!important}
+.local-edit-stage{background-color:#fafbfb!important;background-image:linear-gradient(45deg,#f4f5f5 25%,transparent 25%),linear-gradient(-45deg,#f4f5f5 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#f4f5f5 75%),linear-gradient(-45deg,transparent 75%,#f4f5f5 75%)!important;background-size:18px 18px!important;background-position:0 0,0 9px,9px -9px,-9px 0!important}
