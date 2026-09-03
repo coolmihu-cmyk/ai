@@ -27,6 +27,7 @@ const localEdit={
   thread:$('#localEditThread'),status:$('#localEditStatus'),
   item:null,model:'gpt',ratio:'auto',resolution:'1k',editRootId:null,editGroupId:null,referenceData:null,submitting:false,lastFocus:null,versions:[],messages:[],view:{scale:1,x:0,y:0,pointerId:null,startX:0,startY:0,originX:0,originY:0}
 };
+let localEditScrollTimer=0;
 localEdit.image.draggable=false;
 const localEditAttachmentIcon=document.createElement('img');localEditAttachmentIcon.src='image/chat-attachment.svg';localEditAttachmentIcon.alt='';localEditAttachmentIcon.setAttribute('aria-hidden','true');localEdit.upload.replaceChildren(localEditAttachmentIcon);
 
@@ -208,6 +209,7 @@ localEdit.stage.addEventListener('pointermove',event=>{const view=localEdit.view
 function localEditEndPan(event){const view=localEdit.view;if(view.pointerId!==event.pointerId)return;view.pointerId=null;localEdit.stage.classList.remove('is-panning')}
 localEdit.stage.addEventListener('pointerup',localEditEndPan);localEdit.stage.addEventListener('pointercancel',localEditEndPan);localEdit.stage.addEventListener('dblclick',()=>localEditResetViewport());
 localEdit.stage.addEventListener('dragstart',event=>event.preventDefault());
+localEdit.thread.addEventListener('scroll',()=>{localEdit.thread.classList.add('is-scrolling');clearTimeout(localEditScrollTimer);localEditScrollTimer=setTimeout(()=>localEdit.thread.classList.remove('is-scrolling'),700)},{passive:true});
 localEdit.layer.addEventListener('pointerdown',event=>{if(event.target===localEdit.layer)closeLocalEdit()});document.addEventListener('click',localEditClosePickers);document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!localEdit.layer.hidden){localEditClosePickers();closeLocalEdit()}});
 
 function sortAssets(items){
