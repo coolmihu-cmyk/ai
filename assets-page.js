@@ -28,6 +28,7 @@ const localEdit={
   item:null,model:'gpt',ratio:'auto',resolution:'1k',editRootId:null,editGroupId:null,referenceData:null,submitting:false,lastFocus:null,versions:[],messages:[],view:{scale:1,x:0,y:0,pointerId:null,startX:0,startY:0,originX:0,originY:0}
 };
 localEdit.image.draggable=false;
+const localEditAttachmentIcon=document.createElement('img');localEditAttachmentIcon.src='image/chat-attachment.svg';localEditAttachmentIcon.alt='';localEditAttachmentIcon.setAttribute('aria-hidden','true');localEdit.upload.replaceChildren(localEditAttachmentIcon);
 
 function localEditSetError(message=''){localEdit.error.hidden=!message;localEdit.error.textContent=message}
 function localEditSetStatus(message=''){
@@ -90,8 +91,11 @@ function localEditRenderThread(){
     if(message.imageUrl){
       const preview=document.createElement('button');preview.type='button';preview.className='local-edit-message-image';preview.title='在预览区查看图片';preview.setAttribute('aria-label',preview.title);
       const image=document.createElement('img');image.src=ImageDelivery.thumbnail(message.imageUrl);image.alt=message.text||'生成图片';
-      preview.append(image);preview.onclick=()=>{const version=localEdit.versions.find(item=>item.id===message.versionId||item.url===message.imageUrl);if(version)loadLocalEditImage(version).catch(()=>{})};
-      const download=document.createElement('button');download.type='button';download.className='local-edit-message-download';download.textContent='下载';download.setAttribute('aria-label','下载这张图片');download.onclick=()=>downloadImage(message.imageUrl);node.append(preview,download);
+      const selectVersion=()=>{const version=localEdit.versions.find(item=>item.id===message.versionId||item.url===message.imageUrl);if(version)loadLocalEditImage(version,{focus:true}).catch(()=>{})};
+      preview.append(image);preview.onclick=selectVersion;
+      const actions=document.createElement('div');actions.className='local-edit-message-actions';
+      const download=document.createElement('button');download.type='button';download.className='local-edit-message-action is-download';download.setAttribute('aria-label','下载这张图片');download.title='下载';download.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 19h14"/></svg>';download.onclick=()=>downloadImage(message.imageUrl);
+      const edit=document.createElement('button');edit.type='button';edit.className='local-edit-message-action is-edit';edit.setAttribute('aria-label','编辑这张图片');edit.title='编辑';edit.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16.5-.8 4.3 4.3-.8L19 8.5l-3.5-3.5L4 16.5Zm9.5-10 3.5 3.5"/></svg>';edit.onclick=selectVersion;actions.append(download,edit);node.append(preview,actions);
     }else node.textContent=message.text;
     row.append(avatar,node);return row;
   }));
