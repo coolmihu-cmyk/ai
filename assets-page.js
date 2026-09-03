@@ -21,7 +21,7 @@ const REFERENCE_LIBRARY_KEY='mihu-reference-library-v1',REFERENCE_LIBRARY_LIMIT=
 
 const localEdit={
   layer:$('#localEditLayer'),close:$('#localEditClose'),stage:$('#localEditStage'),image:$('#localEditImage'),
-  loading:$('#localEditLoading'),download:$('#localEditDownload'),
+  loading:$('#localEditLoading'),reset:$('#localEditReset'),
   prompt:$('#localEditPrompt'),promptCount:$('#localEditPromptCount'),upload:$('#localEditUpload'),fileInput:$('#localEditFileInput'),referencePreview:$('#localEditReferencePreview'),referencePreviewImage:$('#localEditReferencePreviewImage'),referenceClear:$('#localEditReferenceClear'),error:$('#localEditError'),submit:$('#localEditSubmit'),
   modelSelect:$('#localEditModel'),modelPicker:$('#localEditModelPicker'),modelTrigger:$('#localEditModelTrigger'),modelMenu:$('#localEditModelMenu'),resolutionSelect:$('#localEditResolution'),resolutionPicker:$('#localEditResolutionPicker'),resolutionTrigger:$('#localEditResolutionTrigger'),resolutionMenu:$('#localEditResolutionMenu'),
   thread:$('#localEditThread'),status:$('#localEditStatus'),
@@ -82,12 +82,12 @@ function localEditRenderThread(){
   localEdit.thread.replaceChildren(...localEdit.messages.map(message=>{
     const row=document.createElement('div');row.className='local-edit-message-row is-'+message.role;
     const avatar=document.createElement('img');avatar.className='local-edit-avatar';avatar.src=message.role==='assistant'?'image/chat-admin.png':'image/chat-user.png';avatar.alt=message.role==='assistant'?'助手头像':'用户头像';
-    const node=document.createElement(message.imageUrl?'button':'p');node.className='local-edit-message is-'+message.role+(message.imageUrl?' is-image':'');
+    const node=document.createElement(message.imageUrl?'div':'p');node.className='local-edit-message is-'+message.role+(message.imageUrl?' is-image':'');
     if(message.imageUrl){
-      node.type='button';node.title='点击在预览区查看这张图片';node.setAttribute('aria-label',node.title);
+      const preview=document.createElement('button');preview.type='button';preview.className='local-edit-message-image';preview.title='在预览区查看图片';preview.setAttribute('aria-label',preview.title);
       const image=document.createElement('img');image.src=ImageDelivery.thumbnail(message.imageUrl);image.alt=message.text||'生成图片';
-      const caption=document.createElement('span');caption.textContent=message.text||'已生成图片';node.append(image,caption);
-      node.onclick=()=>{const version=localEdit.versions.find(item=>item.id===message.versionId||item.url===message.imageUrl);if(version)loadLocalEditImage(version).catch(()=>{})};
+      preview.append(image);preview.onclick=()=>{const version=localEdit.versions.find(item=>item.id===message.versionId||item.url===message.imageUrl);if(version)loadLocalEditImage(version).catch(()=>{})};
+      const download=document.createElement('button');download.type='button';download.className='local-edit-message-download';download.textContent='下载';download.setAttribute('aria-label','下载这张图片');download.onclick=()=>downloadImage(message.imageUrl);node.append(preview,download);
     }else node.textContent=message.text;
     row.append(avatar,node);return row;
   }));
@@ -190,9 +190,9 @@ localEdit.resolutionTrigger.onclick=event=>{event.stopPropagation();const openin
 localEdit.modelSelect.onchange=()=>{localEdit.model=localEditModelKey(localEdit.modelSelect.value);localEditSyncSettings()};
 localEdit.resolutionSelect.onchange=()=>{localEdit.resolution=localEdit.resolutionSelect.value;localEditRenderResolutionPicker(MODEL_CONFIG[localEdit.model])};
 localEdit.close.onclick=closeLocalEdit;localEdit.submit.onclick=submitLocalEdit;
-localEdit.download.onclick=()=>{if(localEdit.item)downloadImage(localEdit.item.url)};
+localEdit.reset.onclick=()=>localEditResetViewport();
 localEdit.stage.addEventListener('wheel',event=>{if(!localEdit.image.src)return;event.preventDefault();const next=Math.max(1,Math.min(4,localEdit.view.scale*Math.exp(-event.deltaY*.0015)));if(next===localEdit.view.scale)return;localEdit.view.scale=next;localEditApplyViewport()},{passive:false});
-localEdit.stage.addEventListener('pointerdown',event=>{if(event.button!==0||event.target===localEdit.download||!localEdit.image.src)return;event.preventDefault();const view=localEdit.view;view.pointerId=event.pointerId;view.startX=event.clientX;view.startY=event.clientY;view.originX=view.x;view.originY=view.y;localEdit.stage.setPointerCapture(event.pointerId);localEdit.stage.classList.add('is-panning')});
+localEdit.stage.addEventListener('pointerdown',event=>{if(event.button!==0||event.target===localEdit.reset||!localEdit.image.src)return;event.preventDefault();const view=localEdit.view;view.pointerId=event.pointerId;view.startX=event.clientX;view.startY=event.clientY;view.originX=view.x;view.originY=view.y;localEdit.stage.setPointerCapture(event.pointerId);localEdit.stage.classList.add('is-panning')});
 localEdit.stage.addEventListener('pointermove',event=>{const view=localEdit.view;if(view.pointerId!==event.pointerId)return;view.x=view.originX+event.clientX-view.startX;view.y=view.originY+event.clientY-view.startY;localEditApplyViewport()});
 function localEditEndPan(event){const view=localEdit.view;if(view.pointerId!==event.pointerId)return;view.pointerId=null;localEdit.stage.classList.remove('is-panning')}
 localEdit.stage.addEventListener('pointerup',localEditEndPan);localEdit.stage.addEventListener('pointercancel',localEditEndPan);localEdit.stage.addEventListener('dblclick',()=>localEditResetViewport());
