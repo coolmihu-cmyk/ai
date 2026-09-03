@@ -44,8 +44,7 @@ function localEditModelKey(value){return MODEL_CONFIG[value]?value:'gpt'}
 function localEditUpdatePromptCount(){localEdit.promptCount.textContent=localEdit.prompt.value.length+'/'+localEdit.prompt.maxLength}
 function localEditRenderModelPicker(){
   const current=MODEL_CONFIG[localEdit.model];
-  const icon=document.createElement('img');icon.src=current.icon;icon.alt='';icon.className='model-mark model-mark-'+localEdit.model;
-  const label=document.createElement('span');label.textContent=current.name;localEdit.modelTrigger.replaceChildren(icon,label);
+  const label=document.createElement('span');label.textContent=current.name;localEdit.modelTrigger.replaceChildren(label);
   localEdit.modelTrigger.title=current.name;localEdit.modelTrigger.setAttribute('aria-label','编辑模型：'+current.name);
   localEdit.modelMenu.replaceChildren(...Object.entries(MODEL_CONFIG).map(([key,config])=>{
     const button=document.createElement('button');button.type='button';button.className='creation-select-option';button.setAttribute('role','option');button.setAttribute('aria-selected',String(key===localEdit.model));button.title=config.name;button.setAttribute('aria-label',config.name);
