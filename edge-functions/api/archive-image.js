@@ -61,6 +61,7 @@ function historyRecord(input,{url,cosKey}){
     settings:input.settings&&typeof input.settings==='object'?input.settings:{},
     editRootId:String(input.editRootId||'').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,80),
     editGroupId:String(input.editGroupId||'').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,100)
+    ,referenceUrl:typeof input.referenceUrl==='string'&&/^https:\/\//i.test(input.referenceUrl)?input.referenceUrl.slice(0,1000):''
   };
 }
 function historyPrefix(token){return 'history_'+token+'_'}

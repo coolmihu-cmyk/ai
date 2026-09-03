@@ -1,7 +1,7 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 // 每次完成一次改动并提交时递增。
-const APP_VERSION='132.0';
+const APP_VERSION='133.0';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
@@ -291,6 +291,15 @@ const Archive={
     const response=await fetch('/api/archive-image',{method:'POST',headers,body:JSON.stringify({sourceUrl,item})});
     const data=await response.json().catch(()=>({}));
     if(!response.ok||!data.url)throw new Error(data.error||'图片归档失败。');
+    return data;
+  },
+  async reference(file){
+    const token=await CloudHistory.token();
+    if(!token)throw new Error('请先在设置中保存 API Key 后再上传参考图。');
+    const form=new FormData();form.append('file',file,file.name||'reference-image');
+    const response=await fetch('/api/upload-reference-image',{method:'POST',headers:{'X-History-Key':token,'Accept':'application/json'},body:form});
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok||!data.url)throw new Error(data.error||'参考图上传失败。');
     return data;
   }
 };
