@@ -1615,3 +1615,5 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 .local-edit-conversation .local-edit-prompt-count{display:none!important}
 .local-edit-conversation .local-edit-prompt-meta{border-top:0!important}
 .local-edit-conversation .local-edit-prompt-meta::before,.local-edit-conversation .local-edit-prompt-meta::after{display:none!important;content:none!important}
+.local-edit-conversation .local-edit-composer{border:1px solid #d9dde0!important;border-radius:14px!important}
+.local-edit-conversation .local-edit-composer:focus-within{border-color:#bfc5c9!important;box-shadow:0 0 0 3px rgba(17,19,21,.035)!important}
