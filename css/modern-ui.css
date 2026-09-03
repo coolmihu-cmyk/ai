@@ -1630,3 +1630,8 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 .local-edit-conversation .local-edit-composer textarea{padding:14px!important}
 .local-edit-conversation .local-edit-settings-popover{bottom:48px}
 @media(max-width:1000px){.local-edit-dialog{height:auto;max-height:calc(100dvh - 16px)}.local-edit-layout{grid-template-columns:1fr;gap:14px;padding:14px}.local-edit-stage{width:100%;max-width:620px}.local-edit-conversation .local-edit-composer{height:176px!important;min-height:176px!important;max-height:176px!important}}
+
+.local-edit-layout{flex:1 1 auto;overflow:hidden}
+.local-edit-workspace{overflow:hidden}
+.local-edit-stage{width:auto!important;height:100%!important;max-width:100%;max-height:100%;aspect-ratio:1/1;flex:none}
+@media(max-width:1000px){.local-edit-stage{width:min(100%,620px)!important;height:auto!important;max-height:none}}
