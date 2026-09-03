@@ -141,7 +141,7 @@ async function submitLocalEdit(){
   if(!apiKey){Settings.openPage();toast('请先保存 API Key');return}
   if(!prompt){localEditSetError('请描述你希望怎样修改这张图片。');localEdit.prompt.focus();return}
   localEdit.submitting=true;localEdit.submit.disabled=true;localEdit.close.disabled=true;localEdit.submit.textContent='提交中';localEditSetError();
-  localEdit.messages.push({role:'user',text:prompt});localEditRenderThread();localEditSetStatus('正在提交图片编辑请求');
+  localEdit.messages.push({role:'user',text:prompt});localEdit.prompt.value='';localEditUpdatePromptCount();localEditRenderThread();localEditSetStatus('正在提交图片编辑请求');
   try{
     const editPrompt=prompt+'。以输入图片为基础进行编辑，保留用户未明确要求改变的主体、构图和重要视觉特征。';
     const config=MODEL_CONFIG[localEdit.model];
@@ -159,7 +159,7 @@ async function submitLocalEdit(){
     const version={id:itemId,url,prompt,model:localEdit.model,settings:{ratio:localEdit.ratio,resolution:localEdit.resolution},referenceUrl:localEdit.referenceUrl,editRootId:localEdit.editRootId,editGroupId:localEdit.editGroupId,archived,historyKey,createdAt,type:'image'};
     await History.save(version);assetItems=sortAssets([version,...assetItems.filter(asset=>asset.id!==version.id)]);renderAssets();
     localEdit.versions.push(version);
-    localEdit.prompt.value='';localEditUpdatePromptCount();localEditSetStatus('第 '+(localEdit.versions.length-1)+' 版已就绪，可继续编辑。');
+    localEditSetStatus('第 '+(localEdit.versions.length-1)+' 版已就绪，可继续编辑。');
     await loadLocalEditImage(version,{focus:true});toast('新版本已生成');
   }catch(error){
     localEditSetError(error?.message||'图片编辑任务创建失败。');localEditSetStatus('生成未完成，请修改描述后重试。');
