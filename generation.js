@@ -12,6 +12,7 @@ async function buildPendingGeneration(){
   const key=activeModel,state=modelState[key];
   let prompt=els.promptInput.value.trim();
   const refMgr=refManagers[key],refCount=refMgr?refMgr.count():0;
+  const referenceUrls=refCount?await refMgr.persist():[];
   let body,endpoint;
 
   if(key==='gpt'){
@@ -22,21 +23,21 @@ async function buildPendingGeneration(){
     }
     body={model:MODEL_CONFIG.gpt.generationModel,prompt,size:state.ratio,resolution:state.resolution,n:1};
     if(els.transparentBgBtn.checked){body.background='transparent';body.output_format='png'}
-    if(refCount>0)body.image_urls=await refMgr.getDataURIs();
+    if(referenceUrls.length)body.image_urls=referenceUrls;
   }else if(key==='nano'){
     endpoint='/images/generations';
     body={model:MODEL_CONFIG.nano.generationModel,prompt,size:state.ratio,resolution:state.resolution,n:1};
-    if(refCount>0)body.image_urls=await refMgr.getDataURIs();
+    if(referenceUrls.length)body.image_urls=referenceUrls;
   }else if(key==='seedream'){
     endpoint='/images/generations';
     body={model:MODEL_CONFIG.seedream.generationModel,prompt,size:state.ratio,resolution:state.resolution,n:1};
-    if(refCount>0)body.image_urls=await refMgr.getDataURIs();
+    if(referenceUrls.length)body.image_urls=referenceUrls;
   }
 
   return {
     id:'generation-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),
     body,endpoint,prompt,model:key,
-    settings:snapshotCreationState(key),
+    settings:snapshotCreationState(key),referenceUrls,
     createdAt:new Date().toISOString(),
     taskId:null
   };

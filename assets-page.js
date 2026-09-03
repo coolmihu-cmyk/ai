@@ -127,7 +127,7 @@ function loadLocalEditImage(item,{focus=false}={}){
 function openLocalEdit(item,trigger,{versions=[item],resume=false}={}){
   if(assetExpiry(item).expired){toast('原图已过期，无法编辑');return}
   const orderedVersions=[...versions].sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
-  localEdit.lastFocus=trigger||document.activeElement;localEdit.versions=orderedVersions;localEdit.editRootId=String(orderedVersions[0]?.id||item.editRootId||item.id);localEdit.editGroupId=item.editGroupId||'edit-'+localEdit.editRootId;localEdit.messages=resume?localEditMessagesForVersions(orderedVersions):[{role:'assistant',text:LOCAL_EDIT_WELCOME}];localEditClearReference();localEdit.referenceUrl=[...orderedVersions].reverse().find(version=>version.referenceUrl)?.referenceUrl||'';if(localEdit.referenceUrl){localEdit.upload.classList.add('is-attached');localEdit.upload.setAttribute('aria-label','已恢复参考图片，点击替换');localEdit.upload.title='已恢复参考图片，点击替换'}
+  localEdit.lastFocus=trigger||document.activeElement;localEdit.versions=orderedVersions;localEdit.editRootId=String(orderedVersions[0]?.id||item.editRootId||item.id);localEdit.editGroupId=item.editGroupId||'edit-'+localEdit.editRootId;localEdit.messages=resume?localEditMessagesForVersions(orderedVersions):[{role:'assistant',text:LOCAL_EDIT_WELCOME}];localEditClearReference();const latestReference=[...orderedVersions].reverse().find(version=>version.referenceUrl||version.referenceUrls?.length);localEdit.referenceUrl=latestReference?.referenceUrl||latestReference?.referenceUrls?.[0]||'';if(localEdit.referenceUrl){localEdit.upload.classList.add('is-attached');localEdit.upload.setAttribute('aria-label','已恢复参考图片，点击替换');localEdit.upload.title='已恢复参考图片，点击替换'}
   localEditSetInitialSettings(item);localEditSetError();localEditSetStatus('');localEditRenderThread();localEditRenderVersions();
   localEdit.layer.hidden=false;document.body.classList.add('local-edit-open');
   loadLocalEditImage(item,{focus:true}).catch(()=>{});
@@ -539,7 +539,7 @@ async function runPendingGeneration(job){
     if(Archive.isAvailable()){
       try{
         const archive=await Archive.image(url,{
-          id:itemId,prompt:job.prompt||'',model:job.model||'gpt',settings:job.settings||{},createdAt,type:'image'
+          id:itemId,prompt:job.prompt||'',model:job.model||'gpt',settings:job.settings||{},referenceUrl:job.referenceUrls?.[0]||'',referenceUrls:job.referenceUrls||[],createdAt,type:'image'
         });
         url=archive.url;archived=true;historyKey=archive.historyKey||'';
       }catch(error){
@@ -548,7 +548,7 @@ async function runPendingGeneration(job){
       }
     }
     const item={
-      id:itemId,url,prompt:job.prompt||'',model:job.model||'gpt',settings:job.settings||{},archived,historyKey,
+      id:itemId,url,prompt:job.prompt||'',model:job.model||'gpt',settings:job.settings||{},referenceUrl:job.referenceUrls?.[0]||'',referenceUrls:job.referenceUrls||[],archived,historyKey,
       createdAt,durationMs:Math.round(performance.now()-startedAt)
     };
     await History.save(item);

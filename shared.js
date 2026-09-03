@@ -1,7 +1,7 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 // 每次完成一次改动并提交时递增。
-const APP_VERSION='133.0';
+const APP_VERSION='134.0';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
@@ -557,6 +557,17 @@ function createReferenceManager(els,maxFiles=10,maxBytes=10*1024*1024,maxTotal=5
   return {
     state,add,addFiles:add,addRemote,remove,render,
     clear(){state.files.forEach(e=>{if(e.url&&!e.remote)URL.revokeObjectURL(e.url)});state.files=[];if(els.fileInput)els.fileInput.value='';render()},
+    async persist(){
+      const urls=[];
+      for(const entry of state.files){
+        if(entry.remote){urls.push(entry.url);continue}
+        if(!Archive.isAvailable()){urls.push(await fileToDataURI(entry.file));continue}
+        const uploaded=await Archive.reference(entry.file);
+        if(entry.url)URL.revokeObjectURL(entry.url);
+        entry.url=uploaded.url;entry.remote=true;entry.file={name:entry.file.name||'reference-image',size:entry.file.size||0,type:uploaded.contentType||entry.file.type};urls.push(uploaded.url);
+      }
+      render();return urls;
+    },
     getDataURIs(){return Promise.all(state.files.map(e=>e.remote?e.url:fileToDataURI(e.file)))},
     getAll(){return state.files.map(e=>({file:e.file,dataUrl:e.url}))},
     isEmpty(){return state.files.length===0},
