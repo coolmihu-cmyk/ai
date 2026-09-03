@@ -1642,8 +1642,8 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 .local-edit-stage{background-color:#fafbfb!important;background-image:linear-gradient(45deg,#f4f5f5 25%,transparent 25%),linear-gradient(-45deg,#f4f5f5 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#f4f5f5 75%),linear-gradient(-45deg,transparent 75%,#f4f5f5 75%)!important;background-size:18px 18px!important;background-position:0 0,0 9px,9px -9px,-9px 0!important}
 .local-edit-conversation .local-edit-composer{height:150px!important;min-height:150px!important;max-height:150px!important}
 
-/* Keep the composer outline above its white content layer so curved corners stay intact. */
-.local-edit-conversation .local-edit-composer{border:1px solid #adb4b8!important;background:#fff!important}
-.local-edit-conversation .local-edit-composer::after{position:absolute;z-index:4;inset:0;display:block!important;box-sizing:border-box;border:1px solid #adb4b8;border-radius:15px;content:""!important;pointer-events:none}
-.local-edit-conversation .local-edit-composer:focus-within{border-color:#90999e!important}
-.local-edit-conversation .local-edit-composer:focus-within::after{border-color:#90999e;box-shadow:none!important}
+/* One visible outline only: the overlay stays above the white content without doubling. */
+.local-edit-conversation .local-edit-composer{border:0!important;border-radius:16px!important;background:#fff!important;box-shadow:none!important}
+.local-edit-conversation .local-edit-composer::after{position:absolute;z-index:4;inset:0;display:block!important;box-sizing:border-box;border:1px solid #b4babd;border-radius:16px;content:""!important;pointer-events:none}
+.local-edit-conversation .local-edit-composer:focus-within{border:0!important;box-shadow:none!important}
+.local-edit-conversation .local-edit-composer:focus-within::after{border-color:#9da5a9;box-shadow:none!important}
