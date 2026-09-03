@@ -1533,6 +1533,7 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 .local-edit-conversation{padding:14px;border:1px solid #d7dbde;border-radius:12px;background:#f6f7f7;box-shadow:none}
 .local-edit-conversation .local-edit-thread{background:transparent}
 .local-edit-conversation .local-edit-thread{scrollbar-width:thin;scrollbar-color:#b9c0c5 transparent}.local-edit-conversation .local-edit-thread::-webkit-scrollbar{width:7px}.local-edit-conversation .local-edit-thread::-webkit-scrollbar-track{background:transparent}.local-edit-conversation .local-edit-thread::-webkit-scrollbar-thumb{min-height:32px;border:2px solid transparent;border-radius:999px;background:#b9c0c5;background-clip:padding-box}.local-edit-conversation .local-edit-thread::-webkit-scrollbar-thumb:hover{background:#929aa1;background-clip:padding-box}.local-edit-conversation .local-edit-thread::-webkit-scrollbar-button{display:none;width:0;height:0}
+.local-edit-workspace{border-right:0;background:#fff}.local-edit-stage{background:#fff}
 .local-edit-conversation .local-edit-composer{overflow:visible;border:0!important;border-radius:14px;background:#fff;box-shadow:none!important}
 .local-edit-conversation .local-edit-composer textarea{border:0;border-radius:14px 14px 0 0;background:#fff;box-shadow:none!important}
 .local-edit-conversation .local-edit-prompt-meta{border-radius:0 0 14px 14px;background:#fff}
