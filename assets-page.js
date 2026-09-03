@@ -390,7 +390,7 @@ function buildEditGroupCard(root,edits){
   const actions=document.createElement('div');actions.className='asset-actions';
   const edit=document.createElement('button');edit.type='button';edit.className='asset-local-edit';edit.title='恢复图组对话';edit.setAttribute('aria-label','恢复图组对话');edit.appendChild(assetImageIcon('edit'));edit.onclick=()=>openLocalEditGroup(root,edits,edit);actions.appendChild(edit);
   const remove=document.createElement('button');remove.type='button';remove.className='asset-delete';remove.title='删除图组记录和文件';remove.setAttribute('aria-label','删除图组记录和文件');remove.appendChild(assetImageIcon('delete'));
-  remove.onclick=()=>{if(confirm('删除这个图组的全部 '+versions.length+' 张图片、记录和 COS 文件？'))deleteAssetRecords(versions,remove)};actions.appendChild(remove);
+  remove.onclick=()=>{if(confirm('删除这个图组的全部 '+versions.length+' 张图片、记录和文件？'))deleteAssetRecords(versions,remove)};actions.appendChild(remove);
   card.append(media,actions);return card;
 }
 function renderAssets(){
