@@ -1,7 +1,7 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 // 每次完成一次改动并提交时递增。
-const APP_VERSION='157.0';
+const APP_VERSION='158.0';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
@@ -296,11 +296,23 @@ const Archive={
   async reference(file){
     const token=await CloudHistory.token();
     if(!token)throw new Error('请先在设置中保存 API Key 后再上传参考图。');
-    const form=new FormData();form.append('file',file,file.name||'reference-image');
-    const response=await fetch('/api/upload-reference-image',{method:'POST',headers:{'X-History-Key':token,'Accept':'application/json'},body:form});
-    const data=await response.json().catch(()=>({}));
-    if(!response.ok||!data.url)throw new Error(data.error||'参考图上传失败。');
-    return data;
+    let lastError;
+    for(let attempt=1;attempt<=3;attempt++){
+      try{
+        const form=new FormData();form.append('file',file,file.name||'reference-image');
+        const response=await fetch('/api/upload-reference-image',{method:'POST',headers:{'X-History-Key':token,'Accept':'application/json'},body:form});
+        const data=await response.json().catch(()=>({}));
+        if(response.ok&&data.url)return data;
+        lastError=new Error(data.error||'参考图上传失败（HTTP '+response.status+'）。');
+        if(![408,425,429].includes(response.status)&&response.status<500){lastError.retryable=false;throw lastError}
+      }catch(error){
+        lastError=error instanceof Error?error:new Error('参考图上传失败。');
+        if(lastError.retryable===false)throw lastError;
+        if(attempt===3)break;
+      }
+      await new Promise(resolve=>setTimeout(resolve,attempt*350));
+    }
+    throw lastError||new Error('参考图上传失败。');
   }
 };
 
@@ -559,12 +571,18 @@ function createReferenceManager(els,maxFiles=10,maxBytes=10*1024*1024,maxTotal=5
     clear(){state.files.forEach(e=>{if(e.url&&!e.remote)URL.revokeObjectURL(e.url)});state.files=[];if(els.fileInput)els.fileInput.value='';render()},
     async persist(){
       const urls=[];
-      for(const entry of state.files){
+      for(let index=0;index<state.files.length;index++){
+        const entry=state.files[index];
         if(entry.remote){urls.push(entry.url);continue}
-        if(!Archive.isAvailable()){urls.push(await fileToDataURI(entry.file));continue}
-        const uploaded=await Archive.reference(entry.file);
-        if(entry.url)URL.revokeObjectURL(entry.url);
-        entry.url=uploaded.url;entry.remote=true;entry.file={name:entry.file.name||'reference-image',size:entry.file.size||0,type:uploaded.contentType||entry.file.type};urls.push(uploaded.url);
+        try{
+          if(!Archive.isAvailable()){urls.push(await fileToDataURI(entry.file));continue}
+          const uploaded=await Archive.reference(entry.file);
+          if(entry.url)URL.revokeObjectURL(entry.url);
+          entry.url=uploaded.url;entry.remote=true;entry.file={name:entry.file.name||'reference-image',size:entry.file.size||0,type:uploaded.contentType||entry.file.type};urls.push(uploaded.url);render();
+        }catch(error){
+          const reason=error instanceof Error?error.message:'参考图上传失败。';
+          throw new Error('第 '+(index+1)+' 张参考图上传失败：'+reason);
+        }
       }
       render();return urls;
     },
