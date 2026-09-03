@@ -23,7 +23,7 @@ const localEdit={
   layer:$('#localEditLayer'),close:$('#localEditClose'),stage:$('#localEditStage'),image:$('#localEditImage'),
   loading:$('#localEditLoading'),reset:$('#localEditReset'),
   prompt:$('#localEditPrompt'),promptCount:$('#localEditPromptCount'),upload:$('#localEditUpload'),fileInput:$('#localEditFileInput'),referencePreview:$('#localEditReferencePreview'),referencePreviewImage:$('#localEditReferencePreviewImage'),referenceClear:$('#localEditReferenceClear'),error:$('#localEditError'),submit:$('#localEditSubmit'),
-  modelSelect:$('#localEditModel'),modelPicker:$('#localEditModelPicker'),modelTrigger:$('#localEditModelTrigger'),modelMenu:$('#localEditModelMenu'),resolutionSelect:$('#localEditResolution'),resolutionPicker:$('#localEditResolutionPicker'),resolutionTrigger:$('#localEditResolutionTrigger'),resolutionMenu:$('#localEditResolutionMenu'),
+  modelSelect:$('#localEditModel'),modelPicker:$('#localEditModelPicker'),modelTrigger:$('#localEditModelTrigger'),modelMenu:$('#localEditModelMenu'),ratioSelect:$('#localEditRatio'),ratioPicker:$('#localEditRatioPicker'),ratioTrigger:$('#localEditRatioTrigger'),ratioMenu:$('#localEditRatioMenu'),resolutionSelect:$('#localEditResolution'),resolutionPicker:$('#localEditResolutionPicker'),resolutionTrigger:$('#localEditResolutionTrigger'),resolutionMenu:$('#localEditResolutionMenu'),
   thread:$('#localEditThread'),status:$('#localEditStatus'),
   item:null,model:'gpt',ratio:'auto',resolution:'1k',editRootId:null,editGroupId:null,referenceData:null,submitting:false,lastFocus:null,versions:[],messages:[],view:{scale:1,x:0,y:0,pointerId:null,startX:0,startY:0,originX:0,originY:0}
 };
@@ -62,19 +62,24 @@ function localEditRenderResolutionPicker(config){
     button.onclick=()=>{localEdit.resolution=item.v;localEdit.resolutionSelect.value=item.v;localEdit.resolutionPicker.classList.remove('open');localEdit.resolutionTrigger.setAttribute('aria-expanded','false');localEditRenderResolutionPicker(config)};return button;
   }));
 }
+function localEditRenderRatioPicker(config){
+  const current=config.ratios.includes(localEdit.ratio)?localEdit.ratio:'auto';localEdit.ratio=current;
+  localEdit.ratioTrigger.textContent=current;localEdit.ratioTrigger.title=current;localEdit.ratioTrigger.setAttribute('aria-label','编辑比例：'+current);
+  localEdit.ratioMenu.replaceChildren(...config.ratios.map(value=>{const button=document.createElement('button');button.type='button';button.className='creation-select-option';button.textContent=value;button.setAttribute('role','option');button.setAttribute('aria-selected',String(value===current));button.onclick=()=>{localEdit.ratio=value;localEdit.ratioSelect.value=value;localEdit.ratioPicker.classList.remove('open');localEdit.ratioTrigger.setAttribute('aria-expanded','false');localEditRenderRatioPicker(config)};return button}));
+}
 function localEditSyncSettings(){
   const config=MODEL_CONFIG[localEdit.model];
-  localEdit.ratio='auto';
+  if(!config.ratios.includes(localEdit.ratio))localEdit.ratio='auto';
   if(!config.resolutions.some(option=>option.v===localEdit.resolution))localEdit.resolution=config.defaultResolution||config.resolutions[0]?.v||'';
-  localEdit.modelSelect.replaceChildren(...Object.keys(MODEL_CONFIG).map(key=>new Option(key[0].toUpperCase(),key,key===localEdit.model,key===localEdit.model)));
+  localEdit.modelSelect.replaceChildren(...Object.keys(MODEL_CONFIG).map(key=>new Option(key[0].toUpperCase(),key,key===localEdit.model,key===localEdit.model)));localEdit.ratioSelect.replaceChildren(...config.ratios.map(value=>new Option(value,value,value===localEdit.ratio,value===localEdit.ratio)));
   localEditRenderModelPicker();
-  localEdit.resolutionSelect.replaceChildren(...config.resolutions.map(item=>new Option(item.v.toUpperCase(),item.v,item.v===localEdit.resolution,item.v===localEdit.resolution)));localEditRenderResolutionPicker(config);
+  localEditRenderRatioPicker(config);localEdit.resolutionSelect.replaceChildren(...config.resolutions.map(item=>new Option(item.v.toUpperCase(),item.v,item.v===localEdit.resolution,item.v===localEdit.resolution)));localEditRenderResolutionPicker(config);
   localEdit.prompt.maxLength=config.promptLimit;localEdit.prompt.value=localEdit.prompt.value.slice(0,config.promptLimit);localEditUpdatePromptCount();
 }
 function localEditSetInitialSettings(item){
   const config=MODEL_CONFIG[localEditModelKey(item.model)],settings=item.settings||{};
   localEdit.model=localEditModelKey(item.model);
-  localEdit.ratio='auto';
+  localEdit.ratio=config.ratios.includes(settings.ratio)?settings.ratio:'auto';
   localEdit.resolution=config.resolutions.some(option=>option.v===settings.resolution)?settings.resolution:(config.defaultResolution||config.resolutions[0]?.v||'');
   localEdit.prompt.value='';localEditSyncSettings();
 }
@@ -185,9 +190,12 @@ localEdit.fileInput.onchange=async()=>{
   catch(_){localEditSetError('参考图片读取失败，请重试。')}
 };
 localEdit.referenceClear.onclick=()=>localEditClearReference();
-localEdit.modelTrigger.onclick=event=>{event.stopPropagation();const opening=!localEdit.modelPicker.classList.contains('open');localEdit.resolutionPicker.classList.remove('open');localEdit.resolutionTrigger.setAttribute('aria-expanded','false');localEdit.modelPicker.classList.toggle('open',opening);localEdit.modelTrigger.setAttribute('aria-expanded',String(opening))};
-localEdit.resolutionTrigger.onclick=event=>{event.stopPropagation();const opening=!localEdit.resolutionPicker.classList.contains('open');localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');localEdit.resolutionPicker.classList.toggle('open',opening);localEdit.resolutionTrigger.setAttribute('aria-expanded',String(opening))};
+function localEditClosePickers(){localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');localEdit.ratioPicker.classList.remove('open');localEdit.ratioTrigger.setAttribute('aria-expanded','false');localEdit.resolutionPicker.classList.remove('open');localEdit.resolutionTrigger.setAttribute('aria-expanded','false')}
+localEdit.modelTrigger.onclick=event=>{event.stopPropagation();const opening=!localEdit.modelPicker.classList.contains('open');localEditClosePickers();localEdit.modelPicker.classList.toggle('open',opening);localEdit.modelTrigger.setAttribute('aria-expanded',String(opening))};
+localEdit.ratioTrigger.onclick=event=>{event.stopPropagation();const opening=!localEdit.ratioPicker.classList.contains('open');localEditClosePickers();localEdit.ratioPicker.classList.toggle('open',opening);localEdit.ratioTrigger.setAttribute('aria-expanded',String(opening))};
+localEdit.resolutionTrigger.onclick=event=>{event.stopPropagation();const opening=!localEdit.resolutionPicker.classList.contains('open');localEditClosePickers();localEdit.resolutionPicker.classList.toggle('open',opening);localEdit.resolutionTrigger.setAttribute('aria-expanded',String(opening))};
 localEdit.modelSelect.onchange=()=>{localEdit.model=localEditModelKey(localEdit.modelSelect.value);localEditSyncSettings()};
+localEdit.ratioSelect.onchange=()=>{localEdit.ratio=localEdit.ratioSelect.value;localEditRenderRatioPicker(MODEL_CONFIG[localEdit.model])};
 localEdit.resolutionSelect.onchange=()=>{localEdit.resolution=localEdit.resolutionSelect.value;localEditRenderResolutionPicker(MODEL_CONFIG[localEdit.model])};
 localEdit.close.onclick=closeLocalEdit;localEdit.submit.onclick=submitLocalEdit;
 localEdit.reset.onclick=()=>localEditResetViewport();
@@ -197,7 +205,7 @@ localEdit.stage.addEventListener('pointermove',event=>{const view=localEdit.view
 function localEditEndPan(event){const view=localEdit.view;if(view.pointerId!==event.pointerId)return;view.pointerId=null;localEdit.stage.classList.remove('is-panning')}
 localEdit.stage.addEventListener('pointerup',localEditEndPan);localEdit.stage.addEventListener('pointercancel',localEditEndPan);localEdit.stage.addEventListener('dblclick',()=>localEditResetViewport());
 localEdit.stage.addEventListener('dragstart',event=>event.preventDefault());
-localEdit.layer.addEventListener('pointerdown',event=>{if(event.target===localEdit.layer)closeLocalEdit()});document.addEventListener('click',()=>{localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');localEdit.resolutionPicker.classList.remove('open');localEdit.resolutionTrigger.setAttribute('aria-expanded','false')});document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!localEdit.layer.hidden){localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');localEdit.resolutionPicker.classList.remove('open');localEdit.resolutionTrigger.setAttribute('aria-expanded','false');closeLocalEdit()}});
+localEdit.layer.addEventListener('pointerdown',event=>{if(event.target===localEdit.layer)closeLocalEdit()});document.addEventListener('click',localEditClosePickers);document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!localEdit.layer.hidden){localEditClosePickers();closeLocalEdit()}});
 
 function sortAssets(items){
   return items.sort((a,b)=>{
