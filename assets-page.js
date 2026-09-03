@@ -29,6 +29,9 @@ const localEdit={
 };
 let localEditScrollTimer=0;
 localEdit.image.draggable=false;
+const localEditSettingDivider=()=>{const divider=document.createElement('span');divider.className='local-edit-setting-divider';divider.setAttribute('aria-hidden','true');return divider};
+localEdit.modelPicker.after(localEditSettingDivider());
+localEdit.ratioPicker.after(localEditSettingDivider());
 const localEditAttachmentIcon=document.createElement('img');localEditAttachmentIcon.src='image/chat-attachment.svg';localEditAttachmentIcon.alt='';localEditAttachmentIcon.setAttribute('aria-hidden','true');localEdit.upload.replaceChildren(localEditAttachmentIcon);
 
 function localEditSetError(message=''){localEdit.error.hidden=!message;localEdit.error.textContent=message}
