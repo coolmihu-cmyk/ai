@@ -1617,3 +1617,16 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 .local-edit-conversation .local-edit-prompt-meta::before,.local-edit-conversation .local-edit-prompt-meta::after{display:none!important;content:none!important}
 .local-edit-conversation .local-edit-composer{border:1px solid #d9dde0!important;border-radius:14px!important}
 .local-edit-conversation .local-edit-composer:focus-within{border-color:#bfc5c9!important;box-shadow:0 0 0 3px rgba(17,19,21,.035)!important}
+
+/* Image editor layout: the canvas leads, while conversation remains a compact work column. */
+.local-edit-dialog{width:min(1380px,calc(100vw - 36px));height:min(830px,calc(100dvh - 36px));max-height:none;overflow:hidden}
+.local-edit-layout{grid-template-columns:minmax(0,1.36fr) minmax(390px,.76fr);min-height:0;gap:28px;padding:26px;background:#f6f6f6}
+.local-edit-workspace{display:grid;min-height:0;place-items:center;padding:0;border:0;background:transparent}
+.local-edit-stage{width:min(100%,666px);height:auto;min-height:0;aspect-ratio:1/1;border:0;border-radius:0;background:#fff;background-image:none}
+.local-edit-panel{min-width:0;padding:0;background:transparent}
+.local-edit-conversation{padding:18px!important;border:1px solid #b8bec1!important;border-radius:18px!important;background:#fff!important}
+.local-edit-conversation .local-edit-thread{padding:2px 2px 2px 0}
+.local-edit-conversation .local-edit-composer{height:194px!important;min-height:194px!important;max-height:194px!important;margin-top:12px;border-color:#b8bec1!important;border-radius:16px!important}
+.local-edit-conversation .local-edit-composer textarea{padding:14px!important}
+.local-edit-conversation .local-edit-settings-popover{bottom:48px}
+@media(max-width:1000px){.local-edit-dialog{height:auto;max-height:calc(100dvh - 16px)}.local-edit-layout{grid-template-columns:1fr;gap:14px;padding:14px}.local-edit-stage{width:100%;max-width:620px}.local-edit-conversation .local-edit-composer{height:176px!important;min-height:176px!important;max-height:176px!important}}
