@@ -1603,3 +1603,11 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 .local-edit-conversation .local-edit-settings-option:hover{border-color:#cdd3d6;background:#eef1f2;color:#25292c}.local-edit-conversation .local-edit-settings-option.is-selected{border-color:#aeb7bb;background:#e1e5e6;color:#202427}
 @media(max-width:800px){.local-edit-conversation .local-edit-settings-trigger{max-width:126px}.local-edit-conversation .local-edit-settings-popover{right:5px;bottom:44px;width:min(340px,calc(100% - 10px))}.local-edit-conversation .local-edit-settings-models{grid-template-columns:1fr}.local-edit-conversation .local-edit-settings-ratios{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .local-edit-conversation .local-edit-prompt-meta{grid-template-columns:minmax(0,1fr) 34px!important}.local-edit-conversation .local-edit-submit-row,.local-edit-conversation .local-edit-submit-row .primary{width:34px;min-width:34px;height:30px;min-height:30px}.local-edit-conversation .local-edit-submit-row .primary{display:grid;place-items:center;padding:0;border-radius:8px;line-height:1}.local-edit-conversation .local-edit-submit-row .primary svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}.local-edit-conversation .local-edit-submit-row .primary:disabled{opacity:.48}
+
+/* Compact utility typography for the editor settings panel. */
+.local-edit-conversation .local-edit-settings-popover{width:min(336px,calc(100% - 16px));padding:10px;border-radius:11px}
+.local-edit-conversation .local-edit-settings-section{gap:5px}.local-edit-conversation .local-edit-settings-section + .local-edit-settings-section{margin-top:9px}
+.local-edit-conversation .local-edit-settings-section > b{font-size:10px;font-weight:700;letter-spacing:.015em}
+.local-edit-conversation .local-edit-settings-models,.local-edit-conversation .local-edit-settings-resolutions,.local-edit-conversation .local-edit-settings-ratios{gap:4px}
+.local-edit-conversation .local-edit-settings-option{height:28px;gap:4px;padding:0 5px;border-radius:6px;font-size:10px;font-weight:650;line-height:28px}
+.local-edit-conversation .local-edit-settings-option img{width:13px;height:13px;flex-basis:13px}
