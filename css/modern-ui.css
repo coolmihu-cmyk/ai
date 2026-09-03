@@ -1638,3 +1638,4 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 .local-edit-layout{grid-template-columns:minmax(0,1fr) 390px}
 .local-edit-workspace{background:transparent!important}
 .local-edit-stage{width:100%!important;height:100%!important;max-width:none;max-height:none;aspect-ratio:auto;background:transparent!important}
+.local-edit-conversation .local-edit-message.is-assistant.is-image img,.local-edit-conversation .local-edit-message.is-assistant.is-image .local-edit-message-image img{height:auto!important;aspect-ratio:auto!important;object-fit:contain!important}
