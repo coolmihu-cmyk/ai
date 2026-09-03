@@ -20,12 +20,12 @@ let unavailableAssetIds=new Set(),assetImageObserver=null;
 const REFERENCE_LIBRARY_KEY='mihu-reference-library-v1',REFERENCE_LIBRARY_LIMIT=300;
 
 const localEdit={
-  layer:$('#localEditLayer'),close:$('#localEditClose'),image:$('#localEditImage'),
+  layer:$('#localEditLayer'),close:$('#localEditClose'),stage:$('#localEditStage'),image:$('#localEditImage'),
   loading:$('#localEditLoading'),download:$('#localEditDownload'),
   prompt:$('#localEditPrompt'),promptCount:$('#localEditPromptCount'),upload:$('#localEditUpload'),fileInput:$('#localEditFileInput'),referencePreview:$('#localEditReferencePreview'),referencePreviewImage:$('#localEditReferencePreviewImage'),referenceClear:$('#localEditReferenceClear'),error:$('#localEditError'),submit:$('#localEditSubmit'),
   modelSelect:$('#localEditModel'),modelPicker:$('#localEditModelPicker'),modelTrigger:$('#localEditModelTrigger'),modelMenu:$('#localEditModelMenu'),resolutionSelect:$('#localEditResolution'),resolutionPicker:$('#localEditResolutionPicker'),resolutionTrigger:$('#localEditResolutionTrigger'),resolutionMenu:$('#localEditResolutionMenu'),
   thread:$('#localEditThread'),status:$('#localEditStatus'),
-  item:null,model:'gpt',ratio:'auto',resolution:'1k',editRootId:null,editGroupId:null,referenceData:null,submitting:false,lastFocus:null,versions:[],messages:[]
+  item:null,model:'gpt',ratio:'auto',resolution:'1k',editRootId:null,editGroupId:null,referenceData:null,submitting:false,lastFocus:null,versions:[],messages:[],view:{scale:1,x:0,y:0,pointerId:null,startX:0,startY:0,originX:0,originY:0}
 };
 
 function localEditSetError(message=''){localEdit.error.hidden=!message;localEdit.error.textContent=message}
@@ -37,6 +37,8 @@ function localEditSetStatus(message=''){
   localEdit.messages.push({role:'assistant',text:message});localEditRenderThread();
 }
 function localEditClearReference(){localEdit.referenceData=null;localEdit.fileInput.value='';localEdit.referencePreview.hidden=true;localEdit.referencePreviewImage.removeAttribute('src');localEdit.upload.classList.remove('is-attached');localEdit.upload.setAttribute('aria-label','添加参考图片');localEdit.upload.title='添加参考图片'}
+function localEditApplyViewport(){const view=localEdit.view;localEdit.image.style.transform='translate('+view.x+'px,'+view.y+'px) scale('+view.scale+')'}
+function localEditResetViewport(){Object.assign(localEdit.view,{scale:1,x:0,y:0,pointerId:null});localEdit.stage.classList.remove('is-panning');localEditApplyViewport()}
 function localEditModelKey(value){return MODEL_CONFIG[value]?value:'gpt'}
 function localEditUpdatePromptCount(){localEdit.promptCount.textContent=localEdit.prompt.value.length+'/'+localEdit.prompt.maxLength}
 function localEditRenderModelPicker(){
@@ -116,7 +118,7 @@ function closeLocalEdit(){
 }
 function loadLocalEditImage(item,{focus=false}={}){
   return new Promise((resolve,reject)=>{
-    localEdit.item=item;localEdit.loading.hidden=false;localEdit.submit.disabled=true;
+    localEdit.item=item;localEditResetViewport();localEdit.loading.hidden=false;localEdit.submit.disabled=true;
     localEdit.image.onload=()=>{
       const width=localEdit.image.naturalWidth,height=localEdit.image.naturalHeight;
       if(!width||!height){const error=new Error('无法读取图片尺寸。');localEditSetError(error.message);reject(error);return}
@@ -188,6 +190,11 @@ localEdit.modelSelect.onchange=()=>{localEdit.model=localEditModelKey(localEdit.
 localEdit.resolutionSelect.onchange=()=>{localEdit.resolution=localEdit.resolutionSelect.value;localEditRenderResolutionPicker(MODEL_CONFIG[localEdit.model])};
 localEdit.close.onclick=closeLocalEdit;localEdit.submit.onclick=submitLocalEdit;
 localEdit.download.onclick=()=>{if(localEdit.item)downloadImage(localEdit.item.url)};
+localEdit.stage.addEventListener('wheel',event=>{if(!localEdit.image.src)return;event.preventDefault();const next=Math.max(1,Math.min(4,localEdit.view.scale*Math.exp(-event.deltaY*.0015)));if(next===localEdit.view.scale)return;localEdit.view.scale=next;localEditApplyViewport()},{passive:false});
+localEdit.stage.addEventListener('pointerdown',event=>{if(event.button!==0||event.target===localEdit.download||!localEdit.image.src)return;const view=localEdit.view;view.pointerId=event.pointerId;view.startX=event.clientX;view.startY=event.clientY;view.originX=view.x;view.originY=view.y;localEdit.stage.setPointerCapture(event.pointerId);localEdit.stage.classList.add('is-panning')});
+localEdit.stage.addEventListener('pointermove',event=>{const view=localEdit.view;if(view.pointerId!==event.pointerId)return;view.x=view.originX+event.clientX-view.startX;view.y=view.originY+event.clientY-view.startY;localEditApplyViewport()});
+function localEditEndPan(event){const view=localEdit.view;if(view.pointerId!==event.pointerId)return;view.pointerId=null;localEdit.stage.classList.remove('is-panning')}
+localEdit.stage.addEventListener('pointerup',localEditEndPan);localEdit.stage.addEventListener('pointercancel',localEditEndPan);localEdit.stage.addEventListener('dblclick',()=>localEditResetViewport());
 localEdit.layer.addEventListener('pointerdown',event=>{if(event.target===localEdit.layer)closeLocalEdit()});document.addEventListener('click',()=>{localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');localEdit.resolutionPicker.classList.remove('open');localEdit.resolutionTrigger.setAttribute('aria-expanded','false')});document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!localEdit.layer.hidden){localEdit.modelPicker.classList.remove('open');localEdit.modelTrigger.setAttribute('aria-expanded','false');localEdit.resolutionPicker.classList.remove('open');localEdit.resolutionTrigger.setAttribute('aria-expanded','false');closeLocalEdit()}});
 
 function sortAssets(items){
