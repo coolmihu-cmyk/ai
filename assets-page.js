@@ -24,7 +24,7 @@ const localEdit={
   loading:$('#localEditLoading'),download:$('#localEditDownload'),
   prompt:$('#localEditPrompt'),promptCount:$('#localEditPromptCount'),upload:$('#localEditUpload'),fileInput:$('#localEditFileInput'),error:$('#localEditError'),submit:$('#localEditSubmit'),
   modelSelect:$('#localEditModel'),modelPicker:$('#localEditModelPicker'),modelTrigger:$('#localEditModelTrigger'),modelMenu:$('#localEditModelMenu'),resolutionSelect:$('#localEditResolution'),resolutionPicker:$('#localEditResolutionPicker'),resolutionTrigger:$('#localEditResolutionTrigger'),resolutionMenu:$('#localEditResolutionMenu'),
-  thread:$('#localEditThread'),status:$('#localEditStatus'),versionsNode:$('#localEditVersions'),
+  thread:$('#localEditThread'),status:$('#localEditStatus'),
   item:null,model:'gpt',ratio:'auto',resolution:'1k',editRootId:null,editGroupId:null,referenceData:null,referenceUrl:'',submitting:false,lastFocus:null,versions:[],messages:[]
 };
 
@@ -97,15 +97,6 @@ function localEditMessagesForVersions(versions){
   ]);
 }
 const LOCAL_EDIT_WELCOME='例如：把背景换成雨后的城市街道，保留人物的姿势、服装和构图。';
-function localEditRenderVersions(){
-  localEdit.versionsNode.replaceChildren(...localEdit.versions.map((version,index)=>{
-    const button=document.createElement('button');button.type='button';button.className='local-edit-version'+(version===localEdit.item?' is-current':'');
-    button.title='在预览区查看'+(index===0?'原图':'第 '+index+' 版');button.setAttribute('aria-label',button.title);
-    button.onclick=()=>loadLocalEditImage(version).catch(()=>{});
-    const image=document.createElement('img');image.src=ImageDelivery.thumbnail(version.url);image.alt='';button.append(image);
-    const label=document.createElement('span');label.textContent=index===0?'原':'V'+index;button.append(label);return button;
-  }));
-}
 function localEditClosestRatio(width,height){
   const ratios=['1:1','3:2','2:3','4:3','3:4','5:4','4:5','16:9','9:16','2:1','1:2','3:1','1:3','21:9','9:21'];
   const target=width/height;
@@ -120,11 +111,11 @@ function closeLocalEdit(){
 }
 function loadLocalEditImage(item,{focus=false}={}){
   return new Promise((resolve,reject)=>{
-    localEdit.item=item;localEdit.loading.hidden=false;localEdit.submit.disabled=true;localEditRenderVersions();
+    localEdit.item=item;localEdit.loading.hidden=false;localEdit.submit.disabled=true;
     localEdit.image.onload=()=>{
       const width=localEdit.image.naturalWidth,height=localEdit.image.naturalHeight;
       if(!width||!height){const error=new Error('无法读取图片尺寸。');localEditSetError(error.message);reject(error);return}
-      localEdit.loading.hidden=true;localEdit.submit.disabled=false;localEditRenderVersions();
+      localEdit.loading.hidden=true;localEdit.submit.disabled=false;
       if(focus)localEdit.prompt.focus();resolve();
     };
     localEdit.image.onerror=()=>{const error=new Error('图片加载失败，可能已经过期。');localEdit.loading.hidden=true;localEditSetError(error.message);localEdit.submit.disabled=true;reject(error)};
@@ -135,7 +126,7 @@ function openLocalEdit(item,trigger,{versions=[item],resume=false}={}){
   if(assetExpiry(item).expired){toast('原图已过期，无法编辑');return}
   const orderedVersions=[...versions].sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
   localEdit.lastFocus=trigger||document.activeElement;localEdit.versions=orderedVersions;localEdit.editRootId=String(orderedVersions[0]?.id||item.editRootId||item.id);localEdit.editGroupId=item.editGroupId||'edit-'+localEdit.editRootId;localEdit.messages=resume?localEditMessagesForVersions(orderedVersions):[{role:'assistant',text:LOCAL_EDIT_WELCOME}];localEditClearReference();const latestReference=[...orderedVersions].reverse().find(version=>version.referenceUrl||version.referenceUrls?.length);localEdit.referenceUrl=latestReference?.referenceUrl||latestReference?.referenceUrls?.[0]||'';if(localEdit.referenceUrl){localEdit.upload.classList.add('is-attached');localEdit.upload.setAttribute('aria-label','已恢复参考图片，点击替换');localEdit.upload.title='已恢复参考图片，点击替换'}
-  localEditSetInitialSettings(item);localEditSetError();localEditSetStatus('');localEditRenderThread();localEditRenderVersions();
+  localEditSetInitialSettings(item);localEditSetError();localEditSetStatus('');localEditRenderThread();
   localEdit.layer.hidden=false;document.body.classList.add('local-edit-open');
   loadLocalEditImage(item,{focus:true}).catch(()=>{});
 }
