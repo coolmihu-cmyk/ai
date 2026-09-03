@@ -1543,6 +1543,7 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 /* Simplified editor controls: model with icon, model-default auto ratio, and resolution. */
 .local-edit-conversation .local-edit-message.is-assistant{border:0!important;background:#fff;box-shadow:none}
 .local-edit-conversation .local-edit-message.is-assistant::before{border-right-color:#fff}
+.local-edit-conversation .local-edit-message.is-assistant.is-image{display:grid;width:156px;max-width:calc(100vw - 112px);gap:6px;padding:4px;border-radius:9px;background:#fff;color:#4f575d;text-align:left;cursor:pointer}.local-edit-conversation .local-edit-message.is-assistant.is-image::before{border-right-color:#fff}.local-edit-conversation .local-edit-message.is-assistant.is-image img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:6px}.local-edit-conversation .local-edit-message.is-assistant.is-image span{padding:0 3px 2px;font-size:10px;line-height:1.4}.local-edit-conversation .local-edit-message.is-assistant.is-image:hover{background:#fafbfb}.local-edit-conversation .local-edit-message.is-assistant.is-image:focus-visible{outline:2px solid #1f2428;outline-offset:2px}
 .local-edit-conversation .local-edit-model-picker{width:176px;flex-basis:176px}
 .local-edit-conversation .local-edit-model-trigger{gap:8px;width:176px;padding:0 10px}
 .local-edit-conversation .local-edit-model-trigger img{display:block;width:18px;height:18px;flex:0 0 18px;object-fit:contain}

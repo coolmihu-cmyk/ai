@@ -79,14 +79,21 @@ function localEditRenderThread(){
   localEdit.thread.replaceChildren(...localEdit.messages.map(message=>{
     const row=document.createElement('div');row.className='local-edit-message-row is-'+message.role;
     const avatar=document.createElement('img');avatar.className='local-edit-avatar';avatar.src=message.role==='assistant'?'image/chat-admin.png':'image/chat-user.png';avatar.alt=message.role==='assistant'?'助手头像':'用户头像';
-    const node=document.createElement('p');node.className='local-edit-message is-'+message.role;node.textContent=message.text;row.append(avatar,node);return row;
+    const node=document.createElement(message.imageUrl?'button':'p');node.className='local-edit-message is-'+message.role+(message.imageUrl?' is-image':'');
+    if(message.imageUrl){
+      node.type='button';node.title='点击在预览区查看这张图片';node.setAttribute('aria-label',node.title);
+      const image=document.createElement('img');image.src=ImageDelivery.thumbnail(message.imageUrl);image.alt=message.text||'生成图片';
+      const caption=document.createElement('span');caption.textContent=message.text||'已生成图片';node.append(image,caption);
+      node.onclick=()=>{const version=localEdit.versions.find(item=>item.id===message.versionId||item.url===message.imageUrl);if(version)loadLocalEditImage(version).catch(()=>{})};
+    }else node.textContent=message.text;
+    row.append(avatar,node);return row;
   }));
   localEdit.thread.scrollTop=localEdit.thread.scrollHeight;
 }
 function localEditMessagesForVersions(versions){
   return versions.slice(1).flatMap((version,index)=>[
     {role:'user',text:version.prompt||'继续编辑这张图片。'},
-    {role:'assistant',text:'第 '+(index+1)+' 版已就绪，可继续编辑。'}
+    {role:'assistant',text:'第 '+(index+1)+' 版已就绪，点击图片可在预览区查看。',imageUrl:version.url,versionId:version.id}
   ]);
 }
 const LOCAL_EDIT_WELCOME='例如：把背景换成雨后的城市街道，保留人物的姿势、服装和构图。';
@@ -159,8 +166,7 @@ async function submitLocalEdit(){
     }
     const version={id:itemId,url,prompt,model:localEdit.model,settings:{ratio:localEdit.ratio,resolution:localEdit.resolution},referenceUrl:localEdit.referenceUrl,editRootId:localEdit.editRootId,editGroupId:localEdit.editGroupId,archived,historyKey,createdAt,type:'image'};
     await History.save(version);assetItems=sortAssets([version,...assetItems.filter(asset=>asset.id!==version.id)]);renderAssets();
-    localEdit.versions.push(version);
-    localEditSetStatus('第 '+(localEdit.versions.length-1)+' 版已就绪，可继续编辑。');
+    localEdit.versions.push(version);localEdit.messages.push({role:'assistant',text:'第 '+(localEdit.versions.length-1)+' 版已就绪，点击图片可在预览区查看。',imageUrl:version.url,versionId:version.id});localEditRenderThread();
     await loadLocalEditImage(version,{focus:true});toast('新版本已生成');
   }catch(error){
     localEditSetError(error?.message||'图片编辑任务创建失败。');localEditSetStatus('生成未完成，请修改描述后重试。');
