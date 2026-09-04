@@ -22,7 +22,7 @@ const REFERENCE_LIBRARY_KEY='mihu-reference-library-v1',REFERENCE_LIBRARY_LIMIT=
 const localEdit={
   layer:$('#localEditLayer'),close:$('#localEditClose'),stage:$('#localEditStage'),image:$('#localEditImage'),
   loading:$('#localEditLoading'),reset:$('#localEditReset'),
-  composer:$('.local-edit-composer'),prompt:$('#localEditPrompt'),promptCount:$('#localEditPromptCount'),upload:$('#localEditUpload'),fileInput:$('#localEditFileInput'),referencePreview:$('#localEditReferencePreview'),referencePreviewImage:$('#localEditReferencePreviewImage'),referenceClear:$('#localEditReferenceClear'),settings:$('.local-edit-settings'),error:$('#localEditError'),submit:$('#localEditSubmit'),
+  conversation:$('.local-edit-conversation'),conversationToggle:$('#localEditConversationToggle'),composer:$('.local-edit-composer'),prompt:$('#localEditPrompt'),promptCount:$('#localEditPromptCount'),upload:$('#localEditUpload'),fileInput:$('#localEditFileInput'),referencePreview:$('#localEditReferencePreview'),referencePreviewImage:$('#localEditReferencePreviewImage'),referenceClear:$('#localEditReferenceClear'),settings:$('.local-edit-settings'),error:$('#localEditError'),submit:$('#localEditSubmit'),
   modelSelect:$('#localEditModel'),modelPicker:$('#localEditModelPicker'),modelTrigger:$('#localEditModelTrigger'),modelMenu:$('#localEditModelMenu'),ratioSelect:$('#localEditRatio'),ratioPicker:$('#localEditRatioPicker'),ratioTrigger:$('#localEditRatioTrigger'),ratioMenu:$('#localEditRatioMenu'),resolutionSelect:$('#localEditResolution'),resolutionPicker:$('#localEditResolutionPicker'),resolutionTrigger:$('#localEditResolutionTrigger'),resolutionMenu:$('#localEditResolutionMenu'),
   thread:$('#localEditThread'),status:$('#localEditStatus'),
   item:null,model:'gpt',ratio:'auto',resolution:'1k',editRootId:null,editGroupId:null,referenceData:null,submitting:false,lastFocus:null,versions:[],messages:[],view:{scale:1,x:0,y:0,pointerId:null,startX:0,startY:0,originX:0,originY:0}
@@ -36,7 +36,16 @@ Object.assign(localEdit,{settingsTrigger:localEditSettingsTrigger,settingsPopove
 function localEditSetSubmitIcon(){localEdit.submit.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m0 0-5 5m5-5 5 5"/></svg>';localEdit.submit.setAttribute('aria-label','生成图片');localEdit.submit.title='生成图片'}
 localEditSetSubmitIcon();
 
-function localEditSetError(message=''){localEdit.error.hidden=!message;localEdit.error.textContent=message}
+function localEditSetConversationCollapsed(collapsed){
+  localEdit.conversation.classList.toggle('is-collapsed',collapsed);
+  localEdit.conversationToggle.setAttribute('aria-expanded',String(!collapsed));
+  localEdit.conversationToggle.setAttribute('aria-label',collapsed?'展开对话记录':'收起对话记录');
+  localEdit.conversationToggle.title=collapsed?'展开对话记录':'收起对话记录';
+  localEdit.conversationToggle.innerHTML=collapsed?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+}
+localEdit.conversationToggle.onclick=()=>localEditSetConversationCollapsed(!localEdit.conversation.classList.contains('is-collapsed'));
+
+function localEditSetError(message=''){if(message)localEditSetConversationCollapsed(false);localEdit.error.hidden=!message;localEdit.error.textContent=message}
 function localEditSetStatus(message=''){
   localEdit.status.textContent='';
   if(!message)return;
@@ -154,7 +163,7 @@ function loadLocalEditImage(item,{focus=false}={}){
 function openLocalEdit(item,trigger,{versions=[item],resume=false}={}){
   if(assetExpiry(item).expired){toast('原图已过期，无法编辑');return}
   const orderedVersions=[...versions].sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
-  localEdit.lastFocus=trigger||document.activeElement;localEdit.versions=orderedVersions;localEdit.editRootId=String(orderedVersions[0]?.id||item.editRootId||item.id);localEdit.editGroupId=item.editGroupId||'edit-'+localEdit.editRootId;localEdit.messages=resume?localEditMessagesForVersions(orderedVersions):[{role:'assistant',text:LOCAL_EDIT_WELCOME}];localEditClearReference();
+  localEdit.lastFocus=trigger||document.activeElement;localEdit.versions=orderedVersions;localEdit.editRootId=String(orderedVersions[0]?.id||item.editRootId||item.id);localEdit.editGroupId=item.editGroupId||'edit-'+localEdit.editRootId;localEdit.messages=resume?localEditMessagesForVersions(orderedVersions):[{role:'assistant',text:LOCAL_EDIT_WELCOME}];localEditSetConversationCollapsed(false);localEditClearReference();
   localEditSetInitialSettings(item);localEditSetError();localEditSetStatus('');localEditRenderThread();
   localEdit.layer.hidden=false;document.body.classList.add('local-edit-open');
   loadLocalEditImage(item,{focus:true}).catch(()=>{});
