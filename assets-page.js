@@ -208,6 +208,11 @@ function localEditCenterCurrentVersion(){
   const current=localEdit.thread.querySelector('.local-edit-message.is-image.is-editing');
   if(current)current.scrollIntoView({block:'center',inline:'nearest',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
 }
+function localEditScrollToLatestVersion(){
+  const images=localEdit.thread.querySelectorAll('.local-edit-message.is-image');
+  const latest=images[images.length-1];
+  if(latest)latest.scrollIntoView({block:'end',inline:'nearest',behavior:'auto'});else localEdit.thread.scrollTop=localEdit.thread.scrollHeight;
+}
 function localEditSetImageFrame(image){
   const width=image.naturalWidth,height=image.naturalHeight,stageRect=localEdit.stage.getBoundingClientRect();
   if(!width||!height||!stageRect.width||!stageRect.height)return;
@@ -247,9 +252,9 @@ function localEditSwitchVersion(offset){
   const currentIndex=localEdit.versions.findIndex(version=>String(version.id||'')===String(localEdit.currentVersionId||'')),target=localEdit.versions[currentIndex+offset];
   if(target)loadLocalEditImage(target,{focus:true}).catch(()=>{});
 }
-function loadLocalEditImage(item,{focus=false}={}){
+function loadLocalEditImage(item,{focus=false,threadPosition='current'}={}){
   return new Promise((resolve,reject)=>{
-    localEdit.item=item;localEdit.currentVersionId=String(item.id||'');localEditRenderThread();localEditUpdateVersionSwitches();localEditUpdateOriginalPreview();localEditUpdatePreviewMeta();requestAnimationFrame(localEditCenterCurrentVersion);localEditResetViewport();localEdit.loading.hidden=false;localEdit.submit.disabled=true;localEditSetSubmitLoading();
+    localEdit.item=item;localEdit.currentVersionId=String(item.id||'');localEditRenderThread();localEditUpdateVersionSwitches();localEditUpdateOriginalPreview();localEditUpdatePreviewMeta();requestAnimationFrame(()=>threadPosition==='latest'?localEditScrollToLatestVersion():localEditCenterCurrentVersion());localEditResetViewport();localEdit.loading.hidden=false;localEdit.submit.disabled=true;localEditSetSubmitLoading();
     localEdit.image.onload=()=>{
       const width=localEdit.image.naturalWidth,height=localEdit.image.naturalHeight;
       if(!width||!height){const error=new Error('无法读取图片尺寸。');localEditSetError(error.message);reject(error);return}
@@ -260,17 +265,17 @@ function loadLocalEditImage(item,{focus=false}={}){
     localEdit.image.src=item.url;
   });
 }
-function openLocalEdit(item,trigger,{versions=[item],resume=false}={}){
+function openLocalEdit(item,trigger,{versions=[item],resume=false,threadPosition='current'}={}){
   if(assetExpiry(item).expired){toast('原图已过期，无法编辑');return}
   const orderedVersions=[...versions].sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
   localEdit.lastFocus=trigger||document.activeElement;localEdit.versions=orderedVersions;localEdit.editRootId=String(orderedVersions[0]?.id||item.editRootId||item.id);localEdit.editGroupId=item.editGroupId||'edit-'+localEdit.editRootId;localEdit.messages=resume?localEditMessagesForVersions(orderedVersions):[{role:'assistant',text:LOCAL_EDIT_WELCOME},...localEditMessagesForVersions(orderedVersions)];localEditSetComposerCollapsed(false);localEditClearReference();localEditPrepareOriginalImage();
   localEditSetInitialSettings(item);localEditSetError();localEditSetStatus('');localEditRenderThread();
   localEdit.layer.hidden=false;document.body.classList.add('local-edit-open');
-  loadLocalEditImage(item,{focus:true}).catch(()=>{});
+  loadLocalEditImage(item,{focus:true,threadPosition}).catch(()=>{});
 }
 function openLocalEditGroup(root,edits,trigger){
   const versions=[root,...edits].sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
-  openLocalEdit(versions[versions.length-1],trigger,{versions,resume:true});
+  openLocalEdit(versions[versions.length-1],trigger,{versions,resume:true,threadPosition:'latest'});
 }
 async function submitLocalEdit({prompt:providedPrompt='',alreadyRecorded=false,skipQuestion=false}={}){
   if(localEdit.submitting||localEdit.guiding)return;
