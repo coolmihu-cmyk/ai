@@ -36,16 +36,17 @@ Object.assign(localEdit,{settingsTrigger:localEditSettingsTrigger,settingsPopove
 function localEditSetSubmitIcon(){localEdit.submit.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m0 0-5 5m5-5 5 5"/></svg>';localEdit.submit.setAttribute('aria-label','生成图片');localEdit.submit.title='生成图片'}
 localEditSetSubmitIcon();
 
-function localEditSetConversationCollapsed(collapsed){
-  localEdit.conversation.classList.toggle('is-collapsed',collapsed);
+function localEditSetComposerCollapsed(collapsed){
+  localEdit.conversation.classList.toggle('is-composer-collapsed',collapsed);
   localEdit.conversationToggle.setAttribute('aria-expanded',String(!collapsed));
-  localEdit.conversationToggle.setAttribute('aria-label',collapsed?'展开对话记录':'收起对话记录');
-  localEdit.conversationToggle.title=collapsed?'展开对话记录':'收起对话记录';
+  localEdit.conversationToggle.setAttribute('aria-label',collapsed?'展开输入框':'收起输入框');
+  localEdit.conversationToggle.title=collapsed?'展开输入框':'收起输入框';
   localEdit.conversationToggle.innerHTML=collapsed?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+  if(collapsed){localEdit.settingsPopover.hidden=true;localEdit.settingsTrigger.setAttribute('aria-expanded','false')}
 }
-localEdit.conversationToggle.onclick=()=>localEditSetConversationCollapsed(!localEdit.conversation.classList.contains('is-collapsed'));
+localEdit.conversationToggle.onclick=()=>localEditSetComposerCollapsed(!localEdit.conversation.classList.contains('is-composer-collapsed'));
 
-function localEditSetError(message=''){if(message)localEditSetConversationCollapsed(false);localEdit.error.hidden=!message;localEdit.error.textContent=message}
+function localEditSetError(message=''){if(message)localEditSetComposerCollapsed(false);localEdit.error.hidden=!message;localEdit.error.textContent=message}
 function localEditSetStatus(message=''){
   localEdit.status.textContent='';
   if(!message)return;
@@ -167,7 +168,7 @@ function loadLocalEditImage(item,{focus=false}={}){
 function openLocalEdit(item,trigger,{versions=[item],resume=false}={}){
   if(assetExpiry(item).expired){toast('原图已过期，无法编辑');return}
   const orderedVersions=[...versions].sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
-  localEdit.lastFocus=trigger||document.activeElement;localEdit.versions=orderedVersions;localEdit.editRootId=String(orderedVersions[0]?.id||item.editRootId||item.id);localEdit.editGroupId=item.editGroupId||'edit-'+localEdit.editRootId;localEdit.messages=resume?localEditMessagesForVersions(orderedVersions):[{role:'assistant',text:LOCAL_EDIT_WELCOME},...localEditMessagesForVersions(orderedVersions)];localEditSetConversationCollapsed(false);localEditClearReference();
+  localEdit.lastFocus=trigger||document.activeElement;localEdit.versions=orderedVersions;localEdit.editRootId=String(orderedVersions[0]?.id||item.editRootId||item.id);localEdit.editGroupId=item.editGroupId||'edit-'+localEdit.editRootId;localEdit.messages=resume?localEditMessagesForVersions(orderedVersions):[{role:'assistant',text:LOCAL_EDIT_WELCOME},...localEditMessagesForVersions(orderedVersions)];localEditSetComposerCollapsed(false);localEditClearReference();
   localEditSetInitialSettings(item);localEditSetError();localEditSetStatus('');localEditRenderThread();
   localEdit.layer.hidden=false;document.body.classList.add('local-edit-open');
   loadLocalEditImage(item,{focus:true}).catch(()=>{});

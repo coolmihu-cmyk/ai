@@ -11,7 +11,7 @@
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="stylesheet" href="css/base.css?v=20260828-141842">
 <link rel="stylesheet" href="css/pages.css?v=20260831-125949">
-<link rel="stylesheet" href="css/modern-ui.css?v=20260904-003000">
+<link rel="stylesheet" href="css/modern-ui.css?v=20260904-005000">
 </head>
 <body class="assets-page">
 
@@ -83,10 +83,10 @@
       </div>
       <div class="local-edit-panel">
         <div class="local-edit-conversation">
-          <button type="button" class="local-edit-conversation-toggle" id="localEditConversationToggle" aria-controls="localEditThread" aria-expanded="true" aria-label="收起对话记录" title="收起对话记录"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+          <button type="button" class="local-edit-conversation-toggle" id="localEditConversationToggle" aria-controls="localEditComposer" aria-expanded="true" aria-label="收起输入框" title="收起输入框"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
           <div class="local-edit-thread" id="localEditThread" role="log" aria-live="polite"></div>
           <p class="local-edit-status" id="localEditStatus" role="status"></p>
-          <div class="local-edit-composer">
+          <div class="local-edit-composer" id="localEditComposer">
             <textarea id="localEditPrompt" maxlength="3000" rows="7"></textarea>
             <b class="local-edit-prompt-count" id="localEditPromptCount">0/3000</b>
             <div class="local-edit-prompt-meta"><div class="local-edit-control-row"><button type="button" class="local-edit-upload" id="localEditUpload" aria-label="添加参考图片" title="添加参考图片">+</button><input id="localEditFileInput" type="file" accept="image/png,image/jpeg,image/webp" hidden><div class="local-edit-reference-preview" id="localEditReferencePreview" hidden><img id="localEditReferencePreviewImage" alt="已添加的参考图片"><button type="button" id="localEditReferenceClear" aria-label="移除参考图片" title="移除参考图片">×</button></div><div class="local-edit-settings" aria-label="图片编辑参数"><div class="creation-select creation-dropdown local-edit-model-picker" id="localEditModelPicker"><select id="localEditModel" aria-label="编辑模型" tabindex="-1"></select><button type="button" class="creation-select-trigger local-edit-model-trigger" id="localEditModelTrigger" aria-label="选择编辑模型" aria-haspopup="listbox" aria-expanded="false"></button><div class="creation-select-menu local-edit-model-menu" id="localEditModelMenu" role="listbox" aria-label="选择编辑模型"></div></div><div class="creation-select creation-dropdown local-edit-ratio-picker" id="localEditRatioPicker"><select id="localEditRatio" aria-label="图片比例" tabindex="-1"></select><button type="button" class="creation-select-trigger local-edit-ratio-trigger" id="localEditRatioTrigger" aria-label="选择图片比例" aria-haspopup="listbox" aria-expanded="false"></button><div class="creation-select-menu local-edit-ratio-menu" id="localEditRatioMenu" role="listbox" aria-label="选择图片比例"></div></div><div class="creation-select creation-dropdown local-edit-resolution-picker" id="localEditResolutionPicker"><select id="localEditResolution" aria-label="图片分辨率" tabindex="-1"></select><button type="button" class="creation-select-trigger local-edit-resolution-trigger" id="localEditResolutionTrigger" aria-label="选择图片分辨率" aria-haspopup="listbox" aria-expanded="false"></button><div class="creation-select-menu local-edit-resolution-menu" id="localEditResolutionMenu" role="listbox" aria-label="选择图片分辨率"></div></div></div></div><div class="local-edit-submit-row"><button type="button" class="primary" id="localEditSubmit">生成</button></div></div>
@@ -99,7 +99,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<script src="shared.js?v=20260904-004000"></script>
-<script src="assets-page.js?v=20260904-004000"></script>
+<script src="shared.js?v=20260904-005000"></script>
+<script src="assets-page.js?v=20260904-005000"></script>
 </body>
 </html>
