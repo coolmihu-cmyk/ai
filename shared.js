@@ -1,7 +1,7 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 // 每次完成一次改动并提交时递增。
-const APP_VERSION='200.0';
+const APP_VERSION='201.0';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
@@ -241,13 +241,13 @@ const Apimart={
       await new Promise(r=>setTimeout(r,pollInterval));
     }
   },
-  async generate({apiKey,body,endpoint,onProgress,onSubmitted,signal}){
+  async generate({apiKey,body,endpoint,onProgress,onSubmitted,signal,maxWaitMs}){
     let lastErr,retries=2;
     for(let i=0;i<=retries;i++){
       try{
         const taskId=await this.submitTask(apiKey,body,endpoint,signal);
         if(onSubmitted)onSubmitted(taskId);
-        return await this.pollTask(apiKey,taskId,onProgress,signal);
+        return await this.pollTask(apiKey,taskId,onProgress,signal,maxWaitMs);
       }catch(e){
         lastErr=e;
         const msg=e.message||'';

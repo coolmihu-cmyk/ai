@@ -116,8 +116,8 @@ function localEditRenderThread(){
     if(message.imageUrl){
       const preview=document.createElement('button');preview.type='button';preview.className='local-edit-message-image';preview.title='在预览区查看图片';preview.setAttribute('aria-label',preview.title);
       const image=document.createElement('img');image.src=ImageDelivery.thumbnail(message.imageUrl);image.alt=message.text||'生成图片';
-      const selectVersion=()=>{const version=localEdit.versions.find(item=>item.id===message.versionId||item.url===message.imageUrl);if(version)loadLocalEditImage(version,{focus:true}).catch(()=>{})};
-      preview.append(image);preview.onclick=selectVersion;
+      const selectVersion=()=>{const version=localEdit.versions.find(item=>String(item.id??'')===String(message.versionId??''))||localEdit.versions.find(item=>item.url===message.imageUrl);if(!version){localEditSetError('未找到该图片版本，请重新打开图组。');return}localEditHideOriginalPreview();localEditSetError();loadLocalEditImage(version,{focus:true}).catch(()=>{})};
+      preview.append(image);preview.onclick=event=>{event.preventDefault();event.stopPropagation();selectVersion()};
       const footer=document.createElement('div');footer.className='local-edit-message-footer';
       const caption=document.createElement('span');caption.className='local-edit-message-caption';caption.textContent=message.text||'';if(message.generatedAt){caption.title='生成日期：'+message.generatedAt}
       const actions=document.createElement('div');actions.className='local-edit-message-actions';
@@ -295,12 +295,13 @@ async function submitLocalEdit({prompt:providedPrompt='',alreadyRecorded=false,s
     if(guidance){localEditAskGuidance(prompt,guidance);return}
   }
   localEdit.submitting=true;localEdit.submit.disabled=true;localEdit.close.disabled=true;localEditSetSubmitLoading();localEditSetError();
+  const generationController=new AbortController(),generationTimeoutId=setTimeout(()=>generationController.abort(),30*60*1000+15000);
   if(!alreadyRecorded)localEdit.messages.push({role:'user',text:prompt});localEdit.prompt.value='';localEditUpdatePromptCount();localEditRenderThread();localEditSetStatus('正在提交图片编辑请求');
   try{
     const editPrompt=prompt+'。以输入图片为基础进行编辑，保留用户未明确要求改变的主体、构图和重要视觉特征。';
     const config=MODEL_CONFIG[localEdit.model];
     const body={model:config.editModel||config.generationModel,prompt:editPrompt,size:localEdit.ratio,resolution:localEdit.resolution,n:1,image_urls:[localEdit.item.url,...(localEdit.referenceData?[localEdit.referenceData]:[])]};
-    let url=await Apimart.generate({apiKey,body,endpoint:'/images/generations',onProgress:(status,progress)=>{
+    let url=await Apimart.generate({apiKey,body,endpoint:'/images/generations',signal:generationController.signal,maxWaitMs:30*60*1000,onProgress:(status,progress)=>{
       localEditSetStatus(status==='processing'?'模型正在生成新版本...':'正在处理图片');
     }});
     const itemId=Date.now(),createdAt=new Date().toISOString();let archived=false,historyKey='';
@@ -317,6 +318,7 @@ async function submitLocalEdit({prompt:providedPrompt='',alreadyRecorded=false,s
   }catch(error){
     localEditSetError(error?.message||'图片编辑任务创建失败。');localEditSetStatus('生成未完成，请修改描述后重试。');
   }finally{
+    clearTimeout(generationTimeoutId);
     localEdit.submitting=false;localEdit.submit.disabled=false;localEdit.close.disabled=false;localEditSetSubmitIcon();
   }
 }
