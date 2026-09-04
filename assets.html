@@ -11,7 +11,7 @@
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="stylesheet" href="css/base.css?v=20260828-141842">
 <link rel="stylesheet" href="css/pages.css?v=20260831-125949">
-<link rel="stylesheet" href="css/modern-ui.css?v=20260904-039000">
+<link rel="stylesheet" href="css/modern-ui.css?v=20260904-040000">
 </head>
 <body class="assets-page">
 
@@ -77,10 +77,12 @@
       <div class="local-edit-workspace">
         <div class="local-edit-stage" id="localEditStage">
           <img id="localEditImage" alt="待编辑的原图">
+          <img id="localEditOriginalImage" alt="原图预览" hidden>
           <button type="button" class="local-edit-version-switch is-previous" id="localEditPreviousVersion" aria-label="查看上一版本" title="上一版本" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7"/></svg></button>
           <button type="button" class="local-edit-version-switch is-next" id="localEditNextVersion" aria-label="查看下一版本" title="下一版本" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 5 7 7-7 7"/></svg></button>
           <button type="button" class="local-edit-reset" id="localEditReset" aria-label="恢复默认大小和位置" title="恢复默认大小和位置">↺</button>
           <p class="local-edit-preview-meta" id="localEditPreviewMeta" aria-live="polite" hidden></p>
+          <button type="button" class="local-edit-original-preview" id="localEditOriginalPreview" aria-label="按住查看原图" title="按住查看原图" hidden>原图</button>
           <div class="local-edit-loading" id="localEditLoading">正在载入原图</div>
         </div>
       </div>
@@ -102,7 +104,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<script src="shared.js?v=20260904-039000"></script>
-<script src="assets-page.js?v=20260904-039000"></script>
+<script src="shared.js?v=20260904-040000"></script>
+<script src="assets-page.js?v=20260904-040000"></script>
 </body>
 </html>
