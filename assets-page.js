@@ -108,16 +108,23 @@ function localEditSetInitialSettings(item){
   localEdit.resolution=config.resolutions.some(option=>option.v===settings.resolution)?settings.resolution:(config.defaultResolution||config.resolutions[0]?.v||'');
   localEdit.prompt.value='';localEditSyncSettings();
 }
+function localEditSelectVersion(versionId,imageUrl,versionLabel=''){
+  const labelIndex=Math.max(-1,Number(String(versionLabel||'').replace(/^V/,''))-1);
+  const version=localEdit.versions.find(item=>String(item.id??'')===String(versionId??''))||localEdit.versions.find(item=>item.url===imageUrl)||localEdit.versions[labelIndex];
+  if(!version){localEditSetError('未找到该图片版本，请重新打开图组。');return}
+  localEditHideOriginalPreview();localEditSetError();loadLocalEditImage(version,{focus:true}).catch(()=>{});
+}
 function localEditRenderThread(){
   localEdit.thread.replaceChildren(...localEdit.messages.map(message=>{
     const row=document.createElement('div');row.className='local-edit-message-row is-'+message.role;
     const avatar=document.createElement('img');avatar.className='local-edit-avatar';avatar.src=message.role==='assistant'?'image/chat-admin.png':'image/chat-user.png';avatar.alt=message.role==='assistant'?'助手头像':'用户头像';
     const node=document.createElement(message.imageUrl||message.choices?'div':'p');node.className='local-edit-message is-'+message.role+(message.imageUrl?' is-image':'')+(message.choices?' is-choice':'')+(message.versionId&&String(message.versionId)===String(localEdit.currentVersionId)?' is-editing':'');
     if(message.imageUrl){
+      node.dataset.versionId=String(message.versionId??'');node.dataset.imageUrl=message.imageUrl;node.dataset.versionLabel=message.text||'';
       const preview=document.createElement('button');preview.type='button';preview.className='local-edit-message-image';preview.title='在预览区查看图片';preview.setAttribute('aria-label',preview.title);
       const image=document.createElement('img');image.src=ImageDelivery.thumbnail(message.imageUrl);image.alt=message.text||'生成图片';
-      const selectVersion=()=>{const version=localEdit.versions.find(item=>String(item.id??'')===String(message.versionId??''))||localEdit.versions.find(item=>item.url===message.imageUrl);if(!version){localEditSetError('未找到该图片版本，请重新打开图组。');return}localEditHideOriginalPreview();localEditSetError();loadLocalEditImage(version,{focus:true}).catch(()=>{})};
-      preview.append(image);preview.onclick=event=>{event.preventDefault();event.stopPropagation();selectVersion()};
+      const selectVersion=()=>localEditSelectVersion(message.versionId,message.imageUrl,message.text);
+      preview.append(image);
       const footer=document.createElement('div');footer.className='local-edit-message-footer';
       const caption=document.createElement('span');caption.className='local-edit-message-caption';caption.textContent=message.text||'';if(message.generatedAt){caption.title='生成日期：'+message.generatedAt}
       const actions=document.createElement('div');actions.className='local-edit-message-actions';
@@ -129,6 +136,7 @@ function localEditRenderThread(){
       message.choices.forEach(choice=>{const button=document.createElement('button');button.type='button';button.textContent=choice.label;button.onclick=()=>localEditChooseGuidance(choice,message.basePrompt,message.guidance);choices.append(button)});
       node.append(question,choices);
     }else node.textContent=message.text;
+    if(message.imageUrl)node.onclick=event=>{if(event.target.closest('.local-edit-message-action'))return;localEditSelectVersion(node.dataset.versionId,node.dataset.imageUrl,node.dataset.versionLabel)};
     row.append(avatar,node);return row;
   }));
   localEdit.thread.scrollTop=localEdit.thread.scrollHeight;
