@@ -215,8 +215,8 @@ function localEditUpdateImageFrame(){
   localEdit.image.style.setProperty('--local-edit-image-clip','inset('+vertical+'px '+horizontal+'px '+vertical+'px '+horizontal+'px round 8px)');
 }
 function localEditUpdatePreviewMeta(){
-  const index=localEdit.versions.findIndex(version=>String(version.id||'')===String(localEdit.currentVersionId||'')),date=localEditGeneratedDate(localEdit.item?.createdAt),parts=[];
-  if(index>=0)parts.push('V'+(index+1));if(date)parts.push(date);
+  const index=localEdit.versions.findIndex(version=>String(version.id||'')===String(localEdit.currentVersionId||'')),date=localEditGeneratedDate(localEdit.item?.createdAt),model=MODEL_CONFIG[localEditModelKey(localEdit.item?.model)].name,resolution=String(localEdit.item?.settings?.resolution||'').toUpperCase(),parts=[];
+  if(index>=0)parts.push('V'+(index+1));if(date)parts.push(date);if(model)parts.push(model);if(resolution)parts.push(resolution);
   localEdit.previewMeta.hidden=!parts.length;localEdit.previewMeta.textContent=parts.join(' · ');
 }
 function localEditUpdateVersionSwitches(){
