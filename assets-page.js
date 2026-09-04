@@ -178,7 +178,7 @@ async function submitLocalEdit(){
       localEditSetStatus(status==='processing'?'模型正在生成新版本':'正在处理图片');
     }});
     const itemId=Date.now(),createdAt=new Date().toISOString();let archived=false,historyKey='';
-    if(Archive.isAvailable()){
+    if(Archive.isAvailable()&&localEdit.model!=='seedream'){
       try{
         const archive=await Archive.image(url,{id:itemId,prompt,model:localEdit.model,settings:{ratio:localEdit.ratio,resolution:localEdit.resolution},editRootId:localEdit.editRootId,editGroupId:localEdit.editGroupId,createdAt,type:'image'});
         url=archive.url;archived=true;historyKey=archive.historyKey||'';
@@ -575,7 +575,7 @@ async function runPendingGeneration(job){
     }
     const itemId=Date.now(),createdAt=new Date().toISOString();
     let archived=false,historyKey='';
-    if(Archive.isAvailable()){
+    if(Archive.isAvailable()&&job.model!=='seedream'){
       try{
         const archive=await Archive.image(url,{
           id:itemId,prompt:job.prompt||'',model:job.model||'gpt',settings:job.settings||{},referenceUrl:job.referenceUrls?.[0]||'',referenceUrls:job.referenceUrls||[],createdAt,type:'image'
