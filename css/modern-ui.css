@@ -1660,6 +1660,8 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 .local-edit-conversation .local-edit-message.is-assistant:not(.is-image){background:#EEEEF0!important;color:#303438!important}
 .local-edit-conversation .local-edit-message.is-assistant:not(.is-image)::before{border-right-color:#EEEEF0!important}
 .local-edit-conversation .local-edit-message.is-assistant:not(.is-image)::before{top:50%!important;transform:translateY(-50%)}
+.local-edit-conversation .local-edit-message-copy{display:block}.local-edit-conversation .local-edit-quality-warning{display:block;margin-top:6px;color:#c64c4c;font-size:11px;line-height:1.45}.local-edit-conversation .local-edit-high-definition-wait{color:#9aa1a6;font-size:11px;line-height:1.45}
+.assets-generation-high-definition-wait{margin-left:3px;color:#9aa1a6;font-size:11px;font-weight:500}
 
 /* The composer folds down so the full conversation history stays visible. */
 .local-edit-conversation{position:relative;overflow:visible!important}

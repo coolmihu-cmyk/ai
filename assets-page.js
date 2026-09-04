@@ -29,7 +29,8 @@ const localEdit={
 };
 let localEditScrollTimer=0;
 function isHighDefinitionResolution(value){return Number.parseFloat(String(value||'').toLowerCase())>1}
-function highDefinitionWaitNotice(message){return isHighDefinitionResolution(localEdit.resolution)?message+' · 高画质图片需要更多生成时间，请耐心等候。':message}
+const LOCAL_EDIT_HIGH_DEFINITION_WAIT='高画质图片需要更多生成时间，请耐心等候。';
+function highDefinitionWaitNotice(message){return isHighDefinitionResolution(localEdit.resolution)?message+'（'+LOCAL_EDIT_HIGH_DEFINITION_WAIT+'）':message}
 localEdit.image.draggable=false;
 localEdit.upload.textContent='+';
 const localEditSettingsTrigger=document.createElement('button');localEditSettingsTrigger.type='button';localEditSettingsTrigger.className='local-edit-settings-trigger';localEditSettingsTrigger.setAttribute('aria-haspopup','dialog');localEditSettingsTrigger.setAttribute('aria-expanded','false');localEdit.settings.append(localEditSettingsTrigger);
@@ -137,7 +138,16 @@ function localEditRenderThread(){
       const choices=document.createElement('div');choices.className='local-edit-choice-options';
       message.choices.forEach(choice=>{const button=document.createElement('button');button.type='button';button.textContent=choice.label;button.onclick=()=>localEditChooseGuidance(choice,message.basePrompt,message.guidance);choices.append(button)});
       node.append(question,choices);
-    }else node.textContent=message.text;
+    }else if(message.qualityWarning){
+      const intro=document.createElement('span');intro.className='local-edit-message-copy';intro.textContent=message.text;
+      const warning=document.createElement('span');warning.className='local-edit-quality-warning';warning.textContent=message.qualityWarning;node.append(intro,warning);
+    }else{
+      const waitSuffix='（'+LOCAL_EDIT_HIGH_DEFINITION_WAIT+'）';
+      if(String(message.text||'').endsWith(waitSuffix)){
+        const copy=document.createElement('span');copy.className='local-edit-message-copy';copy.textContent=message.text.slice(0,-waitSuffix.length);
+        const wait=document.createElement('span');wait.className='local-edit-high-definition-wait';wait.textContent=waitSuffix;node.append(copy,wait);
+      }else node.textContent=message.text;
+    }
     if(message.imageUrl)node.onclick=event=>{if(event.target.closest('.local-edit-message-action'))return;localEditSelectVersion(node.dataset.versionId,node.dataset.imageUrl,node.dataset.versionLabel)};
     row.append(avatar,node);return row;
   }));
@@ -202,6 +212,7 @@ function localEditMessagesForVersions(versions){
   ];
 }
 const LOCAL_EDIT_WELCOME='你可以用自然语言描述想对图片做的修改。';
+const LOCAL_EDIT_QUALITY_WARNING='不建议单图同一模型连续编辑 5 次以上，否则可能会出现画质劣化、伪影。';
 function localEditClosestRatio(width,height){
   const ratios=['1:1','3:2','2:3','4:3','3:4','5:4','4:5','16:9','9:16','2:1','1:2','3:1','1:3','21:9','9:21'];
   const target=width/height;
@@ -267,7 +278,7 @@ function loadLocalEditImage(item,{focus=false,threadPosition='current'}={}){
 function openLocalEdit(item,trigger,{versions=[item],resume=false,threadPosition='current'}={}){
   if(assetExpiry(item).expired){toast('原图已过期，无法编辑');return}
   const orderedVersions=[...versions].sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
-  localEdit.lastFocus=trigger||document.activeElement;localEdit.versions=orderedVersions;localEdit.editRootId=String(orderedVersions[0]?.id||item.editRootId||item.id);localEdit.editGroupId=item.editGroupId||'edit-'+localEdit.editRootId;localEdit.messages=resume?localEditMessagesForVersions(orderedVersions):[{role:'assistant',text:LOCAL_EDIT_WELCOME},...localEditMessagesForVersions(orderedVersions)];localEditSetComposerCollapsed(false);localEditClearReference();
+  localEdit.lastFocus=trigger||document.activeElement;localEdit.versions=orderedVersions;localEdit.editRootId=String(orderedVersions[0]?.id||item.editRootId||item.id);localEdit.editGroupId=item.editGroupId||'edit-'+localEdit.editRootId;localEdit.messages=resume?localEditMessagesForVersions(orderedVersions):[{role:'assistant',text:LOCAL_EDIT_WELCOME,qualityWarning:LOCAL_EDIT_QUALITY_WARNING},...localEditMessagesForVersions(orderedVersions)];localEditSetComposerCollapsed(false);localEditClearReference();
   localEditSetInitialSettings(item);localEditSetError();localEditSetStatus('');localEditRenderThread();
   localEdit.layer.hidden=false;document.body.classList.add('local-edit-open');
   loadLocalEditImage(item,{focus:true,threadPosition}).catch(()=>{});
@@ -603,7 +614,7 @@ function showGeneration(job){
   }
   assetsEls.generationModel.textContent=ASSET_MODEL_NAMES[job.model]||job.model||'生成任务';
   assetsEls.generationPrompt.textContent=job.prompt||'正在生成图片';
-  assetsEls.generationStatus.textContent=generationStatusText(job.taskId?'正在恢复任务':'正在提交任务');
+  setGenerationStatus(job.taskId?'正在恢复任务':'正在提交任务');
   assetsEls.generationPercent.textContent='0%';
   assetsEls.generationBar.style.width='0%';
   assetsEls.generationError.hidden=true;
@@ -614,15 +625,19 @@ function showGeneration(job){
   updateElapsed();generationElapsedTimer=setInterval(updateElapsed,1000);
   syncAssetsSummary();
 }
-function generationStatusText(message){return activeGenerationUsesHighDefinition?message+' · 高画质图片需要更多生成时间，请耐心等候。':message}
+function setGenerationStatus(message){
+  assetsEls.generationStatus.replaceChildren(document.createTextNode(message));
+  if(activeGenerationUsesHighDefinition){const wait=document.createElement('span');wait.className='assets-generation-high-definition-wait';wait.textContent='（'+LOCAL_EDIT_HIGH_DEFINITION_WAIT+'）';assetsEls.generationStatus.append(wait)}
+}
 function updateGeneration(status,progress,retryMessage){
   const numeric=Math.max(0,Math.min(100,Number(progress)||0));
   assetsEls.generation.classList.toggle('is-indeterminate',numeric<=0);
-  assetsEls.generationStatus.textContent=retryMessage||generationStatusText(
+  const statusText=retryMessage||(
     status==='queued'?'等待模型响应':
     status==='processing'?'正在生成图片':
     status==='running'?'正在生成图片':'生成处理中'
   );
+  if(retryMessage)assetsEls.generationStatus.textContent=statusText;else setGenerationStatus(statusText);
   assetsEls.generationPercent.textContent=numeric>0?Math.round(numeric)+'%':'处理中';
   assetsEls.generationBar.style.width=numeric>0?numeric+'%':'28%';
 }
@@ -701,7 +716,7 @@ async function runPendingGeneration(job){
         onSubmitted:taskId=>{
           job.taskId=taskId;
           PendingGeneration.save(job).catch(()=>{});
-          assetsEls.generationStatus.textContent=generationStatusText('任务已提交');
+          setGenerationStatus('任务已提交');
         },
         onProgress:updateGeneration
       });
