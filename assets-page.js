@@ -133,7 +133,7 @@ function localEditRenderThread(){
   localEdit.thread.scrollTop=localEdit.thread.scrollHeight;
 }
 const LOCAL_EDIT_GUIDANCE=[
-  {match:/^(?:请)?(?:帮我)?(?:换|改|更换|替换)(?:一下)?(?:背景|场景)$/,question:'想要什么氛围的背景？',customHint:'请继续描述你想要的背景风格。',choices:[
+  {match:/^(?:请)?(?:帮我|给我)?(?:(?:换|改|更换|替换)(?:个|一个|一下)?(?:背景|场景)|(?:背景|场景)(?:(?:换|改|更换|替换)(?:个|一个|一下)?)?)$/,question:'想要什么氛围的背景？',customHint:'请继续描述你想要的背景风格。',choices:[
     {label:'温馨自然',prompt:'将背景替换为温馨自然的环境，采用柔和光线与舒适色调。'},
     {label:'炫酷未来',prompt:'将背景替换为炫酷未来感环境，具有电影感光影与科技氛围。'},
     {label:'简约纯色',prompt:'将背景替换为干净克制的简约纯色背景，突出主体。'},
