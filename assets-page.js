@@ -21,7 +21,7 @@ const REFERENCE_LIBRARY_KEY='mihu-reference-library-v1',REFERENCE_LIBRARY_LIMIT=
 
 const localEdit={
   layer:$('#localEditLayer'),close:$('#localEditClose'),stage:$('#localEditStage'),image:$('#localEditImage'),
-  loading:$('#localEditLoading'),reset:$('#localEditReset'),previous:$('#localEditPreviousVersion'),next:$('#localEditNextVersion'),
+  loading:$('#localEditLoading'),reset:$('#localEditReset'),previous:$('#localEditPreviousVersion'),next:$('#localEditNextVersion'),previewMeta:$('#localEditPreviewMeta'),
   conversation:$('.local-edit-conversation'),conversationToggle:$('#localEditConversationToggle'),composer:$('.local-edit-composer'),prompt:$('#localEditPrompt'),promptCount:$('#localEditPromptCount'),upload:$('#localEditUpload'),fileInput:$('#localEditFileInput'),referencePreview:$('#localEditReferencePreview'),referencePreviewImage:$('#localEditReferencePreviewImage'),referenceClear:$('#localEditReferenceClear'),settings:$('.local-edit-settings'),error:$('#localEditError'),submit:$('#localEditSubmit'),
   modelSelect:$('#localEditModel'),modelPicker:$('#localEditModelPicker'),modelTrigger:$('#localEditModelTrigger'),modelMenu:$('#localEditModelMenu'),ratioSelect:$('#localEditRatio'),ratioPicker:$('#localEditRatioPicker'),ratioTrigger:$('#localEditRatioTrigger'),ratioMenu:$('#localEditRatioMenu'),resolutionSelect:$('#localEditResolution'),resolutionPicker:$('#localEditResolutionPicker'),resolutionTrigger:$('#localEditResolutionTrigger'),resolutionMenu:$('#localEditResolutionMenu'),
   thread:$('#localEditThread'),status:$('#localEditStatus'),
@@ -208,6 +208,17 @@ function localEditCenterCurrentVersion(){
   const current=localEdit.thread.querySelector('.local-edit-message.is-image.is-editing');
   if(current)current.scrollIntoView({block:'center',inline:'nearest',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
 }
+function localEditUpdateImageFrame(){
+  const width=localEdit.image.naturalWidth,height=localEdit.image.naturalHeight,stageRect=localEdit.stage.getBoundingClientRect();
+  if(!width||!height||!stageRect.width||!stageRect.height)return;
+  const scale=Math.min(stageRect.width/width,stageRect.height/height),horizontal=Math.max(0,(stageRect.width-width*scale)/2),vertical=Math.max(0,(stageRect.height-height*scale)/2);
+  localEdit.image.style.setProperty('--local-edit-image-clip','inset('+vertical+'px '+horizontal+'px '+vertical+'px '+horizontal+'px round 8px)');
+}
+function localEditUpdatePreviewMeta(){
+  const index=localEdit.versions.findIndex(version=>String(version.id||'')===String(localEdit.currentVersionId||'')),date=localEditGeneratedDate(localEdit.item?.createdAt),parts=[];
+  if(index>=0)parts.push('V'+(index+1));if(date)parts.push(date);
+  localEdit.previewMeta.hidden=!parts.length;localEdit.previewMeta.textContent=parts.join(' · ');
+}
 function localEditUpdateVersionSwitches(){
   const currentIndex=localEdit.versions.findIndex(version=>String(version.id||'')===String(localEdit.currentVersionId||'')),hasMultiple=localEdit.versions.length>1;
   localEdit.previous.hidden=!hasMultiple;localEdit.next.hidden=!hasMultiple;
@@ -221,11 +232,11 @@ function localEditSwitchVersion(offset){
 }
 function loadLocalEditImage(item,{focus=false}={}){
   return new Promise((resolve,reject)=>{
-    localEdit.item=item;localEdit.currentVersionId=String(item.id||'');localEditRenderThread();localEditUpdateVersionSwitches();requestAnimationFrame(localEditCenterCurrentVersion);localEditResetViewport();localEdit.loading.hidden=false;localEdit.submit.disabled=true;localEditSetSubmitLoading();
+    localEdit.item=item;localEdit.currentVersionId=String(item.id||'');localEditRenderThread();localEditUpdateVersionSwitches();localEditUpdatePreviewMeta();requestAnimationFrame(localEditCenterCurrentVersion);localEditResetViewport();localEdit.loading.hidden=false;localEdit.submit.disabled=true;localEditSetSubmitLoading();
     localEdit.image.onload=()=>{
       const width=localEdit.image.naturalWidth,height=localEdit.image.naturalHeight;
       if(!width||!height){const error=new Error('无法读取图片尺寸。');localEditSetError(error.message);reject(error);return}
-      localEdit.loading.hidden=true;localEdit.submit.disabled=false;localEditSetSubmitIcon();
+      localEditUpdateImageFrame();localEdit.loading.hidden=true;localEdit.submit.disabled=false;localEditSetSubmitIcon();
       if(focus)localEdit.prompt.focus({preventScroll:true});resolve();
     };
     localEdit.image.onerror=()=>{const error=new Error('图片加载失败，可能已经过期。');localEdit.loading.hidden=true;localEditSetError(error.message);localEdit.submit.disabled=true;localEditSetSubmitIcon();reject(error)};
@@ -318,6 +329,7 @@ localEdit.stage.addEventListener('pointermove',event=>{const view=localEdit.view
 function localEditEndPan(event){const view=localEdit.view;if(view.pointerId!==event.pointerId)return;view.pointerId=null;localEdit.stage.classList.remove('is-panning')}
 localEdit.stage.addEventListener('pointerup',localEditEndPan);localEdit.stage.addEventListener('pointercancel',localEditEndPan);localEdit.stage.addEventListener('dblclick',()=>localEditResetViewport());
 localEdit.stage.addEventListener('dragstart',event=>event.preventDefault());
+window.addEventListener('resize',()=>{if(!localEdit.layer.hidden)localEditUpdateImageFrame()});
 localEdit.thread.addEventListener('scroll',()=>{localEdit.thread.classList.add('is-scrolling');clearTimeout(localEditScrollTimer);localEditScrollTimer=setTimeout(()=>localEdit.thread.classList.remove('is-scrolling'),700)},{passive:true});
 localEdit.layer.addEventListener('pointerdown',event=>{if(event.target===localEdit.layer)closeLocalEdit()});document.addEventListener('click',localEditClosePickers);document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!localEdit.layer.hidden){localEditClosePickers();closeLocalEdit()}});
 
