@@ -116,9 +116,11 @@ function localEditRenderThread(){
       const image=document.createElement('img');image.src=ImageDelivery.thumbnail(message.imageUrl);image.alt=message.text||'生成图片';
       const selectVersion=()=>{const version=localEdit.versions.find(item=>item.id===message.versionId||item.url===message.imageUrl);if(version)loadLocalEditImage(version,{focus:true}).catch(()=>{})};
       preview.append(image);preview.onclick=selectVersion;
+      const footer=document.createElement('div');footer.className='local-edit-message-footer';
+      const caption=document.createElement('span');caption.className='local-edit-message-caption';caption.textContent=message.text||'';
       const actions=document.createElement('div');actions.className='local-edit-message-actions';
-      const download=document.createElement('button');download.type='button';download.className='local-edit-message-action is-download';download.setAttribute('aria-label','下载这张图片');download.title='下载';download.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 19h14"/></svg>';download.onclick=()=>downloadImage(message.imageUrl);
-      const edit=document.createElement('button');edit.type='button';edit.className='local-edit-message-action is-edit';edit.setAttribute('aria-label','编辑这张图片');edit.title='编辑';edit.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16.5-.8 4.3 4.3-.8L19 8.5l-3.5-3.5L4 16.5Zm9.5-10 3.5 3.5"/></svg>';edit.onclick=selectVersion;actions.append(download,edit);node.append(preview,actions);if(message.text){const caption=document.createElement('span');caption.textContent=message.text;node.append(caption)}
+      const download=document.createElement('button');download.type='button';download.className='local-edit-message-action is-download';download.textContent='下载';download.setAttribute('aria-label','下载这张图片');download.onclick=()=>downloadImage(message.imageUrl);
+      const edit=document.createElement('button');edit.type='button';edit.className='local-edit-message-action is-edit';edit.textContent='编辑此版本';edit.setAttribute('aria-label','编辑这张图片');edit.onclick=selectVersion;actions.append(download,edit);footer.append(caption,actions);node.append(preview,footer);
     }else node.textContent=message.text;
     row.append(avatar,node);return row;
   }));
