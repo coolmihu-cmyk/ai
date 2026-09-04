@@ -279,7 +279,7 @@ async function submitLocalEdit({prompt:providedPrompt='',alreadyRecorded=false,s
     const config=MODEL_CONFIG[localEdit.model];
     const body={model:config.editModel||config.generationModel,prompt:editPrompt,size:localEdit.ratio,resolution:localEdit.resolution,n:1,image_urls:[localEdit.item.url,...(localEdit.referenceData?[localEdit.referenceData]:[])]};
     let url=await Apimart.generate({apiKey,body,endpoint:'/images/generations',onProgress:(status,progress)=>{
-      localEditSetStatus(status==='processing'?'模型正在生成新版本':'正在处理图片');
+      localEditSetStatus(status==='processing'?'模型正在生成新版本...':'正在处理图片');
     }});
     const itemId=Date.now(),createdAt=new Date().toISOString();let archived=false,historyKey='';
     if(Archive.isAvailable()&&localEdit.model!=='seedream'){
