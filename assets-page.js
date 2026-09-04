@@ -236,16 +236,20 @@ function localEditUpdateVersionSwitches(){
 }
 function localEditUpdateOriginalPreview(){
   const index=localEdit.versions.findIndex(version=>String(version.id||'')===String(localEdit.currentVersionId||'')),available=index>0;
-  localEdit.originalPreview.hidden=!available;localEdit.originalPreview.disabled=!available||!localEdit.originalReady;
+  localEdit.originalPreview.hidden=!available;localEdit.originalPreview.disabled=!available;
+  if(!available)return;
+  const ready=localEdit.originalReady;
+  localEdit.originalPreview.textContent=ready?'原图':'载入原图';localEdit.originalPreview.title=ready?'按住查看原图':'正在载入原图，点击重试';localEdit.originalPreview.setAttribute('aria-label',localEdit.originalPreview.title);
 }
 function localEditPrepareOriginalImage(){
   const original=localEdit.versions[0];localEdit.originalReady=false;localEdit.originalImage.hidden=true;localEdit.originalImage.removeAttribute('src');
   if(!original?.url){localEditUpdateOriginalPreview();return}
+  const fallbackUrl=ImageDelivery.thumbnail(original.url);let usedFallback=false;
   localEdit.originalImage.onload=()=>{localEdit.originalReady=true;localEditUpdateImageFrame();localEditUpdateOriginalPreview()};
-  localEdit.originalImage.onerror=()=>{localEdit.originalReady=false;localEditUpdateOriginalPreview()};
+  localEdit.originalImage.onerror=()=>{if(!usedFallback&&fallbackUrl!==original.url){usedFallback=true;localEdit.originalImage.src=fallbackUrl;return}localEdit.originalReady=false;localEditUpdateOriginalPreview()};
   localEdit.originalImage.src=original.url;localEditUpdateOriginalPreview();
 }
-function localEditShowOriginalPreview(){if(!localEdit.originalReady||localEdit.submitting||localEdit.guiding)return;localEdit.originalImage.hidden=false;localEdit.originalPreview.classList.add('is-holding')}
+function localEditShowOriginalPreview(){if(localEdit.submitting||localEdit.guiding)return;if(!localEdit.originalReady){localEditPrepareOriginalImage();toast('正在重新载入原图');return}localEdit.originalImage.hidden=false;localEdit.originalPreview.classList.add('is-holding')}
 function localEditHideOriginalPreview(){localEdit.originalImage.hidden=true;localEdit.originalPreview.classList.remove('is-holding')}
 function localEditSwitchVersion(offset){
   if(localEdit.submitting||localEdit.guiding)return;
