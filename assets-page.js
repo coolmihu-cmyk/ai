@@ -124,28 +124,54 @@ function localEditRenderThread(){
     }else if(message.choices){
       const question=document.createElement('span');question.className='local-edit-choice-question';question.textContent=message.text;
       const choices=document.createElement('div');choices.className='local-edit-choice-options';
-      message.choices.forEach(choice=>{const button=document.createElement('button');button.type='button';button.textContent=choice.label;button.onclick=()=>localEditChooseBackground(choice,message.basePrompt);choices.append(button)});
+      message.choices.forEach(choice=>{const button=document.createElement('button');button.type='button';button.textContent=choice.label;button.onclick=()=>localEditChooseGuidance(choice,message.basePrompt,message.guidance);choices.append(button)});
       node.append(question,choices);
     }else node.textContent=message.text;
     row.append(avatar,node);return row;
   }));
   localEdit.thread.scrollTop=localEdit.thread.scrollHeight;
 }
-const LOCAL_EDIT_BACKGROUND_CHOICES=[
-  {label:'温馨自然',prompt:'将背景替换为温馨自然的环境，采用柔和光线与舒适色调。'},
-  {label:'炫酷未来',prompt:'将背景替换为炫酷未来感环境，具有电影感光影与科技氛围。'},
-  {label:'简约纯色',prompt:'将背景替换为干净克制的简约纯色背景，突出主体。'},
-  {label:'自定义描述',custom:true}
+const LOCAL_EDIT_GUIDANCE=[
+  {match:/^(?:请)?(?:帮我)?(?:换|改|更换|替换)(?:一下)?(?:背景|场景)$/,question:'想要什么氛围的背景？',customHint:'请继续描述你想要的背景风格。',choices:[
+    {label:'温馨自然',prompt:'将背景替换为温馨自然的环境，采用柔和光线与舒适色调。'},
+    {label:'炫酷未来',prompt:'将背景替换为炫酷未来感环境，具有电影感光影与科技氛围。'},
+    {label:'简约纯色',prompt:'将背景替换为干净克制的简约纯色背景，突出主体。'},
+    {label:'自定义描述',custom:true}
+  ]},
+  {match:/^(?:请)?(?:帮我)?(?:换|改|更换|替换)(?:一下)?(?:发型|头发|衣服|服装|表情|姿势)$/,question:'希望从哪个方向调整人物？',customHint:'请继续描述想调整的人物细节。',choices:[
+    {label:'自然日常',prompt:'以自然日常的方式调整人物造型，保持人物身份与整体协调。'},
+    {label:'精致时尚',prompt:'以精致时尚的方式调整人物造型，保持人物身份与整体协调。'},
+    {label:'大胆个性',prompt:'以大胆有个性的方式调整人物造型，保持人物身份与整体协调。'},
+    {label:'自定义描述',custom:true}
+  ]},
+  {match:/^(?:请)?(?:帮我)?(?:换|改)(?:一下)?(?:风格)?$|^(?:更)?(?:好看|高级|有质感)(?:一点)?$/,question:'想让画面呈现什么风格？',customHint:'请继续描述想要的画面风格。',choices:[
+    {label:'电影感',prompt:'调整为具有电影感的画面风格，强化光影、层次和氛围。'},
+    {label:'清新明亮',prompt:'调整为清新明亮的画面风格，色彩干净通透。'},
+    {label:'复古质感',prompt:'调整为有复古质感的画面风格，保留主体特征。'},
+    {label:'自定义描述',custom:true}
+  ]},
+  {match:/^(?:请)?(?:帮我)?(?:调整|改|换)(?:一下)?(?:构图|画面|比例)$|^(?:扩展|放大|裁剪)(?:一下)?(?:画面)?$/,question:'希望怎样调整画面？',customHint:'请继续描述想要的构图或画面范围。',choices:[
+    {label:'主体更突出',prompt:'调整构图，使主体更突出，同时保持自然平衡。'},
+    {label:'画面更开阔',prompt:'扩展画面视野，保持主体位置和整体协调。'},
+    {label:'社交平台比例',prompt:'将画面调整为更适合社交平台展示的构图与比例。'},
+    {label:'自定义描述',custom:true}
+  ]},
+  {match:/^(?:请)?(?:帮我)?(?:修图|修复|优化|美化)(?:一下)?$|^(?:更)?(?:清晰|精致)(?:一点)?$/,question:'想优先优化哪一部分？',customHint:'请继续描述要修复或优化的细节。',choices:[
+    {label:'清晰细节',prompt:'提升图片清晰度与主体细节，保持自然真实。'},
+    {label:'光线色彩',prompt:'优化光线与色彩层次，保持画面自然。'},
+    {label:'去除杂物',prompt:'清理画面中干扰主体的杂物，保持场景自然。'},
+    {label:'自定义描述',custom:true}
+  ]}
 ];
-function localEditNeedsBackgroundChoice(prompt){return /^(?:请)?(?:帮我)?(?:换|改|更换|替换)(?:一下)?(?:背景|场景)$/.test(prompt.replace(/[\s，。,.！？!?、]/g,''))}
-function localEditAskBackgroundChoice(prompt){
-  localEdit.messages.push({role:'user',text:prompt},{role:'assistant',text:'想要什么氛围的背景？',choices:LOCAL_EDIT_BACKGROUND_CHOICES,basePrompt:prompt});
+function localEditGetGuidance(prompt){const text=prompt.replace(/[\s，。,.！？!?、]/g,'');return LOCAL_EDIT_GUIDANCE.find(item=>item.match.test(text))||null}
+function localEditAskGuidance(prompt,guidance){
+  localEdit.messages.push({role:'user',text:prompt},{role:'assistant',text:guidance.question,choices:guidance.choices,basePrompt:prompt,guidance});
   localEdit.prompt.value='';localEditUpdatePromptCount();localEditRenderThread();
 }
-function localEditChooseBackground(choice,basePrompt){
+function localEditChooseGuidance(choice,basePrompt,guidance){
   const question=localEdit.messages.find(message=>message.choices&&message.basePrompt===basePrompt);if(question)question.choices=null;
   localEdit.messages.push({role:'user',text:choice.label});localEditRenderThread();
-  if(choice.custom){localEdit.messages.push({role:'assistant',text:'请继续描述你想要的背景风格。'});localEdit.prompt.value=basePrompt+'，背景风格：';localEditUpdatePromptCount();localEditRenderThread();localEdit.prompt.focus({preventScroll:true});return}
+  if(choice.custom){localEdit.messages.push({role:'assistant',text:guidance.customHint});localEdit.prompt.value=basePrompt+'，';localEditUpdatePromptCount();localEditRenderThread();localEdit.prompt.focus({preventScroll:true});return}
   submitLocalEdit({prompt:basePrompt+'，'+choice.prompt,alreadyRecorded:true,skipQuestion:true});
 }
 function localEditGeneratedDate(value){
@@ -210,7 +236,7 @@ async function submitLocalEdit({prompt:providedPrompt='',alreadyRecorded=false,s
   const apiKey=Settings.getKey(),prompt=providedPrompt||localEdit.prompt.value.trim();
   if(!apiKey){Settings.openPage();toast('请先保存 API Key');return}
   if(!prompt){localEditSetError('请描述你希望怎样修改这张图片。');localEdit.prompt.focus();return}
-  if(!skipQuestion&&localEditNeedsBackgroundChoice(prompt)){localEditAskBackgroundChoice(prompt);return}
+  const guidance=!skipQuestion&&localEditGetGuidance(prompt);if(guidance){localEditAskGuidance(prompt,guidance);return}
   localEdit.submitting=true;localEdit.submit.disabled=true;localEdit.close.disabled=true;localEditSetError();
   if(!alreadyRecorded)localEdit.messages.push({role:'user',text:prompt});localEdit.prompt.value='';localEditUpdatePromptCount();localEditRenderThread();localEditSetStatus('正在提交图片编辑请求');
   try{
