@@ -1658,7 +1658,7 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 .local-edit-conversation-toggle{position:absolute;top:9px;right:10px;z-index:6;display:grid;width:24px;height:24px;place-items:center;padding:0;border:0;border-radius:7px;background:transparent;color:#707a80;cursor:pointer;transition:background .14s ease,color .14s ease,top .18s ease}
 .local-edit-conversation-toggle:hover,.local-edit-conversation-toggle:focus-visible{background:#EEEEF0;color:#202427;outline:0}
 .local-edit-conversation-toggle svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.local-edit-conversation.is-composer-collapsed .local-edit-composer{height:48px!important;min-height:48px!important;max-height:48px!important;margin-top:12px!important;overflow:hidden!important;opacity:1;pointer-events:auto;cursor:pointer}
+.local-edit-conversation.is-composer-collapsed .local-edit-composer{height:0!important;min-height:0!important;max-height:0!important;margin-top:0!important;overflow:visible!important;border:0!important;background:transparent!important;opacity:1;pointer-events:none}
 .local-edit-conversation.is-composer-collapsed .local-edit-composer textarea,.local-edit-conversation.is-composer-collapsed .local-edit-composer .local-edit-prompt-meta{display:none!important}
-.local-edit-conversation.is-composer-collapsed .local-edit-conversation-toggle{inset:0;width:100%;height:100%;justify-content:flex-end;padding-right:16px;border-radius:15px;background:transparent}
+.local-edit-conversation.is-composer-collapsed .local-edit-conversation-toggle{top:-34px;right:0;width:32px;height:32px;padding:0;border:1px solid #b4babd;border-radius:50%;background:#fff;pointer-events:auto}
 @media(prefers-reduced-motion:no-preference){.local-edit-conversation .local-edit-composer{transition:height .18s ease,min-height .18s ease,max-height .18s ease,margin .18s ease,opacity .12s ease}}
