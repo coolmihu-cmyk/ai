@@ -33,7 +33,8 @@ const localEditAttachmentIcon=document.createElement('img');localEditAttachmentI
 const localEditSettingsTrigger=document.createElement('button');localEditSettingsTrigger.type='button';localEditSettingsTrigger.className='local-edit-settings-trigger';localEditSettingsTrigger.setAttribute('aria-haspopup','dialog');localEditSettingsTrigger.setAttribute('aria-expanded','false');localEdit.settings.append(localEditSettingsTrigger);
 const localEditSettingsPopover=document.createElement('section');localEditSettingsPopover.className='local-edit-settings-popover';localEditSettingsPopover.hidden=true;localEditSettingsPopover.setAttribute('role','dialog');localEditSettingsPopover.setAttribute('aria-label','图片生成设置');localEditSettingsPopover.innerHTML='<div class="local-edit-settings-section"><b>模型</b><div class="local-edit-settings-models"></div></div><div class="local-edit-settings-section"><b>分辨率</b><div class="local-edit-settings-resolutions"></div></div><div class="local-edit-settings-section"><b>比例</b><div class="local-edit-settings-ratios"></div></div>';localEdit.composer.append(localEditSettingsPopover);
 Object.assign(localEdit,{settingsTrigger:localEditSettingsTrigger,settingsPopover:localEditSettingsPopover,settingsModels:localEditSettingsPopover.querySelector('.local-edit-settings-models'),settingsResolutions:localEditSettingsPopover.querySelector('.local-edit-settings-resolutions'),settingsRatios:localEditSettingsPopover.querySelector('.local-edit-settings-ratios')});
-function localEditSetSubmitIcon(){localEdit.submit.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m0 0-5 5m5-5 5 5"/></svg>';localEdit.submit.setAttribute('aria-label','生成图片');localEdit.submit.title='生成图片'}
+function localEditSetSubmitIcon(){localEdit.submit.classList.remove('is-loading');localEdit.submit.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m0 0-5 5m5-5 5 5"/></svg>';localEdit.submit.setAttribute('aria-label','生成图片');localEdit.submit.title='生成图片'}
+function localEditSetSubmitLoading(){localEdit.submit.classList.add('is-loading');localEdit.submit.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.5"/></svg>';localEdit.submit.setAttribute('aria-label','正在处理图片');localEdit.submit.title='正在处理图片'}
 localEditSetSubmitIcon();
 
 function localEditSetComposerCollapsed(collapsed){
@@ -209,14 +210,14 @@ function localEditCenterCurrentVersion(){
 }
 function loadLocalEditImage(item,{focus=false}={}){
   return new Promise((resolve,reject)=>{
-    localEdit.item=item;localEdit.currentVersionId=String(item.id||'');localEditRenderThread();requestAnimationFrame(localEditCenterCurrentVersion);localEditResetViewport();localEdit.loading.hidden=false;localEdit.submit.disabled=true;
+    localEdit.item=item;localEdit.currentVersionId=String(item.id||'');localEditRenderThread();requestAnimationFrame(localEditCenterCurrentVersion);localEditResetViewport();localEdit.loading.hidden=false;localEdit.submit.disabled=true;localEditSetSubmitLoading();
     localEdit.image.onload=()=>{
       const width=localEdit.image.naturalWidth,height=localEdit.image.naturalHeight;
       if(!width||!height){const error=new Error('无法读取图片尺寸。');localEditSetError(error.message);reject(error);return}
-      localEdit.loading.hidden=true;localEdit.submit.disabled=false;
+      localEdit.loading.hidden=true;localEdit.submit.disabled=false;localEditSetSubmitIcon();
       if(focus)localEdit.prompt.focus({preventScroll:true});resolve();
     };
-    localEdit.image.onerror=()=>{const error=new Error('图片加载失败，可能已经过期。');localEdit.loading.hidden=true;localEditSetError(error.message);localEdit.submit.disabled=true;reject(error)};
+    localEdit.image.onerror=()=>{const error=new Error('图片加载失败，可能已经过期。');localEdit.loading.hidden=true;localEditSetError(error.message);localEdit.submit.disabled=true;localEditSetSubmitIcon();reject(error)};
     localEdit.image.src=item.url;
   });
 }
@@ -238,7 +239,7 @@ async function submitLocalEdit({prompt:providedPrompt='',alreadyRecorded=false,s
   if(!apiKey){Settings.openPage();toast('请先保存 API Key');return}
   if(!prompt){localEditSetError('请描述你希望怎样修改这张图片。');localEdit.prompt.focus();return}
   if(!skipQuestion){
-    localEdit.guiding=true;localEdit.submit.disabled=true;
+    localEdit.guiding=true;localEdit.submit.disabled=true;localEditSetSubmitLoading();
     let guidance=await localEditGetGuidance(apiKey,prompt);
     if(guidance){
       localEditSetStatus('正在理解当前图片内容');
@@ -246,10 +247,10 @@ async function submitLocalEdit({prompt:providedPrompt='',alreadyRecorded=false,s
       localEditSetStatus('');
       if(imageContext)guidance=await localEditGetGuidance(apiKey,prompt,imageContext)||guidance;
     }
-    localEdit.guiding=false;localEdit.submit.disabled=false;
+    localEdit.guiding=false;localEdit.submit.disabled=false;localEditSetSubmitIcon();
     if(guidance){localEditAskGuidance(prompt,guidance);return}
   }
-  localEdit.submitting=true;localEdit.submit.disabled=true;localEdit.close.disabled=true;localEditSetError();
+  localEdit.submitting=true;localEdit.submit.disabled=true;localEdit.close.disabled=true;localEditSetSubmitLoading();localEditSetError();
   if(!alreadyRecorded)localEdit.messages.push({role:'user',text:prompt});localEdit.prompt.value='';localEditUpdatePromptCount();localEditRenderThread();localEditSetStatus('正在提交图片编辑请求');
   try{
     const editPrompt=prompt+'。以输入图片为基础进行编辑，保留用户未明确要求改变的主体、构图和重要视觉特征。';
