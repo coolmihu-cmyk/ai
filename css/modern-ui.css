@@ -1651,3 +1651,4 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 /* Assistant text stays distinct from the white conversation surface. */
 .local-edit-conversation .local-edit-message.is-assistant:not(.is-image){background:#EEEEF0!important;color:#303438!important}
 .local-edit-conversation .local-edit-message.is-assistant:not(.is-image)::before{border-right-color:#EEEEF0!important}
+.local-edit-conversation .local-edit-message.is-assistant:not(.is-image)::before{top:50%!important;transform:translateY(-50%)}

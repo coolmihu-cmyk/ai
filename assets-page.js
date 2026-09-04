@@ -125,7 +125,7 @@ function localEditMessagesForVersions(versions){
     {role:'assistant',text:localEditGeneratedDate(version.createdAt),imageUrl:version.url,versionId:version.id}
   ]);
 }
-const LOCAL_EDIT_WELCOME='例如：把背景换成雨后的城市街道，保留人物的姿势、服装和构图。';
+const LOCAL_EDIT_WELCOME='你可以用自然语言描述想对图片做的修改。';
 function localEditClosestRatio(width,height){
   const ratios=['1:1','3:2','2:3','4:3','3:4','5:4','4:5','16:9','9:16','2:1','1:2','3:1','1:3','21:9','9:21'];
   const target=width/height;
