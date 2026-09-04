@@ -1664,9 +1664,9 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 @media(prefers-reduced-motion:no-preference){.local-edit-conversation .local-edit-composer{transition:height .18s ease,min-height .18s ease,max-height .18s ease,margin .18s ease,opacity .12s ease}}
 
 /* Image cards use a quiet text footer instead of floating icon controls. */
-.local-edit-conversation .local-edit-message.is-assistant.is-image{gap:7px!important;padding:4px 4px 6px!important}
+.local-edit-conversation .local-edit-message.is-assistant.is-image{gap:7px!important;padding:4px 4px 6px!important;border:1px solid #c7cdd0!important;border-radius:10px!important;background:#fff!important}
 .local-edit-conversation .local-edit-message.is-assistant.is-image .local-edit-message-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:1px 3px 0}
-.local-edit-conversation .local-edit-message.is-assistant.is-image .local-edit-message-caption{min-width:0;padding:0;color:#454c51;font-size:12px;font-weight:650;line-height:1.5}
+.local-edit-conversation .local-edit-message.is-assistant.is-image .local-edit-message-caption{min-width:0;padding:0;color:#454c51;font-size:12px;font-weight:650;line-height:1.5;cursor:help}
 .local-edit-conversation .local-edit-message.is-assistant.is-image .local-edit-message-actions{position:static;display:flex;flex:0 0 auto;align-items:center;gap:10px;opacity:1;transform:none}
-.local-edit-conversation .local-edit-message.is-assistant.is-image .local-edit-message-action{display:inline-flex;width:auto;height:auto;padding:0;border:0!important;border-radius:0;background:transparent;color:#555d62;font:600 12px/1.5 var(--studio-sans);filter:none}
+.local-edit-conversation .local-edit-message.is-assistant.is-image .local-edit-message-action{display:inline-flex;width:auto;height:auto;padding:0;border:0!important;border-radius:0;background:transparent;color:#555d62;font:600 11px/1.5 var(--studio-sans);filter:none}
 .local-edit-conversation .local-edit-message.is-assistant.is-image .local-edit-message-action:hover,.local-edit-conversation .local-edit-message.is-assistant.is-image .local-edit-message-action:focus-visible{background:transparent;color:#15191b;text-decoration:underline;outline:0}

@@ -117,7 +117,7 @@ function localEditRenderThread(){
       const selectVersion=()=>{const version=localEdit.versions.find(item=>item.id===message.versionId||item.url===message.imageUrl);if(version)loadLocalEditImage(version,{focus:true}).catch(()=>{})};
       preview.append(image);preview.onclick=selectVersion;
       const footer=document.createElement('div');footer.className='local-edit-message-footer';
-      const caption=document.createElement('span');caption.className='local-edit-message-caption';caption.textContent=message.text||'';
+      const caption=document.createElement('span');caption.className='local-edit-message-caption';caption.textContent=message.text||'';if(message.generatedAt){caption.title='生成日期：'+message.generatedAt}
       const actions=document.createElement('div');actions.className='local-edit-message-actions';
       const download=document.createElement('button');download.type='button';download.className='local-edit-message-action is-download';download.textContent='下载';download.setAttribute('aria-label','下载这张图片');download.onclick=()=>downloadImage(message.imageUrl);
       const edit=document.createElement('button');edit.type='button';edit.className='local-edit-message-action is-edit';edit.textContent='编辑此版本';edit.setAttribute('aria-label','编辑这张图片');edit.onclick=selectVersion;actions.append(download,edit);footer.append(caption,actions);node.append(preview,footer);
@@ -134,10 +134,10 @@ function localEditGeneratedDate(value){
 function localEditMessagesForVersions(versions){
   const [original,...edits]=versions;
   return [
-    ...(original?[{role:'assistant',text:'原图',imageUrl:original.url,versionId:original.id}]:[]),
-    ...edits.flatMap(version=>[
+    ...(original?[{role:'assistant',text:'V1',generatedAt:localEditGeneratedDate(original.createdAt),imageUrl:original.url,versionId:original.id}]:[]),
+    ...edits.flatMap((version,index)=>[
     {role:'user',text:version.prompt||'继续编辑这张图片。'},
-    {role:'assistant',text:localEditGeneratedDate(version.createdAt),imageUrl:version.url,versionId:version.id}
+    {role:'assistant',text:'V'+(index+2),generatedAt:localEditGeneratedDate(version.createdAt),imageUrl:version.url,versionId:version.id}
     ])
   ];
 }
@@ -202,7 +202,7 @@ async function submitLocalEdit(){
     }
     const version={id:itemId,url,prompt,model:localEdit.model,settings:{ratio:localEdit.ratio,resolution:localEdit.resolution},editRootId:localEdit.editRootId,editGroupId:localEdit.editGroupId,archived,historyKey,createdAt,type:'image'};
     await History.save(version);assetItems=sortAssets([version,...assetItems.filter(asset=>asset.id!==version.id)]);renderAssets();
-    localEditClearReference();localEdit.versions.push(version);localEdit.messages.push({role:'assistant',text:localEditGeneratedDate(createdAt),imageUrl:version.url,versionId:version.id});localEditRenderThread();
+    localEditClearReference();localEdit.versions.push(version);localEdit.messages.push({role:'assistant',text:'V'+localEdit.versions.length,generatedAt:localEditGeneratedDate(createdAt),imageUrl:version.url,versionId:version.id});localEditRenderThread();
     await loadLocalEditImage(version,{focus:true});toast('新版本已生成');
   }catch(error){
     localEditSetError(error?.message||'图片编辑任务创建失败。');localEditSetStatus('生成未完成，请修改描述后重试。');
