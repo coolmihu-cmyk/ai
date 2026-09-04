@@ -1655,9 +1655,10 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 
 /* The composer folds down so the full conversation history stays visible. */
 .local-edit-conversation{position:relative;overflow:visible!important}
-.local-edit-conversation-toggle{position:absolute;right:10px;bottom:164px;z-index:6;display:grid;width:24px;height:24px;place-items:center;padding:0;border:0;border-radius:7px;background:transparent;color:#707a80;cursor:pointer;transition:background .14s ease,color .14s ease,bottom .18s ease}
+.local-edit-conversation-toggle{position:absolute;top:9px;right:10px;z-index:6;display:grid;width:24px;height:24px;place-items:center;padding:0;border:0;border-radius:7px;background:transparent;color:#707a80;cursor:pointer;transition:background .14s ease,color .14s ease,top .18s ease}
 .local-edit-conversation-toggle:hover,.local-edit-conversation-toggle:focus-visible{background:#EEEEF0;color:#202427;outline:0}
 .local-edit-conversation-toggle svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.local-edit-conversation.is-composer-collapsed .local-edit-composer{height:0!important;min-height:0!important;max-height:0!important;margin-top:0!important;padding:0!important;overflow:hidden!important;border-width:0!important;opacity:0;pointer-events:none}
-.local-edit-conversation.is-composer-collapsed .local-edit-conversation-toggle{bottom:8px}
+.local-edit-conversation.is-composer-collapsed .local-edit-composer{height:38px!important;min-height:38px!important;max-height:38px!important;margin-top:12px!important;overflow:hidden!important;opacity:1;pointer-events:auto}
+.local-edit-conversation.is-composer-collapsed .local-edit-composer textarea,.local-edit-conversation.is-composer-collapsed .local-edit-composer .local-edit-prompt-meta{display:none!important}
+.local-edit-conversation.is-composer-collapsed .local-edit-conversation-toggle{top:6px}
 @media(prefers-reduced-motion:no-preference){.local-edit-conversation .local-edit-composer{transition:height .18s ease,min-height .18s ease,max-height .18s ease,margin .18s ease,opacity .12s ease}}
