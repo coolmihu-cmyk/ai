@@ -154,14 +154,18 @@ function closeLocalEdit(){
   if(localEdit.submitting)return;
   localEdit.layer.hidden=true;document.body.classList.remove('local-edit-open');localEdit.item=null;localEdit.versions=[];localEdit.messages=[];localEditClearReference();localEdit.image.removeAttribute('src');localEdit.lastFocus?.focus?.();
 }
+function localEditCenterCurrentVersion(){
+  const current=localEdit.thread.querySelector('.local-edit-message.is-image.is-editing');
+  if(current)current.scrollIntoView({block:'center',inline:'nearest',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+}
 function loadLocalEditImage(item,{focus=false}={}){
   return new Promise((resolve,reject)=>{
-    localEdit.item=item;localEdit.currentVersionId=String(item.id||'');localEditRenderThread();localEditResetViewport();localEdit.loading.hidden=false;localEdit.submit.disabled=true;
+    localEdit.item=item;localEdit.currentVersionId=String(item.id||'');localEditRenderThread();requestAnimationFrame(localEditCenterCurrentVersion);localEditResetViewport();localEdit.loading.hidden=false;localEdit.submit.disabled=true;
     localEdit.image.onload=()=>{
       const width=localEdit.image.naturalWidth,height=localEdit.image.naturalHeight;
       if(!width||!height){const error=new Error('无法读取图片尺寸。');localEditSetError(error.message);reject(error);return}
       localEdit.loading.hidden=true;localEdit.submit.disabled=false;
-      if(focus)localEdit.prompt.focus();resolve();
+      if(focus)localEdit.prompt.focus({preventScroll:true});resolve();
     };
     localEdit.image.onerror=()=>{const error=new Error('图片加载失败，可能已经过期。');localEdit.loading.hidden=true;localEditSetError(error.message);localEdit.submit.disabled=true;reject(error)};
     localEdit.image.src=item.url;
