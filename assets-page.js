@@ -278,7 +278,7 @@ async function submitLocalEdit({prompt:providedPrompt='',alreadyRecorded=false,s
 }
 
 localEdit.prompt.addEventListener('input',()=>{localEditUpdatePromptCount();localEditSetError()});
-localEdit.prompt.addEventListener('keydown',event=>{if(event.ctrlKey&&event.key==='Enter'){event.preventDefault();submitLocalEdit()}});
+localEdit.prompt.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.altKey&&!event.isComposing){event.preventDefault();submitLocalEdit()}});
 localEdit.upload.onclick=()=>localEdit.fileInput.click();
 localEdit.fileInput.onchange=async()=>{
   const file=localEdit.fileInput.files?.[0];if(!file)return;
