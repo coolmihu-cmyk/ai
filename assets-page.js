@@ -117,7 +117,7 @@ function localEditRenderThread(){
       preview.append(image);preview.onclick=selectVersion;
       const actions=document.createElement('div');actions.className='local-edit-message-actions';
       const download=document.createElement('button');download.type='button';download.className='local-edit-message-action is-download';download.setAttribute('aria-label','下载这张图片');download.title='下载';download.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 19h14"/></svg>';download.onclick=()=>downloadImage(message.imageUrl);
-      const edit=document.createElement('button');edit.type='button';edit.className='local-edit-message-action is-edit';edit.setAttribute('aria-label','编辑这张图片');edit.title='编辑';edit.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16.5-.8 4.3 4.3-.8L19 8.5l-3.5-3.5L4 16.5Zm9.5-10 3.5 3.5"/></svg>';edit.onclick=selectVersion;actions.append(download,edit);node.append(preview,actions);
+      const edit=document.createElement('button');edit.type='button';edit.className='local-edit-message-action is-edit';edit.setAttribute('aria-label','编辑这张图片');edit.title='编辑';edit.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16.5-.8 4.3 4.3-.8L19 8.5l-3.5-3.5L4 16.5Zm9.5-10 3.5 3.5"/></svg>';edit.onclick=selectVersion;actions.append(download,edit);node.append(preview,actions);if(message.text){const caption=document.createElement('span');caption.textContent=message.text;node.append(caption)}
     }else node.textContent=message.text;
     row.append(avatar,node);return row;
   }));
@@ -129,10 +129,14 @@ function localEditGeneratedDate(value){
   return date.getFullYear()+'.'+String(date.getMonth()+1).padStart(2,'0')+'.'+String(date.getDate()).padStart(2,'0');
 }
 function localEditMessagesForVersions(versions){
-  return versions.slice(1).flatMap((version,index)=>[
+  const [original,...edits]=versions;
+  return [
+    ...(original?[{role:'assistant',text:'原图',imageUrl:original.url,versionId:original.id}]:[]),
+    ...edits.flatMap(version=>[
     {role:'user',text:version.prompt||'继续编辑这张图片。'},
     {role:'assistant',text:localEditGeneratedDate(version.createdAt),imageUrl:version.url,versionId:version.id}
-  ]);
+    ])
+  ];
 }
 const LOCAL_EDIT_WELCOME='你可以用自然语言描述想对图片做的修改。';
 function localEditClosestRatio(width,height){
@@ -163,7 +167,7 @@ function loadLocalEditImage(item,{focus=false}={}){
 function openLocalEdit(item,trigger,{versions=[item],resume=false}={}){
   if(assetExpiry(item).expired){toast('原图已过期，无法编辑');return}
   const orderedVersions=[...versions].sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
-  localEdit.lastFocus=trigger||document.activeElement;localEdit.versions=orderedVersions;localEdit.editRootId=String(orderedVersions[0]?.id||item.editRootId||item.id);localEdit.editGroupId=item.editGroupId||'edit-'+localEdit.editRootId;localEdit.messages=resume?localEditMessagesForVersions(orderedVersions):[{role:'assistant',text:LOCAL_EDIT_WELCOME}];localEditSetConversationCollapsed(false);localEditClearReference();
+  localEdit.lastFocus=trigger||document.activeElement;localEdit.versions=orderedVersions;localEdit.editRootId=String(orderedVersions[0]?.id||item.editRootId||item.id);localEdit.editGroupId=item.editGroupId||'edit-'+localEdit.editRootId;localEdit.messages=resume?localEditMessagesForVersions(orderedVersions):[{role:'assistant',text:LOCAL_EDIT_WELCOME},...localEditMessagesForVersions(orderedVersions)];localEditSetConversationCollapsed(false);localEditClearReference();
   localEditSetInitialSettings(item);localEditSetError();localEditSetStatus('');localEditRenderThread();
   localEdit.layer.hidden=false;document.body.classList.add('local-edit-open');
   loadLocalEditImage(item,{focus:true}).catch(()=>{});
