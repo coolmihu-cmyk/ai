@@ -1650,6 +1650,9 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 .local-edit-conversation .local-edit-composer textarea,.local-edit-conversation .local-edit-prompt-meta{background:transparent!important}
 .local-edit-conversation .local-edit-composer:focus-within{border:1px solid #9da5a9!important;box-shadow:none!important}
 
+/* Keep the plain attachment plus optically centered with the editor controls. */
+.local-edit-conversation .local-edit-upload{display:grid;height:36px;place-items:center;align-self:center}
+
 /* Assistant text stays distinct from the white conversation surface. */
 .local-edit-conversation .local-edit-message.is-assistant:not(.is-image){background:#EEEEF0!important;color:#303438!important}
 .local-edit-conversation .local-edit-message.is-assistant:not(.is-image)::before{border-right-color:#EEEEF0!important}
