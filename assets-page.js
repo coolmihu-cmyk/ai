@@ -15,7 +15,7 @@ const assetsEls={
   generationVisual:$('#assetsGenerationVisual'),generationReference:$('#assetsGenerationReference'),
   taskCenter:$('#assetsTaskCenter'),taskCount:$('#assetsTaskCount'),taskList:$('#assetsTaskList')
 };
-let assetItems=[],generationElapsedTimer=null,queueAdvancing=false;
+let assetItems=[],generationElapsedTimer=null,queueAdvancing=false,activeGenerationUsesHighDefinition=false;
 let unavailableAssetIds=new Set(),assetImageObserver=null;
 const REFERENCE_LIBRARY_KEY='mihu-reference-library-v1',REFERENCE_LIBRARY_LIMIT=300;
 
@@ -28,6 +28,8 @@ const localEdit={
   item:null,model:'gpt',ratio:'auto',resolution:'1k',editRootId:null,editGroupId:null,referenceData:null,submitting:false,guiding:false,lastFocus:null,versions:[],messages:[],view:{scale:1,x:0,y:0,pointerId:null,startX:0,startY:0,originX:0,originY:0}
 };
 let localEditScrollTimer=0;
+function isHighDefinitionResolution(value){return Number.parseFloat(String(value||'').toLowerCase())>1}
+function highDefinitionWaitNotice(message){return isHighDefinitionResolution(localEdit.resolution)?message+' · 高画质图片需要更多生成时间，请耐心等候。':message}
 localEdit.image.draggable=false;
 localEdit.upload.textContent='+';
 const localEditSettingsTrigger=document.createElement('button');localEditSettingsTrigger.type='button';localEditSettingsTrigger.className='local-edit-settings-trigger';localEditSettingsTrigger.setAttribute('aria-haspopup','dialog');localEditSettingsTrigger.setAttribute('aria-expanded','false');localEdit.settings.append(localEditSettingsTrigger);
@@ -294,13 +296,13 @@ async function submitLocalEdit({prompt:providedPrompt='',alreadyRecorded=false,s
   }
   localEdit.submitting=true;localEdit.submit.disabled=true;localEdit.close.disabled=true;localEditSetSubmitLoading();localEditSetError();
   const generationController=new AbortController(),generationTimeoutId=setTimeout(()=>generationController.abort(),30*60*1000+15000);
-  if(!alreadyRecorded)localEdit.messages.push({role:'user',text:prompt});localEdit.prompt.value='';localEditUpdatePromptCount();localEditRenderThread();localEditSetStatus('正在提交图片编辑请求');
+  if(!alreadyRecorded)localEdit.messages.push({role:'user',text:prompt});localEdit.prompt.value='';localEditUpdatePromptCount();localEditRenderThread();localEditSetStatus(highDefinitionWaitNotice('正在提交图片编辑请求'));
   try{
     const editPrompt=prompt+'。以输入图片为基础进行编辑，保留用户未明确要求改变的主体、构图和重要视觉特征。';
     const config=MODEL_CONFIG[localEdit.model];
     const body={model:config.editModel||config.generationModel,prompt:editPrompt,size:localEdit.ratio,resolution:localEdit.resolution,n:1,image_urls:[localEdit.item.url,...(localEdit.referenceData?[localEdit.referenceData]:[])]};
     let url=await Apimart.generate({apiKey,body,endpoint:'/images/generations',signal:generationController.signal,maxWaitMs:30*60*1000,onProgress:(status,progress)=>{
-      localEditSetStatus(status==='processing'?'模型正在生成新版本...':'正在处理图片');
+      localEditSetStatus(highDefinitionWaitNotice(status==='processing'?'模型正在生成新版本...':'正在处理图片'));
     }});
     const itemId=Date.now(),createdAt=new Date().toISOString();let archived=false,historyKey='';
     if(Archive.isAvailable()&&localEdit.model!=='seedream'){
@@ -579,6 +581,7 @@ function renderAssets(){
 }
 
 function showGeneration(job){
+  activeGenerationUsesHighDefinition=isHighDefinitionResolution(job.settings?.resolution||job.body?.resolution);
   assetsEls.generation.hidden=false;
   assetsEls.generation.className='assets-generation is-running';
   const imageUrls=job.body?.image_urls;
@@ -601,7 +604,7 @@ function showGeneration(job){
   }
   assetsEls.generationModel.textContent=ASSET_MODEL_NAMES[job.model]||job.model||'生成任务';
   assetsEls.generationPrompt.textContent=job.prompt||'正在生成图片';
-  assetsEls.generationStatus.textContent=job.taskId?'正在恢复任务':'正在提交任务';
+  assetsEls.generationStatus.textContent=generationStatusText(job.taskId?'正在恢复任务':'正在提交任务');
   assetsEls.generationPercent.textContent='0%';
   assetsEls.generationBar.style.width='0%';
   assetsEls.generationError.hidden=true;
@@ -612,10 +615,11 @@ function showGeneration(job){
   updateElapsed();generationElapsedTimer=setInterval(updateElapsed,1000);
   syncAssetsSummary();
 }
+function generationStatusText(message){return activeGenerationUsesHighDefinition?message+' · 高画质图片需要更多生成时间，请耐心等候。':message}
 function updateGeneration(status,progress,retryMessage){
   const numeric=Math.max(0,Math.min(100,Number(progress)||0));
   assetsEls.generation.classList.toggle('is-indeterminate',numeric<=0);
-  assetsEls.generationStatus.textContent=retryMessage||(
+  assetsEls.generationStatus.textContent=retryMessage||generationStatusText(
     status==='queued'?'等待模型响应':
     status==='processing'?'正在生成图片':
     status==='running'?'正在生成图片':'生成处理中'
@@ -698,7 +702,7 @@ async function runPendingGeneration(job){
         onSubmitted:taskId=>{
           job.taskId=taskId;
           PendingGeneration.save(job).catch(()=>{});
-          assetsEls.generationStatus.textContent='任务已提交';
+          assetsEls.generationStatus.textContent=generationStatusText('任务已提交');
         },
         onProgress:updateGeneration
       });
