@@ -215,9 +215,10 @@ function localEditUpdateImageFrame(){
   localEdit.image.style.setProperty('--local-edit-image-clip','inset('+vertical+'px '+horizontal+'px '+vertical+'px '+horizontal+'px round 8px)');
 }
 function localEditUpdatePreviewMeta(){
-  const index=localEdit.versions.findIndex(version=>String(version.id||'')===String(localEdit.currentVersionId||'')),date=localEditGeneratedDate(localEdit.item?.createdAt),model=MODEL_CONFIG[localEditModelKey(localEdit.item?.model)].name,resolution=String(localEdit.item?.settings?.resolution||'').toUpperCase(),parts=[];
-  if(index>=0)parts.push('V'+(index+1));if(date)parts.push(date);if(model)parts.push(model);if(resolution)parts.push(resolution);
-  localEdit.previewMeta.hidden=!parts.length;localEdit.previewMeta.textContent=parts.join(' · ');
+  const index=localEdit.versions.findIndex(version=>String(version.id||'')===String(localEdit.currentVersionId||'')),version=index>=0?'V'+(index+1):'',date=localEditGeneratedDate(localEdit.item?.createdAt),model=MODEL_CONFIG[localEditModelKey(localEdit.item?.model)].name,resolution=String(localEdit.item?.settings?.resolution||'').toUpperCase(),details=[date,model,resolution].filter(Boolean);
+  localEdit.previewMeta.hidden=!(version||details.length);localEdit.previewMeta.replaceChildren();
+  if(version){const label=document.createElement('strong');label.textContent=version;localEdit.previewMeta.append(label)}
+  details.forEach(detail=>{if(localEdit.previewMeta.childNodes.length)localEdit.previewMeta.append(' · ');localEdit.previewMeta.append(detail)});
 }
 function localEditUpdateVersionSwitches(){
   const currentIndex=localEdit.versions.findIndex(version=>String(version.id||'')===String(localEdit.currentVersionId||'')),hasMultiple=localEdit.versions.length>1;
