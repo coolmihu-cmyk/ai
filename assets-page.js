@@ -46,13 +46,14 @@ function localEditSetComposerCollapsed(collapsed){
 }
 localEdit.conversationToggle.onclick=()=>localEditSetComposerCollapsed(!localEdit.conversation.classList.contains('is-composer-collapsed'));
 
-function localEditSetError(message=''){if(message)localEditSetComposerCollapsed(false);localEdit.error.hidden=!message;localEdit.error.textContent=message}
+function localEditSetError(message=''){if(message){localEditSetComposerCollapsed(false);localEditClearStatus()}localEdit.error.hidden=!message;localEdit.error.textContent=message}
+function localEditClearStatus(){localEdit.messages=localEdit.messages.filter(message=>!message.isStatus)}
 function localEditSetStatus(message=''){
   localEdit.status.textContent='';
-  if(!message)return;
-  const last=localEdit.messages[localEdit.messages.length-1];
-  if(last?.role==='assistant'&&last.text===message)return;
-  localEdit.messages.push({role:'assistant',text:message});localEditRenderThread();
+  const status=localEdit.messages.find(message=>message.isStatus);
+  if(!message){if(status){localEditClearStatus();localEditRenderThread()}return}
+  if(status)status.text=message;else localEdit.messages.push({role:'assistant',text:message,isStatus:true});
+  localEditRenderThread();
 }
 function localEditClearReference(){localEdit.referenceData=null;localEdit.fileInput.value='';localEdit.referencePreview.hidden=true;localEdit.referencePreviewImage.removeAttribute('src');localEdit.upload.classList.remove('is-attached');localEdit.upload.setAttribute('aria-label','添加参考图片');localEdit.upload.title='添加参考图片'}
 function localEditApplyViewport(){const view=localEdit.view;localEdit.image.style.transform='translate('+view.x+'px,'+view.y+'px) scale('+view.scale+')'}
@@ -255,7 +256,7 @@ async function submitLocalEdit({prompt:providedPrompt='',alreadyRecorded=false,s
     }
     const version={id:itemId,url,prompt,model:localEdit.model,settings:{ratio:localEdit.ratio,resolution:localEdit.resolution},editRootId:localEdit.editRootId,editGroupId:localEdit.editGroupId,archived,historyKey,createdAt,type:'image'};
     await History.save(version);assetItems=sortAssets([version,...assetItems.filter(asset=>asset.id!==version.id)]);renderAssets();
-    localEditClearReference();localEdit.versions.push(version);localEdit.messages.push({role:'assistant',text:'V'+localEdit.versions.length,generatedAt:localEditGeneratedDate(createdAt),imageUrl:version.url,versionId:version.id});localEditRenderThread();
+    localEditClearReference();localEditClearStatus();localEdit.versions.push(version);localEdit.messages.push({role:'assistant',text:'V'+localEdit.versions.length,generatedAt:localEditGeneratedDate(createdAt),imageUrl:version.url,versionId:version.id});localEditRenderThread();
     await loadLocalEditImage(version,{focus:true});toast('新版本已生成');
   }catch(error){
     localEditSetError(error?.message||'图片编辑任务创建失败。');localEditSetStatus('生成未完成，请修改描述后重试。');
