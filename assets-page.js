@@ -110,7 +110,7 @@ function localEditRenderThread(){
   localEdit.thread.replaceChildren(...localEdit.messages.map(message=>{
     const row=document.createElement('div');row.className='local-edit-message-row is-'+message.role;
     const avatar=document.createElement('img');avatar.className='local-edit-avatar';avatar.src=message.role==='assistant'?'image/chat-admin.png':'image/chat-user.png';avatar.alt=message.role==='assistant'?'助手头像':'用户头像';
-    const node=document.createElement(message.imageUrl?'div':'p');node.className='local-edit-message is-'+message.role+(message.imageUrl?' is-image':'');
+    const node=document.createElement(message.imageUrl?'div':'p');node.className='local-edit-message is-'+message.role+(message.imageUrl?' is-image':'')+(message.versionId&&String(message.versionId)===String(localEdit.currentVersionId)?' is-editing':'');
     if(message.imageUrl){
       const preview=document.createElement('button');preview.type='button';preview.className='local-edit-message-image';preview.title='在预览区查看图片';preview.setAttribute('aria-label',preview.title);
       const image=document.createElement('img');image.src=ImageDelivery.thumbnail(message.imageUrl);image.alt=message.text||'生成图片';
@@ -156,7 +156,7 @@ function closeLocalEdit(){
 }
 function loadLocalEditImage(item,{focus=false}={}){
   return new Promise((resolve,reject)=>{
-    localEdit.item=item;localEditResetViewport();localEdit.loading.hidden=false;localEdit.submit.disabled=true;
+    localEdit.item=item;localEdit.currentVersionId=String(item.id||'');localEditRenderThread();localEditResetViewport();localEdit.loading.hidden=false;localEdit.submit.disabled=true;
     localEdit.image.onload=()=>{
       const width=localEdit.image.naturalWidth,height=localEdit.image.naturalHeight;
       if(!width||!height){const error=new Error('无法读取图片尺寸。');localEditSetError(error.message);reject(error);return}

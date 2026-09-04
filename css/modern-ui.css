@@ -1670,6 +1670,7 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 .local-edit-conversation .local-edit-message.is-assistant.is-image .local-edit-message-actions{position:static;display:flex;flex:0 0 auto;align-items:center;gap:8px;opacity:1;transform:none}
 .local-edit-conversation .local-edit-message.is-assistant.is-image .local-edit-message-action{display:inline-flex;width:auto;height:auto;padding:0;border:0!important;border-radius:0;background:transparent;color:#555d62;font:600 10px/1.5 var(--studio-sans);filter:none}
 .local-edit-conversation .local-edit-message.is-assistant.is-image .local-edit-message-action:hover,.local-edit-conversation .local-edit-message.is-assistant.is-image .local-edit-message-action:focus-visible{background:transparent;color:#15191b;text-decoration:underline;outline:0}
+.local-edit-conversation .local-edit-message.is-assistant.is-image.is-editing{border-color:#78c84c!important;box-shadow:0 0 0 1px #78c84c}
 
 /* Avatars already identify the speaker; message tails add noise and can overlap image cards. */
 .local-edit-conversation .local-edit-message::before,.local-edit-conversation .local-edit-message::after{display:none!important;content:none!important}
