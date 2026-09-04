@@ -25,7 +25,7 @@ const localEdit={
   conversation:$('.local-edit-conversation'),conversationToggle:$('#localEditConversationToggle'),composer:$('.local-edit-composer'),prompt:$('#localEditPrompt'),promptCount:$('#localEditPromptCount'),upload:$('#localEditUpload'),fileInput:$('#localEditFileInput'),referencePreview:$('#localEditReferencePreview'),referencePreviewImage:$('#localEditReferencePreviewImage'),referenceClear:$('#localEditReferenceClear'),settings:$('.local-edit-settings'),error:$('#localEditError'),submit:$('#localEditSubmit'),
   modelSelect:$('#localEditModel'),modelPicker:$('#localEditModelPicker'),modelTrigger:$('#localEditModelTrigger'),modelMenu:$('#localEditModelMenu'),ratioSelect:$('#localEditRatio'),ratioPicker:$('#localEditRatioPicker'),ratioTrigger:$('#localEditRatioTrigger'),ratioMenu:$('#localEditRatioMenu'),resolutionSelect:$('#localEditResolution'),resolutionPicker:$('#localEditResolutionPicker'),resolutionTrigger:$('#localEditResolutionTrigger'),resolutionMenu:$('#localEditResolutionMenu'),
   thread:$('#localEditThread'),status:$('#localEditStatus'),
-  item:null,model:'gpt',ratio:'auto',resolution:'1k',editRootId:null,editGroupId:null,referenceData:null,submitting:false,lastFocus:null,versions:[],messages:[],view:{scale:1,x:0,y:0,pointerId:null,startX:0,startY:0,originX:0,originY:0}
+  item:null,model:'gpt',ratio:'auto',resolution:'1k',editRootId:null,editGroupId:null,referenceData:null,submitting:false,guiding:false,lastFocus:null,versions:[],messages:[],view:{scale:1,x:0,y:0,pointerId:null,startX:0,startY:0,originX:0,originY:0}
 };
 let localEditScrollTimer=0;
 localEdit.image.draggable=false;
@@ -132,39 +132,20 @@ function localEditRenderThread(){
   }));
   localEdit.thread.scrollTop=localEdit.thread.scrollHeight;
 }
-const LOCAL_EDIT_GUIDANCE=[
-  {match:/^(?:请)?(?:帮我|给我)?(?:(?:换|改|更换|替换)(?:个|一个|一下)?(?:背景|场景)|(?:背景|场景)(?:(?:换|改|更换|替换)(?:个|一个|一下)?)?)$/,question:'想要什么氛围的背景？',customHint:'请继续描述你想要的背景风格。',choices:[
-    {label:'温馨自然',prompt:'将背景替换为温馨自然的环境，采用柔和光线与舒适色调。'},
-    {label:'炫酷未来',prompt:'将背景替换为炫酷未来感环境，具有电影感光影与科技氛围。'},
-    {label:'简约纯色',prompt:'将背景替换为干净克制的简约纯色背景，突出主体。'},
-    {label:'自定义描述',custom:true}
-  ]},
-  {match:/^(?:请)?(?:帮我)?(?:换|改|更换|替换)(?:一下)?(?:发型|头发|衣服|服装|表情|姿势)$/,question:'希望从哪个方向调整人物？',customHint:'请继续描述想调整的人物细节。',choices:[
-    {label:'自然日常',prompt:'以自然日常的方式调整人物造型，保持人物身份与整体协调。'},
-    {label:'精致时尚',prompt:'以精致时尚的方式调整人物造型，保持人物身份与整体协调。'},
-    {label:'大胆个性',prompt:'以大胆有个性的方式调整人物造型，保持人物身份与整体协调。'},
-    {label:'自定义描述',custom:true}
-  ]},
-  {match:/^(?:请)?(?:帮我)?(?:换|改)(?:一下)?(?:风格)?$|^(?:更)?(?:好看|高级|有质感)(?:一点)?$/,question:'想让画面呈现什么风格？',customHint:'请继续描述想要的画面风格。',choices:[
-    {label:'电影感',prompt:'调整为具有电影感的画面风格，强化光影、层次和氛围。'},
-    {label:'清新明亮',prompt:'调整为清新明亮的画面风格，色彩干净通透。'},
-    {label:'复古质感',prompt:'调整为有复古质感的画面风格，保留主体特征。'},
-    {label:'自定义描述',custom:true}
-  ]},
-  {match:/^(?:请)?(?:帮我)?(?:调整|改|换)(?:一下)?(?:构图|画面|比例)$|^(?:扩展|放大|裁剪)(?:一下)?(?:画面)?$/,question:'希望怎样调整画面？',customHint:'请继续描述想要的构图或画面范围。',choices:[
-    {label:'主体更突出',prompt:'调整构图，使主体更突出，同时保持自然平衡。'},
-    {label:'画面更开阔',prompt:'扩展画面视野，保持主体位置和整体协调。'},
-    {label:'社交平台比例',prompt:'将画面调整为更适合社交平台展示的构图与比例。'},
-    {label:'自定义描述',custom:true}
-  ]},
-  {match:/^(?:请)?(?:帮我)?(?:修图|修复|优化|美化)(?:一下)?$|^(?:更)?(?:清晰|精致)(?:一点)?$/,question:'想优先优化哪一部分？',customHint:'请继续描述要修复或优化的细节。',choices:[
-    {label:'清晰细节',prompt:'提升图片清晰度与主体细节，保持自然真实。'},
-    {label:'光线色彩',prompt:'优化光线与色彩层次，保持画面自然。'},
-    {label:'去除杂物',prompt:'清理画面中干扰主体的杂物，保持场景自然。'},
-    {label:'自定义描述',custom:true}
-  ]}
-];
-function localEditGetGuidance(prompt){const text=prompt.replace(/[\s，。,.！？!?、]/g,'');return LOCAL_EDIT_GUIDANCE.find(item=>item.match.test(text))||null}
+const LOCAL_EDIT_GUIDANCE_SYSTEM='你是图片编辑前的意图澄清助手。判断用户编辑指令是否已经具体到可以直接生成。只有缺少会显著改变结果的关键信息时才追问；具体指令必须直接生成，不要追问。只输出 JSON，不要 Markdown：{"action":"ask"或"generate","question":"仅在 ask 时填写的简短中文问题","options":[{"label":"不超过6字","prompt":"选择后应追加到原始编辑指令的具体要求"}],"customHint":"仅在 ask 时填写"}。ask 时提供 2 到 3 个互斥选项，不要包含自定义选项；系统会补充。';
+function localEditParseGuidance(raw){
+  const start=raw.indexOf('{'),end=raw.lastIndexOf('}');if(start<0||end<=start)return null;
+  try{
+    const data=JSON.parse(raw.slice(start,end+1));if(data.action!=='ask')return null;
+    const choices=(Array.isArray(data.options)?data.options:[]).filter(option=>typeof option?.label==='string'&&typeof option?.prompt==='string').slice(0,3).map(option=>({label:option.label.trim().slice(0,12),prompt:option.prompt.trim().slice(0,220)})).filter(option=>option.label&&option.prompt);
+    if(choices.length<2||typeof data.question!=='string'||!data.question.trim())return null;
+    choices.push({label:'自定义描述',custom:true});return {question:data.question.trim().slice(0,60),customHint:typeof data.customHint==='string'&&data.customHint.trim()?data.customHint.trim().slice(0,60):'请继续描述你想要的修改效果。',choices};
+  }catch(_){return null}
+}
+async function localEditGetGuidance(apiKey,prompt){
+  try{return localEditParseGuidance(await Apimart.chat(apiKey,{model:PROMPT_ANALYSIS_MODEL,temperature:.15,messages:[{role:'system',content:LOCAL_EDIT_GUIDANCE_SYSTEM},{role:'user',content:'用户编辑指令：'+prompt}]}))}
+  catch(error){console.warn('编辑意图判断失败，将直接生成',error);return null}
+}
 function localEditAskGuidance(prompt,guidance){
   localEdit.messages.push({role:'user',text:prompt},{role:'assistant',text:guidance.question,choices:guidance.choices,basePrompt:prompt,guidance});
   localEdit.prompt.value='';localEditUpdatePromptCount();localEditRenderThread();
@@ -200,7 +181,7 @@ function localEditClosestRatio(width,height){
   },{name:'1:1',value:1}).name;
 }
 function closeLocalEdit(){
-  if(localEdit.submitting)return;
+  if(localEdit.submitting||localEdit.guiding)return;
   localEdit.layer.hidden=true;document.body.classList.remove('local-edit-open');localEdit.item=null;localEdit.versions=[];localEdit.messages=[];localEditClearReference();localEdit.image.removeAttribute('src');localEdit.lastFocus?.focus?.();
 }
 function localEditCenterCurrentVersion(){
@@ -233,11 +214,16 @@ function openLocalEditGroup(root,edits,trigger){
   openLocalEdit(versions[versions.length-1],trigger,{versions,resume:true});
 }
 async function submitLocalEdit({prompt:providedPrompt='',alreadyRecorded=false,skipQuestion=false}={}){
-  if(localEdit.submitting)return;
+  if(localEdit.submitting||localEdit.guiding)return;
   const apiKey=Settings.getKey(),prompt=providedPrompt||localEdit.prompt.value.trim();
   if(!apiKey){Settings.openPage();toast('请先保存 API Key');return}
   if(!prompt){localEditSetError('请描述你希望怎样修改这张图片。');localEdit.prompt.focus();return}
-  const guidance=!skipQuestion&&localEditGetGuidance(prompt);if(guidance){localEditAskGuidance(prompt,guidance);return}
+  if(!skipQuestion){
+    localEdit.guiding=true;localEdit.submit.disabled=true;
+    const guidance=await localEditGetGuidance(apiKey,prompt);
+    localEdit.guiding=false;localEdit.submit.disabled=false;
+    if(guidance){localEditAskGuidance(prompt,guidance);return}
+  }
   localEdit.submitting=true;localEdit.submit.disabled=true;localEdit.close.disabled=true;localEditSetError();
   if(!alreadyRecorded)localEdit.messages.push({role:'user',text:prompt});localEdit.prompt.value='';localEditUpdatePromptCount();localEditRenderThread();localEditSetStatus('正在提交图片编辑请求');
   try{
