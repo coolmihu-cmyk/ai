@@ -1674,3 +1674,10 @@ body.local-edit-open{overflow:hidden}.local-edit-layer[hidden]{display:none}.loc
 
 /* Avatars already identify the speaker; message tails add noise and can overlap image cards. */
 .local-edit-conversation .local-edit-message::before,.local-edit-conversation .local-edit-message::after{display:none!important;content:none!important}
+
+/* Assistant follow-up questions offer compact, direct choices before generation. */
+.local-edit-conversation .local-edit-message.is-choice{display:grid;gap:8px;min-width:220px}
+.local-edit-conversation .local-edit-choice-question{font-size:12px;line-height:1.45}
+.local-edit-conversation .local-edit-choice-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.local-edit-conversation .local-edit-choice-options button{height:27px;padding:0 7px;border:1px solid #d1d6d8;border-radius:7px;background:#fff;color:#424a4f;font:600 10px/1 var(--studio-sans);cursor:pointer;white-space:nowrap}
+.local-edit-conversation .local-edit-choice-options button:hover,.local-edit-conversation .local-edit-choice-options button:focus-visible{border-color:#8d989e;background:#f8f9f9;color:#15191b;outline:0}

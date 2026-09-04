@@ -110,7 +110,7 @@ function localEditRenderThread(){
   localEdit.thread.replaceChildren(...localEdit.messages.map(message=>{
     const row=document.createElement('div');row.className='local-edit-message-row is-'+message.role;
     const avatar=document.createElement('img');avatar.className='local-edit-avatar';avatar.src=message.role==='assistant'?'image/chat-admin.png':'image/chat-user.png';avatar.alt=message.role==='assistant'?'助手头像':'用户头像';
-    const node=document.createElement(message.imageUrl?'div':'p');node.className='local-edit-message is-'+message.role+(message.imageUrl?' is-image':'')+(message.versionId&&String(message.versionId)===String(localEdit.currentVersionId)?' is-editing':'');
+    const node=document.createElement(message.imageUrl||message.choices?'div':'p');node.className='local-edit-message is-'+message.role+(message.imageUrl?' is-image':'')+(message.choices?' is-choice':'')+(message.versionId&&String(message.versionId)===String(localEdit.currentVersionId)?' is-editing':'');
     if(message.imageUrl){
       const preview=document.createElement('button');preview.type='button';preview.className='local-edit-message-image';preview.title='在预览区查看图片';preview.setAttribute('aria-label',preview.title);
       const image=document.createElement('img');image.src=ImageDelivery.thumbnail(message.imageUrl);image.alt=message.text||'生成图片';
@@ -121,10 +121,32 @@ function localEditRenderThread(){
       const actions=document.createElement('div');actions.className='local-edit-message-actions';
       const download=document.createElement('button');download.type='button';download.className='local-edit-message-action is-download';download.textContent='下载';download.setAttribute('aria-label','下载这张图片');download.onclick=()=>downloadImage(message.imageUrl);
       const edit=document.createElement('button');edit.type='button';edit.className='local-edit-message-action is-edit';edit.textContent='编辑此版本';edit.setAttribute('aria-label','编辑这张图片');edit.onclick=selectVersion;actions.append(download,edit);footer.append(caption,actions);node.append(preview,footer);
+    }else if(message.choices){
+      const question=document.createElement('span');question.className='local-edit-choice-question';question.textContent=message.text;
+      const choices=document.createElement('div');choices.className='local-edit-choice-options';
+      message.choices.forEach(choice=>{const button=document.createElement('button');button.type='button';button.textContent=choice.label;button.onclick=()=>localEditChooseBackground(choice,message.basePrompt);choices.append(button)});
+      node.append(question,choices);
     }else node.textContent=message.text;
     row.append(avatar,node);return row;
   }));
   localEdit.thread.scrollTop=localEdit.thread.scrollHeight;
+}
+const LOCAL_EDIT_BACKGROUND_CHOICES=[
+  {label:'温馨自然',prompt:'将背景替换为温馨自然的环境，采用柔和光线与舒适色调。'},
+  {label:'炫酷未来',prompt:'将背景替换为炫酷未来感环境，具有电影感光影与科技氛围。'},
+  {label:'简约纯色',prompt:'将背景替换为干净克制的简约纯色背景，突出主体。'},
+  {label:'自定义描述',custom:true}
+];
+function localEditNeedsBackgroundChoice(prompt){return /^(?:请)?(?:帮我)?(?:换|改|更换|替换)(?:一下)?(?:背景|场景)$/.test(prompt.replace(/[\s，。,.！？!?、]/g,''))}
+function localEditAskBackgroundChoice(prompt){
+  localEdit.messages.push({role:'user',text:prompt},{role:'assistant',text:'想要什么氛围的背景？',choices:LOCAL_EDIT_BACKGROUND_CHOICES,basePrompt:prompt});
+  localEdit.prompt.value='';localEditUpdatePromptCount();localEditRenderThread();
+}
+function localEditChooseBackground(choice,basePrompt){
+  const question=localEdit.messages.find(message=>message.choices&&message.basePrompt===basePrompt);if(question)question.choices=null;
+  localEdit.messages.push({role:'user',text:choice.label});localEditRenderThread();
+  if(choice.custom){localEdit.messages.push({role:'assistant',text:'请继续描述你想要的背景风格。'});localEdit.prompt.value=basePrompt+'，背景风格：';localEditUpdatePromptCount();localEditRenderThread();localEdit.prompt.focus({preventScroll:true});return}
+  submitLocalEdit({prompt:basePrompt+'，'+choice.prompt,alreadyRecorded:true,skipQuestion:true});
 }
 function localEditGeneratedDate(value){
   const date=new Date(value||Date.now());
@@ -183,13 +205,14 @@ function openLocalEditGroup(root,edits,trigger){
   const versions=[root,...edits].sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
   openLocalEdit(versions[versions.length-1],trigger,{versions,resume:true});
 }
-async function submitLocalEdit(){
+async function submitLocalEdit({prompt:providedPrompt='',alreadyRecorded=false,skipQuestion=false}={}){
   if(localEdit.submitting)return;
-  const apiKey=Settings.getKey(),prompt=localEdit.prompt.value.trim();
+  const apiKey=Settings.getKey(),prompt=providedPrompt||localEdit.prompt.value.trim();
   if(!apiKey){Settings.openPage();toast('请先保存 API Key');return}
   if(!prompt){localEditSetError('请描述你希望怎样修改这张图片。');localEdit.prompt.focus();return}
+  if(!skipQuestion&&localEditNeedsBackgroundChoice(prompt)){localEditAskBackgroundChoice(prompt);return}
   localEdit.submitting=true;localEdit.submit.disabled=true;localEdit.close.disabled=true;localEditSetError();
-  localEdit.messages.push({role:'user',text:prompt});localEdit.prompt.value='';localEditUpdatePromptCount();localEditRenderThread();localEditSetStatus('正在提交图片编辑请求');
+  if(!alreadyRecorded)localEdit.messages.push({role:'user',text:prompt});localEdit.prompt.value='';localEditUpdatePromptCount();localEditRenderThread();localEditSetStatus('正在提交图片编辑请求');
   try{
     const editPrompt=prompt+'。以输入图片为基础进行编辑，保留用户未明确要求改变的主体、构图和重要视觉特征。';
     const config=MODEL_CONFIG[localEdit.model];
