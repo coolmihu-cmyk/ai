@@ -20,15 +20,15 @@ let unavailableAssetIds=new Set(),assetImageObserver=null;
 const REFERENCE_LIBRARY_KEY='mihu-reference-library-v1',REFERENCE_LIBRARY_LIMIT=300;
 
 const localEdit={
-  layer:$('#localEditLayer'),close:$('#localEditClose'),stage:$('#localEditStage'),image:$('#localEditImage'),originalImage:$('#localEditOriginalImage'),
+  layer:$('#localEditLayer'),close:$('#localEditClose'),stage:$('#localEditStage'),image:$('#localEditImage'),
   loading:$('#localEditLoading'),reset:$('#localEditReset'),previous:$('#localEditPreviousVersion'),next:$('#localEditNextVersion'),previewMeta:$('#localEditPreviewMeta'),originalPreview:$('#localEditOriginalPreview'),
   conversation:$('.local-edit-conversation'),conversationToggle:$('#localEditConversationToggle'),composer:$('.local-edit-composer'),prompt:$('#localEditPrompt'),promptCount:$('#localEditPromptCount'),upload:$('#localEditUpload'),fileInput:$('#localEditFileInput'),referencePreview:$('#localEditReferencePreview'),referencePreviewImage:$('#localEditReferencePreviewImage'),referenceClear:$('#localEditReferenceClear'),settings:$('.local-edit-settings'),error:$('#localEditError'),submit:$('#localEditSubmit'),
   modelSelect:$('#localEditModel'),modelPicker:$('#localEditModelPicker'),modelTrigger:$('#localEditModelTrigger'),modelMenu:$('#localEditModelMenu'),ratioSelect:$('#localEditRatio'),ratioPicker:$('#localEditRatioPicker'),ratioTrigger:$('#localEditRatioTrigger'),ratioMenu:$('#localEditRatioMenu'),resolutionSelect:$('#localEditResolution'),resolutionPicker:$('#localEditResolutionPicker'),resolutionTrigger:$('#localEditResolutionTrigger'),resolutionMenu:$('#localEditResolutionMenu'),
   thread:$('#localEditThread'),status:$('#localEditStatus'),
-  item:null,model:'gpt',ratio:'auto',resolution:'1k',editRootId:null,editGroupId:null,referenceData:null,submitting:false,guiding:false,originalReady:false,lastFocus:null,versions:[],messages:[],view:{scale:1,x:0,y:0,pointerId:null,startX:0,startY:0,originX:0,originY:0}
+  item:null,model:'gpt',ratio:'auto',resolution:'1k',editRootId:null,editGroupId:null,referenceData:null,submitting:false,guiding:false,lastFocus:null,versions:[],messages:[],view:{scale:1,x:0,y:0,pointerId:null,startX:0,startY:0,originX:0,originY:0}
 };
 let localEditScrollTimer=0;
-localEdit.image.draggable=false;localEdit.originalImage.draggable=false;
+localEdit.image.draggable=false;
 localEdit.upload.textContent='+';
 const localEditSettingsTrigger=document.createElement('button');localEditSettingsTrigger.type='button';localEditSettingsTrigger.className='local-edit-settings-trigger';localEditSettingsTrigger.setAttribute('aria-haspopup','dialog');localEditSettingsTrigger.setAttribute('aria-expanded','false');localEdit.settings.append(localEditSettingsTrigger);
 const localEditSettingsPopover=document.createElement('section');localEditSettingsPopover.className='local-edit-settings-popover';localEditSettingsPopover.hidden=true;localEditSettingsPopover.setAttribute('role','dialog');localEditSettingsPopover.setAttribute('aria-label','图片生成设置');localEditSettingsPopover.innerHTML='<div class="local-edit-settings-section"><b>模型</b><div class="local-edit-settings-models"></div></div><div class="local-edit-settings-section"><b>分辨率</b><div class="local-edit-settings-resolutions"></div></div><div class="local-edit-settings-section"><b>比例</b><div class="local-edit-settings-ratios"></div></div>';localEdit.composer.append(localEditSettingsPopover);
@@ -57,7 +57,7 @@ function localEditSetStatus(message=''){
   localEditRenderThread();
 }
 function localEditClearReference(){localEdit.referenceData=null;localEdit.fileInput.value='';localEdit.referencePreview.hidden=true;localEdit.referencePreviewImage.removeAttribute('src');localEdit.upload.classList.remove('is-attached');localEdit.upload.setAttribute('aria-label','添加参考图片');localEdit.upload.title='添加参考图片'}
-function localEditApplyViewport(){const view=localEdit.view,transform='translate('+view.x+'px,'+view.y+'px) scale('+view.scale+')';localEdit.image.style.transform=transform;localEdit.originalImage.style.transform=transform}
+function localEditApplyViewport(){const view=localEdit.view;localEdit.image.style.transform='translate('+view.x+'px,'+view.y+'px) scale('+view.scale+')'}
 function localEditResetViewport(){Object.assign(localEdit.view,{scale:1,x:0,y:0,pointerId:null});localEdit.stage.classList.remove('is-panning');localEditApplyViewport()}
 function localEditModelKey(value){return MODEL_CONFIG[value]?value:'gpt'}
 function localEditUpdatePromptCount(){localEdit.promptCount.textContent=localEdit.prompt.value.length+'/'+localEdit.prompt.maxLength}
@@ -112,7 +112,7 @@ function localEditSelectVersion(versionId,imageUrl,versionLabel=''){
   const labelIndex=Math.max(-1,Number(String(versionLabel||'').replace(/^V/,''))-1);
   const version=localEdit.versions.find(item=>String(item.id??'')===String(versionId??''))||localEdit.versions.find(item=>item.url===imageUrl)||localEdit.versions[labelIndex];
   if(!version){localEditSetError('未找到该图片版本，请重新打开图组。');return}
-  localEditHideOriginalPreview();localEditSetError();loadLocalEditImage(version,{focus:true}).catch(()=>{});
+  localEditSetError();loadLocalEditImage(version,{focus:true}).catch(()=>{});
 }
 function localEditRenderThread(){
   localEdit.thread.replaceChildren(...localEdit.messages.map(message=>{
@@ -210,7 +210,7 @@ function localEditClosestRatio(width,height){
 }
 function closeLocalEdit(){
   if(localEdit.submitting||localEdit.guiding)return;
-  localEdit.layer.hidden=true;document.body.classList.remove('local-edit-open');localEdit.item=null;localEdit.versions=[];localEdit.messages=[];localEditClearReference();localEdit.image.removeAttribute('src');localEdit.originalImage.removeAttribute('src');localEdit.originalImage.hidden=true;localEdit.originalReady=false;localEdit.lastFocus?.focus?.();
+  localEdit.layer.hidden=true;document.body.classList.remove('local-edit-open');localEdit.item=null;localEdit.versions=[];localEdit.messages=[];localEditClearReference();localEdit.image.removeAttribute('src');localEdit.lastFocus?.focus?.();
 }
 function localEditCenterCurrentVersion(){
   const current=localEdit.thread.querySelector('.local-edit-message.is-image.is-editing');
@@ -227,9 +227,7 @@ function localEditSetImageFrame(image){
   const scale=Math.min(stageRect.width/width,stageRect.height/height),horizontal=Math.max(0,(stageRect.width-width*scale)/2),vertical=Math.max(0,(stageRect.height-height*scale)/2);
   image.style.setProperty('--local-edit-image-clip','inset('+vertical+'px '+horizontal+'px '+vertical+'px '+horizontal+'px round 8px)');
 }
-function localEditUpdateImageFrame(){
-  localEditSetImageFrame(localEdit.image);localEditSetImageFrame(localEdit.originalImage);
-}
+function localEditUpdateImageFrame(){localEditSetImageFrame(localEdit.image)}
 function localEditUpdatePreviewMeta(){
   const index=localEdit.versions.findIndex(version=>String(version.id||'')===String(localEdit.currentVersionId||'')),version=index>=0?'V'+(index+1):'',date=localEditGeneratedDate(localEdit.item?.createdAt),model=MODEL_CONFIG[localEditModelKey(localEdit.item?.model)].name,resolution=String(localEdit.item?.settings?.resolution||'').toUpperCase(),details=[date,model,resolution].filter(Boolean);
   localEdit.previewMeta.hidden=!(version||details.length);localEdit.previewMeta.replaceChildren();
@@ -245,20 +243,8 @@ function localEditUpdateVersionSwitches(){
 function localEditUpdateOriginalPreview(){
   const index=localEdit.versions.findIndex(version=>String(version.id||'')===String(localEdit.currentVersionId||'')),available=index>0;
   localEdit.originalPreview.hidden=!available;localEdit.originalPreview.disabled=!available;
-  if(!available)return;
-  const ready=localEdit.originalReady;
-  localEdit.originalPreview.textContent=ready?'原图':'载入原图';localEdit.originalPreview.title=ready?'按住查看原图':'正在载入原图，点击重试';localEdit.originalPreview.setAttribute('aria-label',localEdit.originalPreview.title);
 }
-function localEditPrepareOriginalImage(){
-  const original=localEdit.versions[0];localEdit.originalReady=false;localEdit.originalImage.hidden=true;localEdit.originalImage.removeAttribute('src');
-  if(!original?.url){localEditUpdateOriginalPreview();return}
-  const fallbackUrl=ImageDelivery.thumbnail(original.url);let usedFallback=false;
-  localEdit.originalImage.onload=()=>{localEdit.originalReady=true;localEditUpdateImageFrame();localEditUpdateOriginalPreview()};
-  localEdit.originalImage.onerror=()=>{if(!usedFallback&&fallbackUrl!==original.url){usedFallback=true;localEdit.originalImage.src=fallbackUrl;return}localEdit.originalReady=false;localEditUpdateOriginalPreview()};
-  localEdit.originalImage.src=original.url;localEditUpdateOriginalPreview();
-}
-function localEditShowOriginalPreview(){if(localEdit.submitting||localEdit.guiding)return;if(!localEdit.originalReady){localEditPrepareOriginalImage();toast('正在重新载入原图');return}localEdit.originalImage.hidden=false;localEdit.originalPreview.classList.add('is-holding')}
-function localEditHideOriginalPreview(){localEdit.originalImage.hidden=true;localEdit.originalPreview.classList.remove('is-holding')}
+function localEditShowOriginalPreview(){if(localEdit.submitting||localEdit.guiding)return;const original=localEdit.versions[0];if(original)loadLocalEditImage(original,{focus:true}).catch(()=>{})}
 function localEditSwitchVersion(offset){
   if(localEdit.submitting||localEdit.guiding)return;
   const currentIndex=localEdit.versions.findIndex(version=>String(version.id||'')===String(localEdit.currentVersionId||'')),target=localEdit.versions[currentIndex+offset];
@@ -280,7 +266,7 @@ function loadLocalEditImage(item,{focus=false,threadPosition='current'}={}){
 function openLocalEdit(item,trigger,{versions=[item],resume=false,threadPosition='current'}={}){
   if(assetExpiry(item).expired){toast('原图已过期，无法编辑');return}
   const orderedVersions=[...versions].sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
-  localEdit.lastFocus=trigger||document.activeElement;localEdit.versions=orderedVersions;localEdit.editRootId=String(orderedVersions[0]?.id||item.editRootId||item.id);localEdit.editGroupId=item.editGroupId||'edit-'+localEdit.editRootId;localEdit.messages=resume?localEditMessagesForVersions(orderedVersions):[{role:'assistant',text:LOCAL_EDIT_WELCOME},...localEditMessagesForVersions(orderedVersions)];localEditSetComposerCollapsed(false);localEditClearReference();localEditPrepareOriginalImage();
+  localEdit.lastFocus=trigger||document.activeElement;localEdit.versions=orderedVersions;localEdit.editRootId=String(orderedVersions[0]?.id||item.editRootId||item.id);localEdit.editGroupId=item.editGroupId||'edit-'+localEdit.editRootId;localEdit.messages=resume?localEditMessagesForVersions(orderedVersions):[{role:'assistant',text:LOCAL_EDIT_WELCOME},...localEditMessagesForVersions(orderedVersions)];localEditSetComposerCollapsed(false);localEditClearReference();
   localEditSetInitialSettings(item);localEditSetError();localEditSetStatus('');localEditRenderThread();
   localEdit.layer.hidden=false;document.body.classList.add('local-edit-open');
   loadLocalEditImage(item,{focus:true,threadPosition}).catch(()=>{});
@@ -359,10 +345,7 @@ localEdit.close.onclick=closeLocalEdit;localEdit.submit.onclick=submitLocalEdit;
 localEdit.reset.onclick=()=>localEditResetViewport();
 localEdit.previous.onclick=()=>localEditSwitchVersion(-1);localEdit.next.onclick=()=>localEditSwitchVersion(1);
 for(const switchButton of [localEdit.previous,localEdit.next])switchButton.addEventListener('pointerdown',event=>event.stopPropagation());
-localEdit.originalPreview.addEventListener('pointerdown',event=>{if(event.button!==0)return;event.preventDefault();event.stopPropagation();localEditShowOriginalPreview();localEdit.originalPreview.setPointerCapture(event.pointerId)});
-for(const eventName of ['pointerup','pointercancel','lostpointercapture'])localEdit.originalPreview.addEventListener(eventName,localEditHideOriginalPreview);
-localEdit.originalPreview.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&!event.repeat){event.preventDefault();localEditShowOriginalPreview()}});
-localEdit.originalPreview.addEventListener('keyup',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();localEditHideOriginalPreview()}});localEdit.originalPreview.addEventListener('blur',localEditHideOriginalPreview);
+localEdit.originalPreview.onclick=localEditShowOriginalPreview;
 localEdit.stage.addEventListener('wheel',event=>{if(!localEdit.image.src)return;event.preventDefault();const next=Math.max(1,Math.min(4,localEdit.view.scale*Math.exp(-event.deltaY*.0015)));if(next===localEdit.view.scale)return;localEdit.view.scale=next;localEditApplyViewport()},{passive:false});
 localEdit.stage.addEventListener('pointerdown',event=>{if(event.button!==0||event.target===localEdit.reset||!localEdit.image.src)return;event.preventDefault();const view=localEdit.view;view.pointerId=event.pointerId;view.startX=event.clientX;view.startY=event.clientY;view.originX=view.x;view.originY=view.y;localEdit.stage.setPointerCapture(event.pointerId);localEdit.stage.classList.add('is-panning')});
 localEdit.stage.addEventListener('pointermove',event=>{const view=localEdit.view;if(view.pointerId!==event.pointerId)return;view.x=view.originX+event.clientX-view.startX;view.y=view.originY+event.clientY-view.startY;localEditApplyViewport()});
