@@ -390,9 +390,16 @@ function mergeAssets(...groups){
   for(const group of groups)for(const item of group||[])if(item?.id!=null)merged.set(String(item.id),item);
   return sortAssets([...merged.values()]);
 }
+function assetRenderSignature(items){
+  return (items||[]).map(item=>[
+    item.id,item.url,item.prompt,item.model,item.createdAt,item.editRootId,item.editGroupId,
+    item.archived,JSON.stringify(item.settings||{})
+  ].join('\u001f')).join('\u001e');
+}
 async function syncCloudHistory(){
   if(!await CloudHistory.token())return;
   try{
+    const beforeSync=assetRenderSignature(assetItems);
     const cloudRecords=[];
     let cursor=null;
     for(let pageNumber=0;pageNumber<20;pageNumber+=1){
@@ -410,7 +417,7 @@ async function syncCloudHistory(){
     const cloudIds=new Set([...cloudItems.map(item=>String(item.id)),...deletedIds]);
     assetItems=mergeAssets(assetItems,cloudItems);
     await Promise.all(cloudItems.map(item=>History.save(item)));
-    renderAssets();
+    if(assetRenderSignature(assetItems)!==beforeSync)renderAssets();
     const pending=assetItems.filter(item=>!cloudIds.has(String(item.id))&&ImageDelivery.isArchivedUrl(item.url)).slice(0,60);
     for(const item of pending){
       const saved=await CloudHistory.save(item);
