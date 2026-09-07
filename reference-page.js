@@ -2,17 +2,21 @@
 (() => {
   const STORAGE_KEY='mihu-reference-library-v1',MAX_ITEMS=300;
   const CATEGORIES=['photography','design','commerce','other'];
-  const el={grid:$('#referenceGrid'),empty:$('#referenceEmpty'),emptyTitle:$('#referenceEmptyTitle'),modal:$('#referenceModal'),form:$('#referenceForm'),imageUrl:$('#referenceImageUrl'),category:$('#referenceCategory'),prompt:$('#referencePrompt'),error:$('#referenceFormError'),create:$('#referenceCreate'),emptyCreate:$('#referenceEmptyCreate'),close:$('#referenceClose'),cancel:$('#referenceCancel'),exportJson:$('#referenceExportJson'),importFile:$('#referenceImportFile'),filters:[...document.querySelectorAll('[data-reference-filter]')]};
-  let items=[],activeCategory='all';
+  const el={grid:$('#referenceGrid'),empty:$('#referenceEmpty'),emptyTitle:$('#referenceEmptyTitle'),modal:$('#referenceModal'),modalTitle:$('#referenceModalTitle'),form:$('#referenceForm'),imageUrl:$('#referenceImageUrl'),category:$('#referenceCategory'),prompt:$('#referencePrompt'),error:$('#referenceFormError'),save:$('#referenceForm button[type="submit"]'),create:$('#referenceCreate'),emptyCreate:$('#referenceEmptyCreate'),close:$('#referenceClose'),cancel:$('#referenceCancel'),exportJson:$('#referenceExportJson'),importFile:$('#referenceImportFile'),filters:[...document.querySelectorAll('[data-reference-filter]')]};
+  let items=[],activeCategory='all',editingId=null;
   const icon=paths=>{const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('fill','none');svg.setAttribute('stroke','currentColor');svg.setAttribute('stroke-width','1.8');paths.forEach(d=>{const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',d);svg.appendChild(path)});return svg};
   function read(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');return Array.isArray(saved)?saved:[]}catch(_){return []}}
   function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(items.slice(0,MAX_ITEMS)))}catch(_){toast('本地存储空间不足，请删除部分参考')}}
   function formatDate(value){const date=new Date(value);return Number.isNaN(date.getTime())?'刚刚添加':new Intl.DateTimeFormat('zh-CN',{month:'short',day:'numeric'}).format(date)}
-  function openModal(){el.form.reset();setError('');el.modal.hidden=false;requestAnimationFrame(()=>el.imageUrl.focus())}
-  function closeModal(){el.modal.hidden=true}
+  function openModal(item=null){
+    editingId=item?.id||null;el.form.reset();setError('');
+    el.modalTitle.textContent=item?'编辑参考':'新建参考';el.save.textContent=item?'保存修改':'保存参考';
+    if(item){el.imageUrl.value=item.imageUrl||'';el.category.value=categoryOf(item.category)||'other';el.prompt.value=item.prompt||''}
+    el.modal.hidden=false;requestAnimationFrame(()=>el.imageUrl.focus())
+  }
+  function closeModal(){el.modal.hidden=true;editingId=null}
   function setError(message){el.error.textContent=message;el.error.hidden=!message}
   function remove(id){items=items.filter(item=>item.id!==id);persist();render();toast('已删除参考')}
-  async function copyPrompt(text){if(!text){toast('这条参考没有提示词');return}try{await navigator.clipboard.writeText(text);toast('提示词已复制')}catch(_){const input=document.createElement('textarea');input.value=text;document.body.appendChild(input);input.select();document.execCommand('copy');input.remove();toast('提示词已复制')}}
   function useReference(item){try{sessionStorage.setItem('mihu_reference_payload',JSON.stringify({url:item.imageUrl,prompt:item.prompt||''}))}catch(_){}navigateWithLoading('index.html')}
   function categoryOf(value){return CATEGORIES.includes(value)?value:''}
   function getColumnCount(){return matchMedia('(max-width:720px)').matches?2:matchMedia('(max-width:1180px)').matches?3:5}
@@ -57,9 +61,9 @@
       const meta=document.createElement('div');meta.className='reference-card-meta';const date=document.createElement('span');date.textContent=formatDate(item.createdAt);meta.appendChild(date);body.appendChild(meta);
       const actions=document.createElement('div');actions.className='reference-card-actions';
       const use=document.createElement('button');use.type='button';use.title='带入创意';use.appendChild(icon(['M12 3v18','M3 12h18']));use.onclick=()=>useReference(item);
-      const copy=document.createElement('button');copy.type='button';copy.title='复制提示词';copy.appendChild(icon(['M8 8h11v11H8z','M5 5h11v3','M5 5v11h3']));copy.onclick=()=>copyPrompt(item.prompt);
+      const edit=document.createElement('button');edit.type='button';edit.title='编辑参考';edit.appendChild(icon(['M4 16.5V20h3.5L18.2 9.3l-3.5-3.5L4 16.5Z','m12.7 7.8 3.5 3.5','M13.8 5.7 15.4 4a2 2 0 0 1 2.8 2.8l-1.7 1.6']));edit.onclick=()=>openModal(item);
       const del=document.createElement('button');del.type='button';del.title='删除参考';del.appendChild(icon(['M4 7h16','M9 7V5h6v2','M7 7l1 13h8l1-13']));del.onclick=()=>remove(item.id);
-      actions.append(use,copy,del);card.append(media,body,actions);columns[index%columns.length].appendChild(card);
+      actions.append(use,edit,del);card.append(media,body,actions);columns[index%columns.length].appendChild(card);
     });
     el.grid.append(...columns);
   }
@@ -69,7 +73,15 @@
   el.form.onsubmit=event=>{
     event.preventDefault();setError();
     let imageUrl;try{imageUrl=new URL(el.imageUrl.value.trim());if(!/^https?:$/.test(imageUrl.protocol))throw new Error()}catch(_){setError('请输入有效的图片链接。');return}
-    items.unshift({id:'reference-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),imageUrl:imageUrl.href,prompt:el.prompt.value.trim(),category:categoryOf(el.category.value),createdAt:new Date().toISOString()});
+    const next={imageUrl:imageUrl.href,prompt:el.prompt.value.trim(),category:categoryOf(el.category.value)};
+    if(editingId){
+      const index=items.findIndex(item=>item.id===editingId);
+      if(index<0){setError('这条参考已不存在，请重新添加。');return}
+      items[index]={...items[index],...next};
+      persist();render();closeModal();toast('参考已更新');
+      return;
+    }
+    items.unshift({id:'reference-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),...next,createdAt:new Date().toISOString()});
     persist();render();closeModal();toast('参考已保存');
   };
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!el.modal.hidden)closeModal()});
