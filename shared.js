@@ -1,7 +1,7 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 // 每次完成一次改动并提交时递增。
-const APP_VERSION='220.0';
+const APP_VERSION='221.0';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
@@ -163,7 +163,7 @@ const PromptLog={
   },
   async create(job){
     try{
-      const result=await this.request('POST',{taskId:job.id,prompt:job.prompt,model:job.model,resolution:job.settings?.resolution||job.body?.resolution||'',originalCosUrl:job.originalCosUrl||job.referenceUrls?.[0]||'',parameters:{ratio:job.settings?.ratio||job.body?.size||'',scope:job.scope||'generation',referenceCount:Array.isArray(job.referenceUrls)?job.referenceUrls.length:0}});
+      const result=await this.request('POST',{taskId:job.id,prompt:job.prompt,model:job.model,resolution:job.settings?.resolution||job.body?.resolution||'',originalCosUrl:job.originalCosUrl||job.referenceUrls?.[0]||'',referenceCosUrls:Array.isArray(job.referenceUrls)?job.referenceUrls:[],parameters:{ratio:job.settings?.ratio||job.body?.size||'',scope:job.scope||'generation',referenceCount:Array.isArray(job.referenceUrls)?job.referenceUrls.length:0}});
       return result?.id||null;
     }catch(error){console.warn('提示词日志创建失败',error);return null}
   },

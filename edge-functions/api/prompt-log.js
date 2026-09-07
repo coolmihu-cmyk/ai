@@ -21,6 +21,10 @@ function cleanCosUrl(value){
   const url=cleanText(value,1200);
   return url&&COS_URL.test(url)?url:null;
 }
+function cleanCosUrls(value){
+  if(!Array.isArray(value))return [];
+  return value.map(cleanCosUrl).filter(Boolean).slice(0,10);
+}
 async function supabaseRequest(env,path,{method='POST',body,prefer}={}){
   const config=readConfig(env),headers={'apikey':config.key,'Content-Type':'application/json','Accept':'application/json'};
   if(prefer)headers.Prefer=prefer;
@@ -44,6 +48,7 @@ export async function onRequestPost(context){
       model:cleanText(input.model,100)||null,
       resolution:cleanText(input.resolution,40)||null,
       original_cos_url:cleanCosUrl(input.originalCosUrl),
+      reference_cos_urls:cleanCosUrls(input.referenceCosUrls),
       parameters:safeParameters(input.parameters),
       status:'submitted'
     },prefer:'return=representation'});
