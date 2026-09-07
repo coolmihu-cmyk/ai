@@ -5,9 +5,19 @@
   const el={grid:$('#referenceGrid'),empty:$('#referenceEmpty'),emptyTitle:$('#referenceEmptyTitle'),modal:$('#referenceModal'),modalTitle:$('#referenceModalTitle'),form:$('#referenceForm'),imageUrl:$('#referenceImageUrl'),category:$('#referenceCategory'),prompt:$('#referencePrompt'),error:$('#referenceFormError'),save:$('#referenceForm button[type="submit"]'),create:$('#referenceCreate'),emptyCreate:$('#referenceEmptyCreate'),close:$('#referenceClose'),cancel:$('#referenceCancel'),filters:[...document.querySelectorAll('[data-reference-filter]')],dateFilter:$('#referenceDateFilter'),count:$('#referenceCount')};
   let items=[],activeCategory='all',activeMonth='all',editingId=null;
   const referenceShell=document.querySelector('.reference-shell');
+  const referenceLedger=document.querySelector('.reference-ledger');
   const referenceScrollFades=document.querySelector('.reference-scroll-fades');
   function updateReferenceBottomFade(){
-    if(!referenceShell||!referenceScrollFades)return;
+    if(!referenceShell||!referenceLedger||!referenceScrollFades)return;
+    const shellBounds=referenceShell.getBoundingClientRect(),ledgerBounds=referenceLedger.getBoundingClientRect();
+    const top=Math.max(shellBounds.top,ledgerBounds.top),bottom=Math.min(shellBounds.bottom,ledgerBounds.bottom);
+    const visible=bottom-top>2&&ledgerBounds.width>2;
+    referenceScrollFades.hidden=!visible;
+    if(!visible)return;
+    referenceScrollFades.style.left=Math.round(ledgerBounds.left)+'px';
+    referenceScrollFades.style.top=Math.round(top)+'px';
+    referenceScrollFades.style.width=Math.round(ledgerBounds.width)+'px';
+    referenceScrollFades.style.height=Math.round(bottom-top)+'px';
     const atTop=referenceShell.scrollTop<=2;
     const atBottom=referenceShell.scrollTop+referenceShell.clientHeight>=referenceShell.scrollHeight-2;
     referenceScrollFades.classList.toggle('has-top-fade',!atTop);
