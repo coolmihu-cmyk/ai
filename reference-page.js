@@ -1,7 +1,7 @@
 "use strict";
 (() => {
   const STORAGE_KEY='mihu-reference-library-v1',MAX_ITEMS=300;
-  const CATEGORIES=['photography','design','commerce'];
+  const CATEGORIES=['photography','design','commerce','other'];
   const el={grid:$('#referenceGrid'),empty:$('#referenceEmpty'),emptyTitle:$('#referenceEmptyTitle'),modal:$('#referenceModal'),form:$('#referenceForm'),imageUrl:$('#referenceImageUrl'),category:$('#referenceCategory'),prompt:$('#referencePrompt'),error:$('#referenceFormError'),create:$('#referenceCreate'),emptyCreate:$('#referenceEmptyCreate'),close:$('#referenceClose'),cancel:$('#referenceCancel'),exportJson:$('#referenceExportJson'),importFile:$('#referenceImportFile'),filters:[...document.querySelectorAll('[data-reference-filter]')]};
   let items=[],activeCategory='all';
   const icon=paths=>{const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('fill','none');svg.setAttribute('stroke','currentColor');svg.setAttribute('stroke-width','1.8');paths.forEach(d=>{const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',d);svg.appendChild(path)});return svg};

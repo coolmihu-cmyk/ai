@@ -32,6 +32,7 @@
     <button type="button" data-reference-filter="photography">摄影</button>
     <button type="button" data-reference-filter="design">设计</button>
     <button type="button" data-reference-filter="commerce">电商</button>
+    <button type="button" data-reference-filter="other">其它</button>
   </div>
   <section class="reference-empty" id="referenceEmpty" hidden>
     <div>↗</div><b id="referenceEmptyTitle">还没有参考</b><p>把网络图片链接和提示词收藏在这里。</p><button type="button" id="referenceEmptyCreate">添加第一条参考</button>
@@ -43,7 +44,7 @@
     <div class="reference-modal-head"><div><span>NEW REFERENCE</span><h2 id="referenceModalTitle">新建参考</h2></div><button type="button" id="referenceClose" aria-label="关闭">×</button></div>
     <form id="referenceForm">
       <label>图片链接<input id="referenceImageUrl" name="imageUrl" type="url" placeholder="https://example.com/image.jpg" required autocomplete="url"></label>
-      <label>分类<select id="referenceCategory" name="category"><option value="photography">摄影</option><option value="design">设计</option><option value="commerce">电商</option></select></label>
+      <label>分类<select id="referenceCategory" name="category"><option value="photography">摄影</option><option value="design">设计</option><option value="commerce">电商</option><option value="other">其它</option></select></label>
       <label>提示词<textarea id="referencePrompt" name="prompt" rows="5" placeholder="记录这张图片的提示词、画面描述或灵感…"></textarea></label>
       <p class="reference-form-error" id="referenceFormError" hidden></p>
       <div class="reference-modal-actions"><button type="button" id="referenceCancel">取消</button><button type="submit">保存参考</button></div>
@@ -51,7 +52,7 @@
   </div>
 </div>
 <div class="toast" id="toast"></div>
-<script src="shared.js?v=20260907-114900"></script>
-<script src="reference-page.js?v=20260828-144000"></script>
+<script src="shared.js?v=20260907-115430"></script>
+<script src="reference-page.js?v=20260907-115430"></script>
 </body>
 </html>
