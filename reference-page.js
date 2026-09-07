@@ -9,8 +9,7 @@
   const referenceScrollFades=document.querySelector('.reference-scroll-fades');
   function updateReferenceBottomFade(){
     if(!referenceShell||!referenceLedger||!referenceScrollFades)return;
-    const shellBounds=referenceShell.getBoundingClientRect(),ledgerBounds=referenceLedger.getBoundingClientRect();
-    const top=Math.max(shellBounds.top,ledgerBounds.top),bottom=Math.min(shellBounds.bottom,ledgerBounds.bottom),borderInset=1;
+    const ledgerBounds=referenceLedger.getBoundingClientRect(),top=ledgerBounds.top,bottom=ledgerBounds.bottom,borderInset=1;
     const visible=bottom-top>borderInset*2&&ledgerBounds.width>borderInset*2;
     referenceScrollFades.hidden=!visible;
     if(!visible)return;
@@ -18,8 +17,8 @@
     referenceScrollFades.style.top=Math.round(top+borderInset)+'px';
     referenceScrollFades.style.width=Math.round(ledgerBounds.width-borderInset*2)+'px';
     referenceScrollFades.style.height=Math.round(bottom-top-borderInset*2)+'px';
-    const atTop=referenceShell.scrollTop<=2;
-    const atBottom=referenceShell.scrollTop+referenceShell.clientHeight>=referenceShell.scrollHeight-2;
+    const atTop=referenceLedger.scrollTop<=2;
+    const atBottom=referenceLedger.scrollTop+referenceLedger.clientHeight>=referenceLedger.scrollHeight-2;
     referenceScrollFades.classList.toggle('has-top-fade',!atTop);
     referenceScrollFades.classList.toggle('has-bottom-fade',!atBottom);
   }
@@ -95,7 +94,7 @@
   el.create.onclick=openModal;el.emptyCreate.onclick=openModal;el.close.onclick=closeModal;el.cancel.onclick=closeModal;
   el.filters.forEach(button=>button.onclick=()=>{activeCategory=button.dataset.referenceFilter;el.filters.forEach(item=>item.classList.toggle('is-active',item===button));render()});
   el.dateFilter.onchange=()=>{activeMonth=el.dateFilter.value;render()};
-  referenceShell?.addEventListener('scroll',updateReferenceBottomFade,{passive:true});
+  referenceLedger?.addEventListener('scroll',updateReferenceBottomFade,{passive:true});
   window.addEventListener('resize',updateReferenceBottomFade);
   el.modal.addEventListener('click',event=>{if(event.target===el.modal)closeModal()});
   el.form.onsubmit=event=>{

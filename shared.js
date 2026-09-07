@@ -1,7 +1,7 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 // 每次完成一次改动并提交时递增。
-const APP_VERSION='237.0';
+const APP_VERSION='238.0';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
@@ -658,8 +658,8 @@ document.addEventListener('click',event=>{
 window.addEventListener('beforeunload',showPageTransition);
 window.addEventListener('pageshow',hidePageTransition);
 
-/* 资产和设置工作区仅在实际滚动时显示滚动条 */
-document.querySelectorAll('.assets-shell,.reference-shell,.settings-shell').forEach(shell=>{
+/* 资产、参考与设置工作区仅在实际滚动时显示滚动条 */
+document.querySelectorAll('.assets-ledger,.reference-ledger,.settings-shell').forEach(shell=>{
   let hideScrollbarTimer=0;
   shell.addEventListener('scroll',()=>{
     shell.classList.add('is-scrolling');

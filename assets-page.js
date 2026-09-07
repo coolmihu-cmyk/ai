@@ -18,8 +18,7 @@ const assetsEls={
 const assetsShell=document.querySelector('.assets-shell'),assetsLedger=document.querySelector('.assets-ledger'),assetsScrollFades=document.querySelector('.assets-scroll-fades');
 function updateAssetsScrollFades(){
   if(!assetsShell||!assetsLedger||!assetsScrollFades)return;
-  const shellBounds=assetsShell.getBoundingClientRect(),ledgerBounds=assetsLedger.getBoundingClientRect();
-  const top=Math.max(shellBounds.top,ledgerBounds.top),bottom=Math.min(shellBounds.bottom,ledgerBounds.bottom),borderInset=1;
+  const ledgerBounds=assetsLedger.getBoundingClientRect(),top=ledgerBounds.top,bottom=ledgerBounds.bottom,borderInset=1;
   const visible=bottom-top>borderInset*2&&ledgerBounds.width>borderInset*2;
   assetsScrollFades.hidden=!visible;
   if(!visible)return;
@@ -27,8 +26,8 @@ function updateAssetsScrollFades(){
   assetsScrollFades.style.top=Math.round(top+borderInset)+'px';
   assetsScrollFades.style.width=Math.round(ledgerBounds.width-borderInset*2)+'px';
   assetsScrollFades.style.height=Math.round(bottom-top-borderInset*2)+'px';
-  assetsScrollFades.classList.toggle('has-top-fade',assetsShell.scrollTop>2);
-  assetsScrollFades.classList.toggle('has-bottom-fade',assetsShell.scrollTop+assetsShell.clientHeight<assetsShell.scrollHeight-2);
+  assetsScrollFades.classList.toggle('has-top-fade',assetsLedger.scrollTop>2);
+  assetsScrollFades.classList.toggle('has-bottom-fade',assetsLedger.scrollTop+assetsLedger.clientHeight<assetsLedger.scrollHeight-2);
 }
 let assetItems=[],activeAssetMonth='all',generationElapsedTimer=null,queueAdvancing=false,activeGenerationUsesHighDefinition=false;
 let unavailableAssetIds=new Set(),assetImageObserver=null;
@@ -646,7 +645,7 @@ function renderAssets(){
   requestAnimationFrame(updateAssetsScrollFades);
 }
 assetsEls.dateFilter.onchange=()=>{activeAssetMonth=assetsEls.dateFilter.value;renderAssets()};
-assetsShell?.addEventListener('scroll',updateAssetsScrollFades,{passive:true});
+assetsLedger?.addEventListener('scroll',updateAssetsScrollFades,{passive:true});
 window.addEventListener('resize',updateAssetsScrollFades);
 
 function showGeneration(job){
