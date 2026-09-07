@@ -11,17 +11,16 @@
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="stylesheet" href="css/base.css?v=20260828-141842">
 <link rel="stylesheet" href="css/pages.css?v=20260831-125949">
-<link rel="stylesheet" href="css/modern-ui.css?v=20260907-144215">
+<link rel="stylesheet" href="css/modern-ui.css?v=20260907-145102">
 </head>
 <body class="reference-page">
 <nav class="app-rail" aria-label="主要功能" data-app-rail data-current="reference"></nav>
 <main class="reference-shell">
   <header class="reference-header">
-    <div><span>REFERENCE LIBRARY</span><h1>参考</h1><p>收集你想保留的画面与提示词。</p></div>
-    <div class="reference-header-actions">
-      <button class="reference-create" id="referenceCreate" type="button"><span>+</span> 新建参考</button>
-    </div>
+    <div><span>REFERENCE LIBRARY</span><h1>参考</h1><p>收集你想保留的画面、提示词与创作灵感。</p></div>
   </header>
+  <div class="reference-ledger">
+  <div class="reference-ledger-tools">
   <div class="reference-filter" role="group" aria-label="参考分类">
     <button type="button" class="is-active" data-reference-filter="all">全部</button>
     <button type="button" data-reference-filter="photography">摄影</button>
@@ -29,10 +28,13 @@
     <button type="button" data-reference-filter="commerce">电商</button>
     <button type="button" data-reference-filter="other">其它</button>
   </div>
+  <button class="reference-create" id="referenceCreate" type="button"><span>+</span> 新建参考</button>
+  </div>
   <section class="reference-empty" id="referenceEmpty" hidden>
     <div>↗</div><b id="referenceEmptyTitle">还没有参考</b><p>把网络图片链接和提示词收藏在这里。</p><button type="button" id="referenceEmptyCreate">添加第一条参考</button>
   </section>
   <section class="reference-grid" id="referenceGrid" aria-live="polite"></section>
+  </div>
 </main>
 <div class="reference-modal" id="referenceModal" hidden>
   <div class="reference-modal-card" role="dialog" aria-modal="true" aria-labelledby="referenceModalTitle">
@@ -47,7 +49,7 @@
   </div>
 </div>
 <div class="toast" id="toast"></div>
-<script src="shared.js?v=20260907-144215"></script>
+<script src="shared.js?v=20260907-145102"></script>
 <script src="reference-page.js?v=20260907-122843"></script>
 </body>
 </html>
