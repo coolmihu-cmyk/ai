@@ -1171,7 +1171,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   padding:28px;
   display:grid;
   grid-template-columns:minmax(0,1.2fr) minmax(380px,.8fr);
-  grid-template-areas:"head head" "label guide" "key guide" "actions guide" "provider guide";
+  grid-template-areas:"head head" "summary summary" "label guide" "key guide" "actions guide" "provider guide";
   column-gap:32px;
   border:1px solid var(--ui-line);
   border-radius:var(--ui-radius-lg);
@@ -1194,6 +1194,14 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .settings-account-balance strong{display:block;color:var(--ui-ink);font-family:var(--studio-mono);font-size:20px;font-weight:720;line-height:1;font-variant-numeric:tabular-nums}
 .settings-account-balance[data-state="loading"] strong{color:var(--ui-muted);font-family:var(--studio-sans);font-size:12px;font-weight:680}
 .settings-account-balance[data-state="error"] strong{color:#a95656;font-family:var(--studio-sans);font-size:12px;font-weight:680}
+.settings-key-summary{grid-area:summary;display:grid;grid-template-columns:minmax(0,1.2fr) repeat(2,minmax(0,.9fr));gap:12px;margin:0 0 24px;padding:15px 17px;border:1px solid var(--ui-line);border-radius:12px;background:linear-gradient(90deg,#f4f5f5 0%,#fafafa 100%)}
+.settings-key-summary-main{min-width:0;padding-right:12px;border-right:1px solid var(--ui-line)}
+.settings-key-summary-main > span{display:block;margin-bottom:5px;color:var(--ui-faint);font-family:"SFMono-Regular",Consolas,monospace;font-size:9px;font-weight:700;letter-spacing:1.05px}
+.settings-key-summary-main strong{display:block;color:var(--ui-ink);font-size:14px;font-weight:760;letter-spacing:-.25px;line-height:1.35}
+.settings-key-summary-main p{margin:5px 0 0;color:var(--ui-muted);font-size:11px;line-height:1.5}
+.settings-key-summary-item{min-width:0;padding:2px 4px}
+.settings-key-summary-item b{display:block;margin-bottom:5px;color:var(--ui-ink);font-size:11px;font-weight:760;line-height:1.35}
+.settings-key-summary-item span{display:block;color:var(--ui-muted);font-size:11px;line-height:1.5}
 .settings-key-label{grid-area:label;align-self:end;margin:0 0 8px;display:block;color:var(--ui-muted);font-size:11px;font-weight:680}
 .settings-key-row{grid-area:key;height:48px;display:flex;align-items:stretch}
 .settings-key-row input{
@@ -1231,7 +1239,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .settings-provider-link:hover{color:var(--ui-ink)}
 
 @media(min-width:721px) and (max-width:1100px){
-  .settings-connection{grid-template-columns:1fr;grid-template-areas:"head" "label" "key" "guide" "actions" "provider"}
+  .settings-connection{grid-template-columns:1fr;grid-template-areas:"head" "summary" "label" "key" "guide" "actions" "provider"}
   .settings-key-guide{margin-top:18px}
 }
 
@@ -1334,7 +1342,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   .assets-count{margin-left:auto}
   .asset-date-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .asset-date-group + .asset-date-group{margin-top:28px}
-  .settings-connection{padding:22px 18px;grid-template-columns:1fr;grid-template-areas:"head" "label" "key" "guide" "actions" "provider";border-radius:10px}
+  .settings-connection{padding:22px 18px;grid-template-columns:1fr;grid-template-areas:"head" "summary" "label" "key" "guide" "actions" "provider";border-radius:10px}
+  .settings-key-summary{grid-template-columns:1fr;gap:10px;margin-bottom:20px;padding:14px}
+  .settings-key-summary-main{padding:0 0 11px;border-right:0;border-bottom:1px solid var(--ui-line)}
+  .settings-key-summary-item{padding:0}
   .settings-key-row,.settings-key-row input,.settings-key-row button{height:48px}
   .settings-key-row button{width:68px;flex-basis:68px}
   .settings-key-guide{margin-top:18px}

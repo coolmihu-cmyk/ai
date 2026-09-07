@@ -11,7 +11,7 @@
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="stylesheet" href="css/base.css?v=20260828-141842">
 <link rel="stylesheet" href="css/pages.css?v=20260831-125949">
-<link rel="stylesheet" href="css/modern-ui.css?v=20260907-123142">
+<link rel="stylesheet" href="css/modern-ui.css?v=20260907-125056">
 </head>
 <body class="settings-page">
 
@@ -19,21 +19,36 @@
 
 <main class="settings-shell">
   <header class="settings-header">
-    <span>CONNECTION</span>
+    <span>YOUR API KEY</span>
     <h1>设置</h1>
-    <p>管理 APIMart 接口连接与此浏览器的本地数据。</p>
+    <p>KEY 用于模型生成、积分查询，并连接你的图片历史与参考库。</p>
   </header>
 
   <div class="settings-ledger">
     <section class="settings-connection" aria-labelledby="connectionTitle">
       <div class="settings-section-head">
         <div>
-          <span>APIMART CONNECTION</span>
-          <h2 id="connectionTitle">接口连接</h2>
+          <span>APIMART API KEY</span>
+          <h2 id="connectionTitle">你的生成钥匙</h2>
         </div>
         <div class="settings-account-balance" id="settingsAccountBalance" aria-live="polite">
           <span>账户积分余额</span>
           <strong>—</strong>
+        </div>
+      </div>
+      <div class="settings-key-summary" aria-label="API Key 的用途">
+        <div class="settings-key-summary-main">
+          <span>KEY 的作用</span>
+          <strong>生成权限，也是你的私人资料同步凭证</strong>
+          <p>同一个 KEY 会连接同一份图片历史与参考库。</p>
+        </div>
+        <div class="settings-key-summary-item">
+          <b>模型与积分</b>
+          <span>调用 APIMart 模型，并读取账户积分。</span>
+        </div>
+        <div class="settings-key-summary-item">
+          <b>换设备也能继续</b>
+          <span>在新设备输入同一 KEY，即可恢复历史与参考。</span>
         </div>
       </div>
       <label class="settings-key-label" for="settingsApiKey">API Key</label>
@@ -42,10 +57,10 @@
         <button id="settingsToggleKey" type="button">显示</button>
       </div>
       <div class="settings-key-guide" aria-labelledby="keyGuideTitle">
-        <h3 id="keyGuideTitle">KEY 与历史记录</h3>
-        <p><b>关联方式</b><span>相同 KEY 会连接同一份私人云端历史，在手机或其他浏览器中输入同一 KEY 即可同步。</span></p>
-        <p><b>隐私范围</b><span>原始 KEY 只保存在当前浏览器，并直接用于连接 APIMart；本站服务器不会保存或收到你的原始 KEY。</span></p>
-        <p><b>请自行保管</b><span>清除浏览器数据或更换设备后需要重新输入。KEY 遗失或更换后，本站无法替你找回原来关联的云端历史。</span></p>
+        <h3 id="keyGuideTitle">KEY 的安全与保管</h3>
+        <p><b>网站不留 KEY</b><span>原始 KEY 只保存在当前浏览器，并直接用于连接 APIMart；本站不会保存或收到你的原始 KEY。</span></p>
+        <p><b>资料如何同步</b><span>云端只按 KEY 的不可逆关联标识区分资料，不保存 KEY、账户信息或其他可识别个人资料。</span></p>
+        <p><b>请妥善保管</b><span>清除浏览器数据或更换设备后需要重新输入。KEY 遗失或更换后，本站无法替你找回原来关联的历史与参考。</span></p>
       </div>
       <div class="settings-actions">
         <button class="settings-save" id="settingsSave" type="button">保存设置</button>
@@ -60,7 +75,7 @@
 </main>
 
 <div class="toast" id="toast"></div>
-<script src="shared.js?v=20260907-123142"></script>
+<script src="shared.js?v=20260907-125141"></script>
 <script src="settings-page.js?v=20260901-160500"></script>
 </body>
 </html>
