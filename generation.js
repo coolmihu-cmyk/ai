@@ -63,6 +63,7 @@ async function doGenerate(){
     const prompt=els.promptInput.value.trim();
     modelState[activeModel].promptText=prompt;
     const job=await buildPendingGeneration();
+    job.promptLogId=await PromptLog.create(job);
     await PendingGeneration.save(job);
     navigateWithLoading('assets.html');
   }catch(error){

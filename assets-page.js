@@ -311,12 +311,16 @@ async function submitLocalEdit({prompt:providedPrompt='',alreadyRecorded=false,s
   }
   localEdit.submitting=true;localEdit.submit.disabled=true;localEdit.close.disabled=true;localEditSetSubmitLoading();localEditSetError();
   const generationController=new AbortController(),generationTimeoutId=setTimeout(()=>generationController.abort(),30*60*1000+15000);
+  let promptLogId=null;
   if(!alreadyRecorded)localEdit.messages.push({role:'user',text:prompt});localEdit.prompt.value='';localEditUpdatePromptCount();localEditRenderThread();localEditSetStatus(highDefinitionWaitNotice('正在提交图片编辑请求'));
   try{
     const editPrompt=prompt+'。以输入图片为基础进行编辑，保留用户未明确要求改变的主体、构图和重要视觉特征。';
     const config=MODEL_CONFIG[localEdit.model];
     const body={model:config.editModel||config.generationModel,prompt:editPrompt,size:localEdit.ratio,resolution:localEdit.resolution,n:1,image_urls:[localEdit.item.url,...(localEdit.referenceData?[localEdit.referenceData]:[])]};
-    let url=await Apimart.generate({apiKey,body,endpoint:'/images/generations',signal:generationController.signal,maxWaitMs:30*60*1000,onProgress:(status,progress)=>{
+    promptLogId=await PromptLog.create({id:'editor-'+Date.now(),prompt,model:localEdit.model,settings:{ratio:localEdit.ratio,resolution:localEdit.resolution},body,scope:'editor',referenceUrls:body.image_urls});
+    let url=await Apimart.generate({apiKey,body,endpoint:'/images/generations',signal:generationController.signal,maxWaitMs:30*60*1000,onSubmitted:taskId=>{
+      PromptLog.update(promptLogId,{taskId,status:'processing'});
+    },onProgress:(status,progress)=>{
       localEditSetStatus(highDefinitionWaitNotice(status==='processing'?'模型正在生成新版本...':'正在处理图片'));
     }});
     const itemId=Date.now(),createdAt=new Date().toISOString();let archived=false,historyKey='';
@@ -329,8 +333,10 @@ async function submitLocalEdit({prompt:providedPrompt='',alreadyRecorded=false,s
     const version={id:itemId,url,prompt,model:localEdit.model,settings:{ratio:localEdit.ratio,resolution:localEdit.resolution},editRootId:localEdit.editRootId,editGroupId:localEdit.editGroupId,archived,historyKey,createdAt,type:'image'};
     await History.save(version);assetItems=sortAssets([version,...assetItems.filter(asset=>asset.id!==version.id)]);renderAssets();
     localEditClearReference();localEditClearStatus();localEdit.versions.push(version);localEdit.messages.push({role:'assistant',text:'V'+localEdit.versions.length,generatedAt:localEditGeneratedDate(createdAt),imageUrl:version.url,versionId:version.id});localEditRenderThread();
+    PromptLog.update(promptLogId,{status:'completed',errorMessage:null});
     await loadLocalEditImage(version,{focus:true});toast('新版本已生成');
   }catch(error){
+    PromptLog.update(promptLogId,{status:'failed',errorMessage:error?.message||'图片编辑任务创建失败。'});
     localEditSetError(error?.message||'图片编辑任务创建失败。');localEditSetStatus('生成未完成，请修改描述后重试。');
   }finally{
     clearTimeout(generationTimeoutId);
@@ -721,6 +727,7 @@ async function runPendingGeneration(job){
         onSubmitted:taskId=>{
           job.taskId=taskId;
           PendingGeneration.save(job).catch(()=>{});
+          PromptLog.update(job.promptLogId,{taskId,status:'processing'});
           setGenerationStatus('任务已提交');
         },
         onProgress:updateGeneration
@@ -744,6 +751,7 @@ async function runPendingGeneration(job){
       createdAt,durationMs:Math.round(performance.now()-startedAt)
     };
     await History.save(item);
+    PromptLog.update(job.promptLogId,{status:'completed',errorMessage:null});
     await PendingGeneration.delete(job.id);
     assetItems=sortAssets([item,...assetItems.filter(asset=>asset.id!==item.id)]);
     renderAssets();
@@ -759,6 +767,7 @@ async function runPendingGeneration(job){
     const message=error?.name==='AbortError'?'请求超时，可以重试当前任务。':(error?.message||'生成失败，请重试。');
     job.failedAt=new Date().toISOString();
     job.lastError=message;
+    PromptLog.update(job.promptLogId,{status:'failed',errorMessage:message});
     await PendingGeneration.save(job);
     showGenerationFailure(job,message);
     clearInterval(generationElapsedTimer);

@@ -1,7 +1,7 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 // 每次完成一次改动并提交时递增。
-const APP_VERSION='210.0';
+const APP_VERSION='211.0';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
@@ -147,6 +147,30 @@ const CloudHistory={
   async list(cursor){return this.request('/api/history'+(cursor?'?cursor='+encodeURIComponent(cursor):''))},
   async save(item){return this.request('/api/history',{method:'POST',body:{item}})},
   async remove(historyKey,id){return this.request('/api/history',{method:'DELETE',body:{historyKey,id}})}
+};
+
+const PromptLog={
+  async request(method,body){
+    const token=await CloudHistory.token();
+    if(!token)return null;
+    const controller=new AbortController(),timeoutId=setTimeout(()=>controller.abort(),5000);
+    try{
+      const response=await fetch('/api/prompt-log',{method,signal:controller.signal,headers:{'Accept':'application/json','Content-Type':'application/json','X-History-Key':token},body:JSON.stringify(body)});
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(data.error||'提示词日志写入失败。');
+      return data;
+    }finally{clearTimeout(timeoutId)}
+  },
+  async create(job){
+    try{
+      const result=await this.request('POST',{taskId:job.id,prompt:job.prompt,model:job.model,resolution:job.settings?.resolution||job.body?.resolution||'',parameters:{ratio:job.settings?.ratio||job.body?.size||'',scope:job.scope||'generation',referenceCount:Array.isArray(job.referenceUrls)?job.referenceUrls.length:0}});
+      return result?.id||null;
+    }catch(error){console.warn('提示词日志创建失败',error);return null}
+  },
+  async update(id,patch){
+    if(!id)return;
+    try{await this.request('PATCH',{id,...patch})}catch(error){console.warn('提示词日志状态更新失败',error)}
+  }
 };
 
 const Apimart={
