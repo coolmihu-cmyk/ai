@@ -11,7 +11,7 @@
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="stylesheet" href="css/base.css?v=20260828-141842">
 <link rel="stylesheet" href="css/pages.css?v=20260831-125949">
-<link rel="stylesheet" href="css/modern-ui.css?v=20260907-150056">
+<link rel="stylesheet" href="css/modern-ui.css?v=20260907-152233">
 </head>
 <body class="reference-page">
 <nav class="app-rail" aria-label="主要功能" data-app-rail data-current="reference"></nav>
@@ -29,7 +29,11 @@
     <button type="button" data-reference-filter="commerce">电商</button>
     <button type="button" data-reference-filter="other">其它</button>
   </div>
-  <button class="reference-create" id="referenceCreate" type="button"><span>+</span> 新建参考</button>
+  <div class="reference-ledger-meta">
+    <label class="reference-date-filter" for="referenceDateFilter"><span>日期</span><select id="referenceDateFilter" aria-label="按月份筛选参考"><option value="all">全部时间</option></select></label>
+    <span class="reference-count" id="referenceCount">0 张图片</span>
+    <button class="reference-create" id="referenceCreate" type="button"><span>+</span> 新建参考</button>
+  </div>
   </div>
   <section class="reference-empty" id="referenceEmpty" hidden>
     <div>↗</div><b id="referenceEmptyTitle">还没有参考</b><p>把网络图片链接和提示词收藏在这里。</p><button type="button" id="referenceEmptyCreate">添加第一条参考</button>
@@ -50,7 +54,7 @@
   </div>
 </div>
 <div class="toast" id="toast"></div>
-<script src="shared.js?v=20260907-151646"></script>
-<script src="reference-page.js?v=20260907-122843"></script>
+<script src="shared.js?v=20260907-152233"></script>
+<script src="reference-page.js?v=20260907-152233"></script>
 </body>
 </html>
