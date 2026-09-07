@@ -7,6 +7,27 @@
   const icon=paths=>{const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('fill','none');svg.setAttribute('stroke','currentColor');svg.setAttribute('stroke-width','1.8');paths.forEach(d=>{const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',d);svg.appendChild(path)});return svg};
   function read(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');return Array.isArray(saved)?saved:[]}catch(_){return []}}
   function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(items.slice(0,MAX_ITEMS)))}catch(_){toast('本地存储空间不足，请删除部分参考')}}
+  const CloudReferences={
+    async request(path,{method='GET',body}={}){
+      const token=await CloudHistory.token();if(!token)return null;
+      const headers={'Accept':'application/json','X-History-Key':token};if(body!==undefined)headers['Content-Type']='application/json';
+      const response=await fetch(path,{method,headers,body:body===undefined?undefined:JSON.stringify(body)}),data=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(data.error||'云端参考同步失败。');return data;
+    },
+    async list(){
+      const items=[],deletedIds=[],seen=new Set();let cursor='';
+      for(let page=0;page<12;page++){
+        const data=await this.request('/api/references'+(cursor?'?cursor='+encodeURIComponent(cursor):''));if(!data)return null;
+        items.push(...(Array.isArray(data.items)?data.items:[]));deletedIds.push(...(Array.isArray(data.deletedIds)?data.deletedIds:[]));
+        if(!data.cursor||data.complete||seen.has(data.cursor))break;seen.add(data.cursor);cursor=data.cursor;
+      }
+      return {items,deletedIds};
+    },
+    save(item){return this.request('/api/references',{method:'POST',body:{item}})},
+    remove(id){return this.request('/api/references',{method:'DELETE',body:{id}})}
+  };
+  function cloudSave(item){CloudReferences.save(item).catch(error=>console.warn('云端参考保存失败',error))}
+  function cloudRemove(id){CloudReferences.remove(id).catch(error=>console.warn('云端参考删除失败',error))}
   function formatDate(value){const date=new Date(value);return Number.isNaN(date.getTime())?'刚刚添加':new Intl.DateTimeFormat('zh-CN',{month:'short',day:'numeric'}).format(date)}
   function openModal(item=null){
     editingId=item?.id||null;el.form.reset();setError('');
@@ -16,7 +37,7 @@
   }
   function closeModal(){el.modal.hidden=true;editingId=null}
   function setError(message){el.error.textContent=message;el.error.hidden=!message}
-  function remove(id){items=items.filter(item=>item.id!==id);persist();render();toast('已删除参考')}
+  function remove(id){items=items.filter(item=>item.id!==id);persist();render();cloudRemove(id);toast('已删除参考')}
   function useReference(item){try{sessionStorage.setItem('mihu_reference_payload',JSON.stringify({url:item.imageUrl,prompt:item.prompt||''}))}catch(_){}navigateWithLoading('index.html')}
   function categoryOf(value){return CATEGORIES.includes(value)?value:''}
   function getColumnCount(){return matchMedia('(max-width:720px)').matches?2:matchMedia('(max-width:1180px)').matches?3:5}
@@ -40,11 +61,11 @@
         if(!candidate||typeof candidate.imageUrl!=='string'||knownUrls.has(candidate.imageUrl))continue;
         let url;try{url=new URL(candidate.imageUrl);if(!/^https?:$/.test(url.protocol))continue}catch(_){continue}
         knownUrls.add(url.href);
-        imported.push({id:'reference-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),imageUrl:url.href,prompt:typeof candidate.prompt==='string'?candidate.prompt:'',category:categoryOf(candidate.category),createdAt:!Number.isNaN(new Date(candidate.createdAt).getTime())?candidate.createdAt:new Date().toISOString()});
+        imported.push({id:'reference-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),imageUrl:url.href,prompt:typeof candidate.prompt==='string'?candidate.prompt:'',category:categoryOf(candidate.category),createdAt:!Number.isNaN(new Date(candidate.createdAt).getTime())?candidate.createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
       }
       if(!imported.length){toast('没有可导入的新参考');return}
       items=[...imported,...items].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,MAX_ITEMS);
-      persist();render();toast(`已导入 ${imported.length} 条参考`);
+      persist();render();imported.forEach(cloudSave);toast(`已导入 ${imported.length} 条参考`);
     }catch(error){console.warn('导入参考失败',error);toast('导入失败，请选择此前导出的 JSON 文件')}
   }
   function render(){
@@ -73,18 +94,36 @@
   el.form.onsubmit=event=>{
     event.preventDefault();setError();
     let imageUrl;try{imageUrl=new URL(el.imageUrl.value.trim());if(!/^https?:$/.test(imageUrl.protocol))throw new Error()}catch(_){setError('请输入有效的图片链接。');return}
-    const next={imageUrl:imageUrl.href,prompt:el.prompt.value.trim(),category:categoryOf(el.category.value)};
+    const next={imageUrl:imageUrl.href,prompt:el.prompt.value.trim(),category:categoryOf(el.category.value),updatedAt:new Date().toISOString()};
     if(editingId){
       const index=items.findIndex(item=>item.id===editingId);
       if(index<0){setError('这条参考已不存在，请重新添加。');return}
       items[index]={...items[index],...next};
-      persist();render();closeModal();toast('参考已更新');
+      const updated=items[index];persist();render();cloudSave(updated);closeModal();toast('参考已更新');
       return;
     }
-    items.unshift({id:'reference-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),...next,createdAt:new Date().toISOString()});
-    persist();render();closeModal();toast('参考已保存');
+    const item={id:'reference-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),...next,createdAt:new Date().toISOString()};items.unshift(item);
+    persist();render();cloudSave(item);closeModal();toast('参考已保存');
   };
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!el.modal.hidden)closeModal()});
   let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(render,120)});
-  items=read().slice(0,MAX_ITEMS);render();
+  async function syncCloudReferences(){
+    try{
+      const cloud=await CloudReferences.list();if(!cloud)return;
+      const deleted=new Set(cloud.deletedIds.map(String)),remote=new Map();
+      cloud.items.forEach(item=>{if(item?.id&&!deleted.has(String(item.id)))remote.set(String(item.id),item)});
+      const merged=new Map(),upload=[];
+      items.forEach(item=>{
+        if(!item?.id||deleted.has(String(item.id)))return;
+        const id=String(item.id),remoteItem=remote.get(id);
+        if(!remoteItem){merged.set(id,item);upload.push(item);return}
+        if(new Date(item.updatedAt||item.createdAt||0)>new Date(remoteItem.updatedAt||remoteItem.createdAt||0)){merged.set(id,item);upload.push(item);return}
+        merged.set(id,remoteItem);
+      });
+      remote.forEach((item,id)=>{if(!merged.has(id))merged.set(id,item)});
+      items=[...merged.values()].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,MAX_ITEMS);persist();render();
+      upload.forEach(cloudSave);
+    }catch(error){console.warn('云端参考同步失败',error)}
+  }
+  items=read().slice(0,MAX_ITEMS);render();syncCloudReferences();
 })();
