@@ -10,14 +10,14 @@
   function updateReferenceBottomFade(){
     if(!referenceShell||!referenceLedger||!referenceScrollFades)return;
     const shellBounds=referenceShell.getBoundingClientRect(),ledgerBounds=referenceLedger.getBoundingClientRect();
-    const top=Math.max(shellBounds.top,ledgerBounds.top),bottom=Math.min(shellBounds.bottom,ledgerBounds.bottom);
-    const visible=bottom-top>2&&ledgerBounds.width>2;
+    const top=Math.max(shellBounds.top,ledgerBounds.top),bottom=Math.min(shellBounds.bottom,ledgerBounds.bottom),borderInset=1;
+    const visible=bottom-top>borderInset*2&&ledgerBounds.width>borderInset*2;
     referenceScrollFades.hidden=!visible;
     if(!visible)return;
-    referenceScrollFades.style.left=Math.round(ledgerBounds.left)+'px';
-    referenceScrollFades.style.top=Math.round(top)+'px';
-    referenceScrollFades.style.width=Math.round(ledgerBounds.width)+'px';
-    referenceScrollFades.style.height=Math.round(bottom-top)+'px';
+    referenceScrollFades.style.left=Math.round(ledgerBounds.left+borderInset)+'px';
+    referenceScrollFades.style.top=Math.round(top+borderInset)+'px';
+    referenceScrollFades.style.width=Math.round(ledgerBounds.width-borderInset*2)+'px';
+    referenceScrollFades.style.height=Math.round(bottom-top-borderInset*2)+'px';
     const atTop=referenceShell.scrollTop<=2;
     const atBottom=referenceShell.scrollTop+referenceShell.clientHeight>=referenceShell.scrollHeight-2;
     referenceScrollFades.classList.toggle('has-top-fade',!atTop);
