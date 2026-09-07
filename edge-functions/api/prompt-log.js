@@ -54,6 +54,11 @@ export async function onRequestPatch(context){
     const status=cleanText(input.status,30),patch={};
     if(ALLOWED_STATUSES.has(status))patch.status=status;
     const taskId=cleanText(input.taskId,200);if(taskId)patch.task_id=taskId;
+    if(input.cosUrl!==undefined){
+      const cosUrl=cleanText(input.cosUrl,1200);
+      if(cosUrl&&!/^https:\/\/(img\.supmihu\.cn|[^/]+\.cos\.[a-z0-9-]+\.myqcloud\.com)\//i.test(cosUrl))return json({error:'仅允许记录 COS 图片地址。'},400);
+      patch.cos_url=cosUrl||null;
+    }
     if(input.errorMessage!==undefined)patch.error_message=cleanText(input.errorMessage,1000)||null;
     if(!Object.keys(patch).length)return json({ok:true});
     await supabaseRequest(context.env,'prompt_logs?id=eq.'+encodeURIComponent(id),{method:'PATCH',body:patch,prefer:'return=minimal'});

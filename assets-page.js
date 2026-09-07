@@ -333,7 +333,7 @@ async function submitLocalEdit({prompt:providedPrompt='',alreadyRecorded=false,s
     const version={id:itemId,url,prompt,model:localEdit.model,settings:{ratio:localEdit.ratio,resolution:localEdit.resolution},editRootId:localEdit.editRootId,editGroupId:localEdit.editGroupId,archived,historyKey,createdAt,type:'image'};
     await History.save(version);assetItems=sortAssets([version,...assetItems.filter(asset=>asset.id!==version.id)]);renderAssets();
     localEditClearReference();localEditClearStatus();localEdit.versions.push(version);localEdit.messages.push({role:'assistant',text:'V'+localEdit.versions.length,generatedAt:localEditGeneratedDate(createdAt),imageUrl:version.url,versionId:version.id});localEditRenderThread();
-    PromptLog.update(promptLogId,{status:'completed',errorMessage:null});
+    PromptLog.update(promptLogId,{status:'completed',cosUrl:archived?url:null,errorMessage:null});
     await loadLocalEditImage(version,{focus:true});toast('新版本已生成');
   }catch(error){
     PromptLog.update(promptLogId,{status:'failed',errorMessage:error?.message||'图片编辑任务创建失败。'});
@@ -751,7 +751,7 @@ async function runPendingGeneration(job){
       createdAt,durationMs:Math.round(performance.now()-startedAt)
     };
     await History.save(item);
-    PromptLog.update(job.promptLogId,{status:'completed',errorMessage:null});
+    PromptLog.update(job.promptLogId,{status:'completed',cosUrl:archived?url:null,errorMessage:null});
     await PendingGeneration.delete(job.id);
     assetItems=sortAssets([item,...assetItems.filter(asset=>asset.id!==item.id)]);
     renderAssets();
