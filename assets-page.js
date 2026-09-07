@@ -7,7 +7,7 @@ ASSET_MODEL_NAMES.midjourney='Midjourney';
 ASSET_MODEL_NAMES.grok='Grok';
 ASSET_MODEL_NAMES.edit='GPT Image2 · 图片编辑';
 const assetsEls={
-  grid:$('#assetsGrid'),loading:$('#assetsLoading'),empty:$('#assetsEmpty'),count:$('#assetsCount'),
+  grid:$('#assetsGrid'),loading:$('#assetsLoading'),empty:$('#assetsEmpty'),count:$('#assetsCount'),dateFilter:$('#assetsDateFilter'),
   generation:$('#assetsGeneration'),generationModel:$('#assetsGenerationModel'),
   generationElapsed:$('#assetsGenerationElapsed'),generationPrompt:$('#assetsGenerationPrompt'),
   generationStatus:$('#assetsGenerationStatus'),generationPercent:$('#assetsGenerationPercent'),
@@ -15,7 +15,7 @@ const assetsEls={
   generationVisual:$('#assetsGenerationVisual'),generationReference:$('#assetsGenerationReference'),
   taskCenter:$('#assetsTaskCenter'),taskCount:$('#assetsTaskCount'),taskList:$('#assetsTaskList')
 };
-let assetItems=[],generationElapsedTimer=null,queueAdvancing=false,activeGenerationUsesHighDefinition=false;
+let assetItems=[],activeAssetMonth='all',generationElapsedTimer=null,queueAdvancing=false,activeGenerationUsesHighDefinition=false;
 let unavailableAssetIds=new Set(),assetImageObserver=null;
 const REFERENCE_LIBRARY_KEY='mihu-reference-library-v1',REFERENCE_LIBRARY_LIMIT=300;
 
@@ -427,8 +427,9 @@ async function syncCloudHistory(){
   }catch(error){console.warn('云端历史同步失败',error)}
 }
 function syncAssetsSummary(){
-  assetsEls.count.textContent=`${assetItems.length} 张图片`;
-  assetsEls.empty.hidden=assetItems.length>0||!assetsEls.generation.hidden;
+  const visibleItems=visibleAssetItems();
+  assetsEls.count.textContent=`${visibleItems.length} 张图片`;
+  assetsEls.empty.hidden=visibleItems.length>0||!assetsEls.generation.hidden;
 }
 function assetDay(value){
   const date=new Date(value||Date.now());
@@ -439,6 +440,16 @@ function assetDay(value){
   }).format(date);
   return {key,label};
 }
+function assetMonthKey(value){const date=new Date(value||0);return Number.isNaN(date.getTime())?'':date.toISOString().slice(0,7)}
+function assetMonthLabel(key){const [year,month]=key.split('-');return year+' 年 '+Number(month)+' 月'}
+function refreshAssetMonthOptions(){
+  if(!assetsEls.dateFilter)return;
+  const months=[...new Set(assetItems.map(item=>assetMonthKey(item.createdAt)).filter(Boolean))].sort((a,b)=>b.localeCompare(a));
+  if(activeAssetMonth!=='all'&&!months.includes(activeAssetMonth))activeAssetMonth='all';
+  assetsEls.dateFilter.replaceChildren(new Option('全部时间','all'),...months.map(key=>new Option(assetMonthLabel(key),key)));
+  assetsEls.dateFilter.value=activeAssetMonth;
+}
+function visibleAssetItems(){return activeAssetMonth==='all'?assetItems:assetItems.filter(item=>assetMonthKey(item.createdAt)===activeAssetMonth)}
 function assetExpiry(item){
   if(unavailableAssetIds.has(String(item.id)))return {archived:false,expired:true};
   if(item.archived||ImageDelivery.isArchivedUrl(item.url))return {archived:true,expired:false};
@@ -555,13 +566,15 @@ function buildEditGroupCard(root,edits){
 }
 function renderAssets(){
   assetsEls.grid.innerHTML='';
+  refreshAssetMonthOptions();
   syncAssetsSummary();
-  if(!assetItems.length)return;
+  const visibleItems=visibleAssetItems();
+  if(!visibleItems.length)return;
   const fragment=document.createDocumentFragment();
-  const editGroups=new Map(),rootIds=new Set(assetItems.map(item=>String(item.id)));
-  assetItems.forEach(item=>{if(item.editRootId&&rootIds.has(String(item.editRootId))){const key=String(item.editRootId);if(!editGroups.has(key))editGroups.set(key,[]);editGroups.get(key).push(item)}});
+  const editGroups=new Map(),rootIds=new Set(visibleItems.map(item=>String(item.id)));
+  visibleItems.forEach(item=>{if(item.editRootId&&rootIds.has(String(item.editRootId))){const key=String(item.editRootId);if(!editGroups.has(key))editGroups.set(key,[]);editGroups.get(key).push(item)}});
   let currentDayKey='',dayGrid=null;
-  for(const item of assetItems){
+  for(const item of visibleItems){
     if(item.editRootId&&rootIds.has(String(item.editRootId)))continue;
     const day=assetDay(item.createdAt);
     if(day.key!==currentDayKey){
@@ -570,7 +583,7 @@ function renderAssets(){
       const heading=document.createElement('div');heading.className='asset-date-heading';
       const title=document.createElement('h2');title.textContent=day.label;
       const dayCount=document.createElement('span');
-      dayCount.textContent=assetItems.filter(asset=>assetDay(asset.createdAt).key===day.key).length+' 项';
+      dayCount.textContent=visibleItems.filter(asset=>assetDay(asset.createdAt).key===day.key).length+' 项';
       heading.append(title,dayCount);
       dayGrid=document.createElement('div');dayGrid.className='asset-date-grid';
       group.append(heading,dayGrid);fragment.appendChild(group);
@@ -607,6 +620,7 @@ function renderAssets(){
   assetsEls.grid.appendChild(fragment);
   setupAssetImageLoading();
 }
+assetsEls.dateFilter.onchange=()=>{activeAssetMonth=assetsEls.dateFilter.value;renderAssets()};
 
 function showGeneration(job){
   activeGenerationUsesHighDefinition=isHighDefinitionResolution(job.settings?.resolution||job.body?.resolution);
