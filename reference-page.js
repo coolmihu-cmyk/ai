@@ -2,7 +2,7 @@
 (() => {
   const STORAGE_KEY='mihu-reference-library-v1',MAX_ITEMS=300;
   const CATEGORIES=['photography','design','commerce','other'];
-  const el={grid:$('#referenceGrid'),empty:$('#referenceEmpty'),emptyTitle:$('#referenceEmptyTitle'),modal:$('#referenceModal'),modalTitle:$('#referenceModalTitle'),form:$('#referenceForm'),imageUrl:$('#referenceImageUrl'),category:$('#referenceCategory'),prompt:$('#referencePrompt'),error:$('#referenceFormError'),save:$('#referenceForm button[type="submit"]'),create:$('#referenceCreate'),emptyCreate:$('#referenceEmptyCreate'),close:$('#referenceClose'),cancel:$('#referenceCancel'),exportJson:$('#referenceExportJson'),importFile:$('#referenceImportFile'),filters:[...document.querySelectorAll('[data-reference-filter]')]};
+  const el={grid:$('#referenceGrid'),empty:$('#referenceEmpty'),emptyTitle:$('#referenceEmptyTitle'),modal:$('#referenceModal'),modalTitle:$('#referenceModalTitle'),form:$('#referenceForm'),imageUrl:$('#referenceImageUrl'),category:$('#referenceCategory'),prompt:$('#referencePrompt'),error:$('#referenceFormError'),save:$('#referenceForm button[type="submit"]'),create:$('#referenceCreate'),emptyCreate:$('#referenceEmptyCreate'),close:$('#referenceClose'),cancel:$('#referenceCancel'),filters:[...document.querySelectorAll('[data-reference-filter]')]};
   let items=[],activeCategory='all',editingId=null;
   const icon=paths=>{const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('fill','none');svg.setAttribute('stroke','currentColor');svg.setAttribute('stroke-width','1.8');paths.forEach(d=>{const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',d);svg.appendChild(path)});return svg};
   function read(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');return Array.isArray(saved)?saved:[]}catch(_){return []}}
@@ -41,33 +41,6 @@
   function useReference(item){try{sessionStorage.setItem('mihu_reference_payload',JSON.stringify({url:item.imageUrl,prompt:item.prompt||''}))}catch(_){}navigateWithLoading('index.html')}
   function categoryOf(value){return CATEGORIES.includes(value)?value:''}
   function getColumnCount(){return matchMedia('(max-width:720px)').matches?2:matchMedia('(max-width:1180px)').matches?3:5}
-  function download(filename,content,type){const blob=new Blob([content],{type});const href=URL.createObjectURL(blob);const link=document.createElement('a');link.href=href;link.download=filename;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(href),0)}
-  function exportReferences(){
-    if(!items.length){toast('还没有可导出的参考');return}
-    const stamp=new Date().toISOString().slice(0,10);
-    download(`mihu-reference-${stamp}.json`,JSON.stringify({version:1,exportedAt:new Date().toISOString(),items},null,2),'application/json;charset=utf-8');
-    toast('参考库已导出');
-  }
-  async function importReferences(event){
-    const file=event.target.files?.[0];event.target.value='';
-    if(!file)return;
-    try{
-      const payload=JSON.parse((await file.text()).replace(/^\uFEFF/,''));
-      const source=Array.isArray(payload)?payload:payload?.items;
-      if(!Array.isArray(source))throw new Error('unsupported backup');
-      const knownUrls=new Set(items.map(item=>item.imageUrl));
-      const imported=[];
-      for(const candidate of source){
-        if(!candidate||typeof candidate.imageUrl!=='string'||knownUrls.has(candidate.imageUrl))continue;
-        let url;try{url=new URL(candidate.imageUrl);if(!/^https?:$/.test(url.protocol))continue}catch(_){continue}
-        knownUrls.add(url.href);
-        imported.push({id:'reference-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),imageUrl:url.href,prompt:typeof candidate.prompt==='string'?candidate.prompt:'',category:categoryOf(candidate.category),createdAt:!Number.isNaN(new Date(candidate.createdAt).getTime())?candidate.createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
-      }
-      if(!imported.length){toast('没有可导入的新参考');return}
-      items=[...imported,...items].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,MAX_ITEMS);
-      persist();render();imported.forEach(cloudSave);toast(`已导入 ${imported.length} 条参考`);
-    }catch(error){console.warn('导入参考失败',error);toast('导入失败，请选择此前导出的 JSON 文件')}
-  }
   function render(){
     items.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
     const visibleItems=activeCategory==='all'?items:items.filter(item=>categoryOf(item.category)===activeCategory);
@@ -88,7 +61,7 @@
     });
     el.grid.append(...columns);
   }
-  el.create.onclick=openModal;el.emptyCreate.onclick=openModal;el.close.onclick=closeModal;el.cancel.onclick=closeModal;el.exportJson.onclick=exportReferences;el.importFile.onchange=importReferences;
+  el.create.onclick=openModal;el.emptyCreate.onclick=openModal;el.close.onclick=closeModal;el.cancel.onclick=closeModal;
   el.filters.forEach(button=>button.onclick=()=>{activeCategory=button.dataset.referenceFilter;el.filters.forEach(item=>item.classList.toggle('is-active',item===button));render()});
   el.modal.addEventListener('click',event=>{if(event.target===el.modal)closeModal()});
   el.form.onsubmit=event=>{
