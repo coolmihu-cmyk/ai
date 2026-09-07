@@ -15,6 +15,21 @@ const assetsEls={
   generationVisual:$('#assetsGenerationVisual'),generationReference:$('#assetsGenerationReference'),
   taskCenter:$('#assetsTaskCenter'),taskCount:$('#assetsTaskCount'),taskList:$('#assetsTaskList')
 };
+const assetsShell=document.querySelector('.assets-shell'),assetsLedger=document.querySelector('.assets-ledger'),assetsScrollFades=document.querySelector('.assets-scroll-fades');
+function updateAssetsScrollFades(){
+  if(!assetsShell||!assetsLedger||!assetsScrollFades)return;
+  const shellBounds=assetsShell.getBoundingClientRect(),ledgerBounds=assetsLedger.getBoundingClientRect();
+  const top=Math.max(shellBounds.top,ledgerBounds.top),bottom=Math.min(shellBounds.bottom,ledgerBounds.bottom),borderInset=1;
+  const visible=bottom-top>borderInset*2&&ledgerBounds.width>borderInset*2;
+  assetsScrollFades.hidden=!visible;
+  if(!visible)return;
+  assetsScrollFades.style.left=Math.round(ledgerBounds.left+borderInset)+'px';
+  assetsScrollFades.style.top=Math.round(top+borderInset)+'px';
+  assetsScrollFades.style.width=Math.round(ledgerBounds.width-borderInset*2)+'px';
+  assetsScrollFades.style.height=Math.round(bottom-top-borderInset*2)+'px';
+  assetsScrollFades.classList.toggle('has-top-fade',assetsShell.scrollTop>2);
+  assetsScrollFades.classList.toggle('has-bottom-fade',assetsShell.scrollTop+assetsShell.clientHeight<assetsShell.scrollHeight-2);
+}
 let assetItems=[],activeAssetMonth='all',generationElapsedTimer=null,queueAdvancing=false,activeGenerationUsesHighDefinition=false;
 let unavailableAssetIds=new Set(),assetImageObserver=null;
 const REFERENCE_LIBRARY_KEY='mihu-reference-library-v1',REFERENCE_LIBRARY_LIMIT=300;
@@ -578,7 +593,7 @@ function renderAssets(){
   refreshAssetMonthOptions();
   syncAssetsSummary();
   const visibleItems=visibleAssetItems();
-  if(!visibleItems.length)return;
+  if(!visibleItems.length){requestAnimationFrame(updateAssetsScrollFades);return}
   const fragment=document.createDocumentFragment();
   const editGroups=new Map(),rootIds=new Set(visibleItems.map(item=>String(item.id)));
   visibleItems.forEach(item=>{if(item.editRootId&&rootIds.has(String(item.editRootId))){const key=String(item.editRootId);if(!editGroups.has(key))editGroups.set(key,[]);editGroups.get(key).push(item)}});
@@ -628,8 +643,11 @@ function renderAssets(){
   }
   assetsEls.grid.appendChild(fragment);
   setupAssetImageLoading();
+  requestAnimationFrame(updateAssetsScrollFades);
 }
 assetsEls.dateFilter.onchange=()=>{activeAssetMonth=assetsEls.dateFilter.value;renderAssets()};
+assetsShell?.addEventListener('scroll',updateAssetsScrollFades,{passive:true});
+window.addEventListener('resize',updateAssetsScrollFades);
 
 function showGeneration(job){
   activeGenerationUsesHighDefinition=isHighDefinitionResolution(job.settings?.resolution||job.body?.resolution);
