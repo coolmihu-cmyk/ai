@@ -7,7 +7,10 @@
   const referenceShell=document.querySelector('.reference-shell');
   function updateReferenceBottomFade(){
     if(!referenceShell)return;
-    referenceShell.classList.toggle('has-bottom-fade',referenceShell.scrollTop+referenceShell.clientHeight<referenceShell.scrollHeight-2);
+    const atTop=referenceShell.scrollTop<=2;
+    const atBottom=referenceShell.scrollTop+referenceShell.clientHeight>=referenceShell.scrollHeight-2;
+    referenceShell.classList.toggle('has-top-fade',!atTop);
+    referenceShell.classList.toggle('has-bottom-fade',!atBottom);
   }
   const icon=paths=>{const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('fill','none');svg.setAttribute('stroke','currentColor');svg.setAttribute('stroke-width','1.8');paths.forEach(d=>{const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',d);svg.appendChild(path)});return svg};
   function read(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');return Array.isArray(saved)?saved:[]}catch(_){return []}}
