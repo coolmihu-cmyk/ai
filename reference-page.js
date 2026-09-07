@@ -5,12 +5,13 @@
   const el={grid:$('#referenceGrid'),empty:$('#referenceEmpty'),emptyTitle:$('#referenceEmptyTitle'),modal:$('#referenceModal'),modalTitle:$('#referenceModalTitle'),form:$('#referenceForm'),imageUrl:$('#referenceImageUrl'),category:$('#referenceCategory'),prompt:$('#referencePrompt'),error:$('#referenceFormError'),save:$('#referenceForm button[type="submit"]'),create:$('#referenceCreate'),emptyCreate:$('#referenceEmptyCreate'),close:$('#referenceClose'),cancel:$('#referenceCancel'),filters:[...document.querySelectorAll('[data-reference-filter]')],dateFilter:$('#referenceDateFilter'),count:$('#referenceCount')};
   let items=[],activeCategory='all',activeMonth='all',editingId=null;
   const referenceShell=document.querySelector('.reference-shell');
+  const referenceScrollFades=document.querySelector('.reference-scroll-fades');
   function updateReferenceBottomFade(){
-    if(!referenceShell)return;
+    if(!referenceShell||!referenceScrollFades)return;
     const atTop=referenceShell.scrollTop<=2;
     const atBottom=referenceShell.scrollTop+referenceShell.clientHeight>=referenceShell.scrollHeight-2;
-    referenceShell.classList.toggle('has-top-fade',!atTop);
-    referenceShell.classList.toggle('has-bottom-fade',!atBottom);
+    referenceScrollFades.classList.toggle('has-top-fade',!atTop);
+    referenceScrollFades.classList.toggle('has-bottom-fade',!atBottom);
   }
   const icon=paths=>{const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('fill','none');svg.setAttribute('stroke','currentColor');svg.setAttribute('stroke-width','1.8');paths.forEach(d=>{const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',d);svg.appendChild(path)});return svg};
   function read(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');return Array.isArray(saved)?saved:[]}catch(_){return []}}
