@@ -1,5 +1,6 @@
 const ALLOWED_ORIGIN='https://pic.supmihu.cn';
 const ALLOWED_STATUSES=new Set(['submitted','processing','completed','failed']);
+const COS_URL=/^https:\/\/(img\.supmihu\.cn|[^/]+\.cos\.[a-z0-9-]+\.myqcloud\.com)\//i;
 
 function json(data,status=200){return new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'}})}
 function cleanText(value,max=3000){return String(value??'').trim().slice(0,max)}
@@ -15,6 +16,10 @@ function safeParameters(value){
   if(!value||typeof value!=='object'||Array.isArray(value))return{};
   const serialized=JSON.stringify(value);
   return serialized.length<=8000?value:{};
+}
+function cleanCosUrl(value){
+  const url=cleanText(value,1200);
+  return url&&COS_URL.test(url)?url:null;
 }
 async function supabaseRequest(env,path,{method='POST',body,prefer}={}){
   const config=readConfig(env),headers={'apikey':config.key,'Content-Type':'application/json','Accept':'application/json'};
@@ -38,6 +43,7 @@ export async function onRequestPost(context){
       prompt,
       model:cleanText(input.model,100)||null,
       resolution:cleanText(input.resolution,40)||null,
+      original_cos_url:cleanCosUrl(input.originalCosUrl),
       parameters:safeParameters(input.parameters),
       status:'submitted'
     },prefer:'return=representation'});
@@ -56,7 +62,7 @@ export async function onRequestPatch(context){
     const taskId=cleanText(input.taskId,200);if(taskId)patch.task_id=taskId;
     if(input.cosUrl!==undefined){
       const cosUrl=cleanText(input.cosUrl,1200);
-      if(cosUrl&&!/^https:\/\/(img\.supmihu\.cn|[^/]+\.cos\.[a-z0-9-]+\.myqcloud\.com)\//i.test(cosUrl))return json({error:'仅允许记录 COS 图片地址。'},400);
+      if(cosUrl&&!cleanCosUrl(cosUrl))return json({error:'仅允许记录 COS 图片地址。'},400);
       patch.cos_url=cosUrl||null;
     }
     if(input.errorMessage!==undefined)patch.error_message=cleanText(input.errorMessage,1000)||null;

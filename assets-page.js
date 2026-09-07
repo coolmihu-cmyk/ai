@@ -317,7 +317,7 @@ async function submitLocalEdit({prompt:providedPrompt='',alreadyRecorded=false,s
     const editPrompt=prompt+'。以输入图片为基础进行编辑，保留用户未明确要求改变的主体、构图和重要视觉特征。';
     const config=MODEL_CONFIG[localEdit.model];
     const body={model:config.editModel||config.generationModel,prompt:editPrompt,size:localEdit.ratio,resolution:localEdit.resolution,n:1,image_urls:[localEdit.item.url,...(localEdit.referenceData?[localEdit.referenceData]:[])]};
-    promptLogId=await PromptLog.create({id:'editor-'+Date.now(),prompt,model:localEdit.model,settings:{ratio:localEdit.ratio,resolution:localEdit.resolution},body,scope:'editor',referenceUrls:body.image_urls});
+    promptLogId=await PromptLog.create({id:'editor-'+Date.now(),prompt,model:localEdit.model,settings:{ratio:localEdit.ratio,resolution:localEdit.resolution},body,scope:'editor',originalCosUrl:localEdit.item.url,referenceUrls:body.image_urls});
     let url=await Apimart.generate({apiKey,body,endpoint:'/images/generations',signal:generationController.signal,maxWaitMs:30*60*1000,onSubmitted:taskId=>{
       PromptLog.update(promptLogId,{taskId,status:'processing'});
     },onProgress:(status,progress)=>{
