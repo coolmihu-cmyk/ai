@@ -4,6 +4,11 @@
   const CATEGORIES=['photography','design','commerce','other'];
   const el={grid:$('#referenceGrid'),empty:$('#referenceEmpty'),emptyTitle:$('#referenceEmptyTitle'),modal:$('#referenceModal'),modalTitle:$('#referenceModalTitle'),form:$('#referenceForm'),imageUrl:$('#referenceImageUrl'),category:$('#referenceCategory'),prompt:$('#referencePrompt'),error:$('#referenceFormError'),save:$('#referenceForm button[type="submit"]'),create:$('#referenceCreate'),emptyCreate:$('#referenceEmptyCreate'),close:$('#referenceClose'),cancel:$('#referenceCancel'),filters:[...document.querySelectorAll('[data-reference-filter]')],dateFilter:$('#referenceDateFilter'),count:$('#referenceCount')};
   let items=[],activeCategory='all',activeMonth='all',editingId=null;
+  const referenceShell=document.querySelector('.reference-shell');
+  function updateReferenceBottomFade(){
+    if(!referenceShell)return;
+    referenceShell.classList.toggle('has-bottom-fade',referenceShell.scrollTop+referenceShell.clientHeight<referenceShell.scrollHeight-2);
+  }
   const icon=paths=>{const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('fill','none');svg.setAttribute('stroke','currentColor');svg.setAttribute('stroke-width','1.8');paths.forEach(d=>{const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',d);svg.appendChild(path)});return svg};
   function read(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');return Array.isArray(saved)?saved:[]}catch(_){return []}}
   function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(items.slice(0,MAX_ITEMS)))}catch(_){toast('本地存储空间不足，请删除部分参考')}}
@@ -71,10 +76,13 @@
       actions.append(use,edit,del);card.append(media,body,actions);columns[index%columns.length].appendChild(card);
     });
     el.grid.append(...columns);
+    requestAnimationFrame(updateReferenceBottomFade);
   }
   el.create.onclick=openModal;el.emptyCreate.onclick=openModal;el.close.onclick=closeModal;el.cancel.onclick=closeModal;
   el.filters.forEach(button=>button.onclick=()=>{activeCategory=button.dataset.referenceFilter;el.filters.forEach(item=>item.classList.toggle('is-active',item===button));render()});
   el.dateFilter.onchange=()=>{activeMonth=el.dateFilter.value;render()};
+  referenceShell?.addEventListener('scroll',updateReferenceBottomFade,{passive:true});
+  window.addEventListener('resize',updateReferenceBottomFade);
   el.modal.addEventListener('click',event=>{if(event.target===el.modal)closeModal()});
   el.form.onsubmit=event=>{
     event.preventDefault();setError();
