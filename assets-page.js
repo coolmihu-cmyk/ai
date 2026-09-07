@@ -514,15 +514,24 @@ async function renderTaskCenter(){
 function assetImageIcon(name){
   const image=document.createElement('img');image.src='icon/asset-'+name+'.svg';image.alt='';image.setAttribute('aria-hidden','true');return image;
 }
+function assetReferences(){
+  try{const references=JSON.parse(localStorage.getItem(REFERENCE_LIBRARY_KEY)||'[]');return Array.isArray(references)?references:[]}catch(_){return []}
+}
+function isAssetFavorited(item){return assetReferences().some(reference=>reference.imageUrl===item.url)}
+function setAssetFavoriteButton(button,favorited){
+  button.classList.toggle('is-favorited',favorited);
+  button.title=favorited?'已收藏到参考':'收藏到参考';
+  button.setAttribute('aria-label',button.title);
+  button.replaceChildren(assetImageIcon(favorited?'favorite-solid':'favorite-outline'));
+}
 function favoriteAsset(item){
   try{
-    const references=JSON.parse(localStorage.getItem(REFERENCE_LIBRARY_KEY)||'[]');
-    if(!Array.isArray(references))throw new Error('invalid reference library');
-    if(references.some(reference=>reference.imageUrl===item.url)){toast('这张图片已收藏到参考');return}
+    const references=assetReferences();
+    if(references.some(reference=>reference.imageUrl===item.url)){toast('这张图片已收藏到参考');return true}
     references.unshift({id:'reference-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),imageUrl:item.url,prompt:item.prompt||'',createdAt:new Date().toISOString()});
     localStorage.setItem(REFERENCE_LIBRARY_KEY,JSON.stringify(references.slice(0,REFERENCE_LIBRARY_LIMIT)));
-    toast('已收藏到参考');
-  }catch(error){console.warn('收藏到参考失败',error);toast('收藏失败，请检查浏览器本地存储')}
+    toast('已收藏到参考');return true;
+  }catch(error){console.warn('收藏到参考失败',error);toast('收藏失败，请检查浏览器本地存储');return false}
 }
 function sendAssetToComposer(item){
   try{
@@ -602,8 +611,8 @@ function renderAssets(){
     if(!expiry.archived)model.classList.add('is-warning');
     meta.append(model);
     const actions=document.createElement('div');actions.className='asset-actions';
-    const favorite=document.createElement('button');favorite.type='button';favorite.className='asset-favorite';favorite.title='收藏到参考';
-    favorite.setAttribute('aria-label','收藏到参考');favorite.appendChild(assetImageIcon('favorite'));favorite.onclick=()=>favoriteAsset(item);meta.append(favorite);
+    const favorite=document.createElement('button');favorite.type='button';favorite.className='asset-favorite';
+    setAssetFavoriteButton(favorite,isAssetFavorited(item));favorite.onclick=()=>{if(favoriteAsset(item))setAssetFavoriteButton(favorite,true)};meta.append(favorite);
     const edit=document.createElement('button');edit.type='button';edit.className='asset-local-edit';edit.title='编辑图片';edit.setAttribute('aria-label','编辑图片');
     edit.appendChild(assetImageIcon('edit'));
     edit.onclick=()=>openLocalEdit(item,edit);actions.appendChild(edit);
