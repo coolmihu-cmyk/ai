@@ -139,8 +139,7 @@ function localEditRenderThread(){
       message.choices.forEach(choice=>{const button=document.createElement('button');button.type='button';button.textContent=choice.label;button.onclick=()=>localEditChooseGuidance(choice,message.basePrompt,message.guidance);choices.append(button)});
       node.append(question,choices);
     }else if(message.qualityWarning){
-      const intro=document.createElement('span');intro.className='local-edit-message-copy';intro.textContent=message.text;
-      const warning=document.createElement('span');warning.className='local-edit-quality-warning';warning.textContent=message.qualityWarning;node.append(intro,warning);
+      node.classList.add('is-quality-warning');node.textContent=message.text;
     }else{
       const waitSuffix='（'+LOCAL_EDIT_HIGH_DEFINITION_WAIT+'）';
       if(String(message.text||'').endsWith(waitSuffix)){
@@ -278,7 +277,7 @@ function loadLocalEditImage(item,{focus=false,threadPosition='current'}={}){
 function openLocalEdit(item,trigger,{versions=[item],resume=false,threadPosition='current'}={}){
   if(assetExpiry(item).expired){toast('原图已过期，无法编辑');return}
   const orderedVersions=[...versions].sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
-  localEdit.lastFocus=trigger||document.activeElement;localEdit.versions=orderedVersions;localEdit.editRootId=String(orderedVersions[0]?.id||item.editRootId||item.id);localEdit.editGroupId=item.editGroupId||'edit-'+localEdit.editRootId;localEdit.messages=resume?localEditMessagesForVersions(orderedVersions):[{role:'assistant',text:LOCAL_EDIT_WELCOME,qualityWarning:LOCAL_EDIT_QUALITY_WARNING},...localEditMessagesForVersions(orderedVersions)];localEditSetComposerCollapsed(false);localEditClearReference();
+  localEdit.lastFocus=trigger||document.activeElement;localEdit.versions=orderedVersions;localEdit.editRootId=String(orderedVersions[0]?.id||item.editRootId||item.id);localEdit.editGroupId=item.editGroupId||'edit-'+localEdit.editRootId;localEdit.messages=resume?localEditMessagesForVersions(orderedVersions):[{role:'assistant',text:LOCAL_EDIT_QUALITY_WARNING,qualityWarning:true},{role:'assistant',text:LOCAL_EDIT_WELCOME},...localEditMessagesForVersions(orderedVersions)];localEditSetComposerCollapsed(false);localEditClearReference();
   localEditSetInitialSettings(item);localEditSetError();localEditSetStatus('');localEditRenderThread();
   localEdit.layer.hidden=false;document.body.classList.add('local-edit-open');
   loadLocalEditImage(item,{focus:true,threadPosition}).catch(()=>{});
