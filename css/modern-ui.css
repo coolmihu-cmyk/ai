@@ -1179,16 +1179,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   box-shadow:none;
 }
 .settings-section-head{grid-area:head;min-height:52px;margin-bottom:25px;padding-bottom:21px;display:flex;align-items:flex-start;justify-content:space-between;gap:18px;border-bottom:1px solid var(--ui-line)}
-.settings-section-head > div:first-child > span{
-  display:block;
-  margin-bottom:5px;
-  color:var(--ui-faint);
-  font-family:"SFMono-Regular",Consolas,monospace;
-  font-size:9px;
-  font-weight:700;
-  letter-spacing:1.2px;
-}
-.settings-section-head h2{margin:0;color:var(--ui-ink);font-size:24px;font-weight:730;line-height:1;letter-spacing:-.55px}
+.settings-welcome{display:flex;align-items:center;gap:13px}
+.settings-key-avatar{width:54px;height:54px;flex:0 0 54px;overflow:hidden;border:1px solid var(--ui-line-strong);border-radius:50%;background:#e9ebec center/cover no-repeat;box-shadow:inset 0 0 0 3px rgba(255,255,255,.42)}
+.settings-section-head h2{margin:0;color:var(--ui-ink);line-height:1.12;letter-spacing:-.45px}
+.settings-welcome-en,.settings-welcome-zh{display:block}
+.settings-welcome-en{font-family:Inter,-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;font-size:17px;font-weight:760;letter-spacing:-.55px}
+.settings-welcome-zh{margin-top:4px;color:var(--ui-muted);font-size:12px;font-weight:650;letter-spacing:.03em}
 .settings-account-balance{min-width:146px;padding:2px 0 0;text-align:right;color:var(--ui-faint)}
 .settings-account-balance span{display:block;margin-bottom:5px;font-family:"SFMono-Regular",Consolas,monospace;font-size:9px;font-weight:700;letter-spacing:1px}
 .settings-account-balance strong{display:block;color:var(--ui-ink);font-family:var(--studio-mono);font-size:20px;font-weight:720;line-height:1;font-variant-numeric:tabular-nums}
@@ -1346,6 +1342,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   .settings-key-summary{grid-template-columns:1fr;gap:10px;margin-bottom:20px;padding:14px}
   .settings-key-summary-main{padding:0 0 11px;border-right:0;border-bottom:1px solid var(--ui-line)}
   .settings-key-summary-item{padding:0}
+  .settings-key-avatar{width:48px;height:48px;flex-basis:48px}
+  .settings-welcome{gap:11px}
+  .settings-welcome-en{font-size:15px}
   .settings-key-row,.settings-key-row input,.settings-key-row button{height:48px}
   .settings-key-row button{width:68px;flex-basis:68px}
   .settings-key-guide{margin-top:18px}

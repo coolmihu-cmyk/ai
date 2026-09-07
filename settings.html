@@ -11,7 +11,7 @@
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="stylesheet" href="css/base.css?v=20260828-141842">
 <link rel="stylesheet" href="css/pages.css?v=20260831-125949">
-<link rel="stylesheet" href="css/modern-ui.css?v=20260907-125056">
+<link rel="stylesheet" href="css/modern-ui.css?v=20260907-144215">
 </head>
 <body class="settings-page">
 
@@ -27,9 +27,14 @@
   <div class="settings-ledger">
     <section class="settings-connection" aria-labelledby="connectionTitle">
       <div class="settings-section-head">
-        <div>
-          <span>APIMART API KEY</span>
-          <h2 id="connectionTitle">你的生成钥匙</h2>
+        <div class="settings-welcome">
+          <div class="settings-key-avatar" id="settingsKeyAvatar" aria-hidden="true"></div>
+          <div>
+            <h2 id="connectionTitle">
+              <span class="settings-welcome-en">Welcome, Great artist</span>
+              <span class="settings-welcome-zh">欢迎你，大艺术家</span>
+            </h2>
+          </div>
         </div>
         <div class="settings-account-balance" id="settingsAccountBalance" aria-live="polite">
           <span>账户积分余额</span>
@@ -75,7 +80,7 @@
 </main>
 
 <div class="toast" id="toast"></div>
-<script src="shared.js?v=20260907-143017"></script>
-<script src="settings-page.js?v=20260901-160500"></script>
+<script src="shared.js?v=20260907-144215"></script>
+<script src="settings-page.js?v=20260907-144215"></script>
 </body>
 </html>
