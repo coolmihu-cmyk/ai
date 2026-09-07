@@ -1,4 +1,4 @@
-const MAX_PAGE_SIZE=1000;
+const MAX_PAGE_SIZE=256;
 const CATEGORIES=new Set(['photography','design','commerce','other']);
 
 function json(data,status=200){return new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'}})}
