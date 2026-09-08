@@ -309,6 +309,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   animation:none;
 }
 .home-intro h1 strong{font-weight:900}
+.home-intro h1 #appVersion{margin-left:.62em;vertical-align:middle;color:#a4a9ad;font-family:"SFMono-Regular",Consolas,monospace;font-size:10px;font-weight:700;letter-spacing:.08em}
 .home-artist-quote{
   min-height:20px;
   max-width:520px;
@@ -340,21 +341,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 }
 .home-intro,
 .home-page .main > .bottom-area{transform:translateY(-42px)}
-.home-site-address{
-  position:fixed;
-  left:50%;
-  bottom:22px;
-  z-index:20;
-  color:#a1a5a9;
-  font-family:"Montserrat",Inter,-apple-system,BlinkMacSystemFont,sans-serif;
-  font-size:10px;
-  font-weight:650;
-  line-height:1;
-  letter-spacing:.18em;
-  transform:translateX(-50%);
-  pointer-events:none;
-  user-select:none;
-}
 .home-page .composer{
   width:100%;
   padding:22px 24px 16px;
@@ -1246,7 +1232,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   body{overflow:auto}
   .home-intro,
   .home-page .main > .bottom-area{transform:translateY(-22px)}
-  .home-site-address{bottom:98px}
   .app-rail{
     inset:auto 10px 10px;
     width:auto;
@@ -1285,7 +1270,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   }
   .home-page .app{height:100dvh;min-height:100dvh;padding:0 0 84px}
   .home-page .main{padding:24px 14px;gap:22px}
-  .home-intro h1{font-size:clamp(32px,8.5vw,42px);letter-spacing:.02em}
+  .home-intro h1{font-size:clamp(32px,8.5vw,42px);letter-spacing:.02em}.home-intro h1 #appVersion{font-size:9px}
   .home-page .composer{padding:18px 17px 13px;border-radius:14px}
   .home-page .composer-input{min-height:108px;font-size:16px}
   .creation-settings{padding:0;border-radius:0}
