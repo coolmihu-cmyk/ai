@@ -1,7 +1,7 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 // 每次完成一次改动并提交时递增。
-const APP_VERSION='262.0';
+const APP_VERSION='263.0';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
@@ -96,16 +96,16 @@ async function downloadImage(url){
 function showError(el,msg){if(!el)return;el.textContent=msg;el.style.display='block'}
 function hideError(el){if(!el)return;el.style.display='none';el.textContent=''}
 const APP_RAIL_ITEMS=[
-  {key:'index',href:'index.html',title:'创意',icon:'icon/chuangzuo.svg'},
-  {key:'assets',href:'assets.html',title:'资产',icon:'icon/folder.svg'},
-  {key:'settings',href:'settings.html',title:'设置',icon:'icon/shezhi.svg'}
+  {key:'index',href:'index.html',title:'创意',icon:'icon/chuangzuo-outline.svg',activeIcon:'icon/chuangzuo.svg'},
+  {key:'assets',href:'assets.html',title:'资产',icon:'icon/folder-outline.svg',activeIcon:'icon/folder.svg'},
+  {key:'settings',href:'settings.html',title:'设置',icon:'icon/shezhi-outline.svg',activeIcon:'icon/shezhi.svg'}
 ];
 function renderAppRails(){
   document.querySelectorAll('[data-app-rail]').forEach(rail=>{
     const current=rail.dataset.current||'';
     const items=APP_RAIL_ITEMS.map(item=>{
       const active=item.key===current;
-      return '<a class="rail-item'+(active?' active':'')+'" href="'+item.href+'"'+(active?' aria-current="page"':'')+' title="'+item.title+'"><img class="rail-icon" src="'+item.icon+'" alt="" aria-hidden="true"><span>'+item.title+'</span></a>';
+      return '<a class="rail-item'+(active?' active':'')+'" href="'+item.href+'"'+(active?' aria-current="page"':'')+' title="'+item.title+'"><img class="rail-icon" src="'+(active?item.activeIcon:item.icon)+'" alt="" aria-hidden="true"><span>'+item.title+'</span></a>';
     }).join('');
     rail.innerHTML='<a class="rail-brand" href="index.html" title="Pic.supmihu.cn"><img src="logo.png" alt=""></a><div class="rail-nav">'+items+'</div>';
   });

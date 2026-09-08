@@ -157,11 +157,11 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .rail-item:hover{background:#fff;color:var(--ui-ink);transform:translateY(-1px)}
 .rail-item:hover .rail-icon{filter:none;opacity:1}
 .rail-item.active{
-  background:#111315;
-  color:#fff;
-  box-shadow:0 7px 20px rgba(17,19,21,.16),inset 0 0 0 1px #111315;
+  background:transparent;
+  color:var(--ui-ink);
+  box-shadow:none;
 }
-.rail-item.active .rail-icon{filter:brightness(0) invert(1);opacity:1}
+.rail-item.active .rail-icon{filter:none;opacity:1}
 .rail-item.active::before{display:none}
 .rail-item[href="settings.html"]{
   position:absolute;
@@ -185,11 +185,11 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   transform:translateX(-50%) translateY(-1px);
 }
 .rail-item[href="settings.html"].active{
-  background:#111315;
-  color:#fff;
-  box-shadow:0 7px 20px rgba(17,19,21,.16),inset 0 0 0 1px #111315;
+  background:#fff;
+  color:var(--ui-ink);
+  box-shadow:0 5px 16px rgba(18,22,25,.05);
 }
-.rail-item[href="settings.html"].active .rail-icon{filter:brightness(0) invert(1);opacity:1}
+.rail-item[href="settings.html"].active .rail-icon{filter:none;opacity:1}
 
 /* Shared overlays and controls */
 .modal-backdrop{background:rgba(17,19,21,.34);backdrop-filter:blur(10px)}
@@ -1235,9 +1235,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   .rail-item[href="settings.html"] span{display:inline}
   .rail-item[href="settings.html"]:hover{transform:none}
   .rail-item[href="settings.html"].active{
-    background:#111315;
-    color:#fff;
-    box-shadow:0 7px 20px rgba(17,19,21,.16),inset 0 0 0 1px #111315;
+    background:transparent;
+    color:var(--ui-ink);
+    box-shadow:none;
   }
   .home-page .app{height:100dvh;min-height:100dvh;padding:0 0 84px}
   .home-page .main{padding:24px 14px;gap:22px}
