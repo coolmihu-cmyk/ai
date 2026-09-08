@@ -24,7 +24,7 @@ export async function onRequestGet(context){
   catch(error){console.error('public-references:get',error);return json({error:error instanceof Error?error.message:'公共参考读取失败。'},400)}
 }
 export async function onRequestPost(context){
-  try{if(!isSiteRequest(context.request))return json({error:'不允许跨站访问。'},403);admin(context);const item=cleanItem((await context.request.json()).item),store=kv(context.env);await store.put(PREFIX+item.id,JSON.stringify(item));return json({item})}
+  try{if(!isSiteRequest(context.request))return json({error:'不允许跨站访问。'},403);const item=cleanItem((await context.request.json()).item),store=kv(context.env),key=PREFIX+item.id;if(await store.get(key)){const error=new Error('这条公共参考已存在，无法覆盖。');error.status=409;throw error}await store.put(key,JSON.stringify(item));return json({item})}
   catch(error){console.error('public-references:post',error);return json({error:error instanceof Error?error.message:'公共参考保存失败。'},error?.status||400)}
 }
 export async function onRequestDelete(context){

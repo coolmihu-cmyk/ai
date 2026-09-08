@@ -31,7 +31,7 @@ function updateAssetsScrollFades(){
 }
 let assetItems=[],activeAssetMonth='all',generationElapsedTimer=null,queueAdvancing=false,activeGenerationUsesHighDefinition=false;
 let unavailableAssetIds=new Set(),assetImageObserver=null;
-const REFERENCE_LIBRARY_KEY='mihu-reference-library-v1',REFERENCE_LIBRARY_LIMIT=300;
+const PUBLISHED_ASSET_IDS_KEY='mihu-published-public-assets-v1';
 
 const localEdit={
   layer:$('#localEditLayer'),close:$('#localEditClose'),stage:$('#localEditStage'),image:$('#localEditImage'),
@@ -543,24 +543,16 @@ function assetInfoButton(item,expiry){
   info.onclick=event=>{event.preventDefault();event.stopPropagation();const open=!info.classList.contains('is-open');info.classList.toggle('is-open',open);info.setAttribute('aria-expanded',String(open))};
   return info;
 }
-function assetReferences(){
-  try{const references=JSON.parse(localStorage.getItem(REFERENCE_LIBRARY_KEY)||'[]');return Array.isArray(references)?references:[]}catch(_){return []}
-}
-function isAssetFavorited(item){return assetReferences().some(reference=>reference.imageUrl===item.url)}
-function setAssetFavoriteButton(button,favorited){
-  button.classList.toggle('is-favorited',favorited);
-  button.title=favorited?'已收藏':'收藏';
-  button.setAttribute('aria-label',button.title);
-  button.replaceChildren(assetImageIcon(favorited?'favorite-solid':'favorite-outline'));
-}
-function favoriteAsset(item){
+function publishedAssetIds(){try{const value=JSON.parse(localStorage.getItem(PUBLISHED_ASSET_IDS_KEY)||'[]');return new Set(Array.isArray(value)?value:[])}catch(_){return new Set()}}
+function setAssetPublishButton(button,published){button.classList.toggle('is-published',published);button.classList.toggle('is-favorited',published);button.title=published?'已发布到公共库':'发布到公共库';button.setAttribute('aria-label',button.title);button.disabled=published;button.replaceChildren(assetImageIcon('publish'))}
+async function publishAsset(item,button){
+  const published=publishedAssetIds();if(published.has(String(item.id))){setAssetPublishButton(button,true);return}
+  button.disabled=true;
   try{
-    const references=assetReferences();
-    if(references.some(reference=>reference.imageUrl===item.url)){toast('这张图片已收藏');return true}
-    references.unshift({id:'reference-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),imageUrl:item.url,prompt:item.prompt||'',createdAt:new Date().toISOString()});
-    localStorage.setItem(REFERENCE_LIBRARY_KEY,JSON.stringify(references.slice(0,REFERENCE_LIBRARY_LIMIT)));
-    toast('已收藏');return true;
-  }catch(error){console.warn('收藏失败',error);toast('收藏失败，请检查浏览器本地存储');return false}
+    const createdAt=new Date().toISOString(),publicItem={id:'public-asset-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),imageUrl:item.url,prompt:item.prompt||'',category:'other',createdAt,updatedAt:createdAt};
+    const response=await fetch('/api/public-references',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({item:publicItem})}),data=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(data.error||'发布失败。');published.add(String(item.id));localStorage.setItem(PUBLISHED_ASSET_IDS_KEY,JSON.stringify([...published].slice(-1000)));setAssetPublishButton(button,true);toast('已发布到公共库');
+  }catch(error){console.warn('发布公共库失败',error);button.disabled=false;toast(error.message||'发布失败，请稍后重试')}
 }
 function sendAssetToComposer(item){
   try{
@@ -638,8 +630,8 @@ function renderAssets(){
     const meta=document.createElement('div');meta.className='asset-meta';
     meta.append(assetInfoButton(item,expiry));
     const actions=document.createElement('div');actions.className='asset-actions';
-    const favorite=document.createElement('button');favorite.type='button';favorite.className='asset-favorite';
-    setAssetFavoriteButton(favorite,isAssetFavorited(item));favorite.onclick=()=>{if(favoriteAsset(item))setAssetFavoriteButton(favorite,true)};meta.append(favorite);
+    const publish=document.createElement('button');publish.type='button';publish.className='asset-favorite asset-publish';
+    setAssetPublishButton(publish,publishedAssetIds().has(String(item.id)));publish.onclick=()=>publishAsset(item,publish);meta.append(publish);
     const edit=document.createElement('button');edit.type='button';edit.className='asset-local-edit';edit.title='编辑图片';edit.setAttribute('aria-label','编辑图片');
     edit.appendChild(assetImageIcon('edit'));
     edit.onclick=()=>openLocalEdit(item,edit);actions.appendChild(edit);
