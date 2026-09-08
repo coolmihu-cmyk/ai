@@ -103,9 +103,23 @@
   </section>
 </div>
 
+<div class="reference-modal" id="assetPublishModal" hidden>
+  <div class="reference-modal-card" role="dialog" aria-modal="true" aria-labelledby="assetPublishTitle">
+    <div class="reference-modal-head"><div><span>PUBLISH TO PUBLIC LIBRARY</span><h2 id="assetPublishTitle">发布到公共库</h2></div><button type="button" id="assetPublishClose" aria-label="关闭">×</button></div>
+    <form id="assetPublishForm">
+      <label>图片地址<input id="assetPublishImageUrl" type="url" readonly></label>
+      <label>生成模型<input id="assetPublishModel" type="text" readonly></label>
+      <label>分类<select id="assetPublishCategory" required><option value="" selected disabled>请选择分类</option><option value="graphic-design">平面设计</option><option value="portrait-photography">摄影写真</option><option value="illustration-art">插画艺术</option><option value="architecture-space">建筑空间</option><option value="3d-modeling">3D建模</option><option value="character-storyboard">角色分镜</option><option value="ecommerce-details">电商详情</option><option value="creative-play">创意玩法</option><option value="ui-ux">UI/UX</option><option value="other">其它</option></select></label>
+      <label>提示词<textarea id="assetPublishPrompt" rows="5"></textarea></label>
+      <p class="reference-form-error" id="assetPublishError" hidden></p>
+      <div class="reference-modal-actions"><button type="button" id="assetPublishCancel">取消</button><button type="submit" id="assetPublishSubmit">发布到公共库</button></div>
+    </form>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
-<script src="shared.js?v=20260908-114022"></script>
-<script src="assets-page.js?v=20260908-113813"></script>
+<script src="shared.js?v=20260908-114306"></script>
+<script src="assets-page.js?v=20260908-114306"></script>
 <script src="site-scrollbars.js?v=20260908-112754"></script>
 </body>
 </html>

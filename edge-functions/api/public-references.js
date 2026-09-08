@@ -14,7 +14,7 @@ function cleanItem(value){
   const id=cleanId(value.id);if(!id)throw new Error('参考记录缺少编号。');
   const imageUrl=new URL(String(value.imageUrl||''));if(!/^https?:$/.test(imageUrl.protocol))throw new Error('图片链接仅支持 HTTP 或 HTTPS。');
   const createdAt=cleanDate(value.createdAt,Date.now()),updatedAt=cleanDate(value.updatedAt,createdAt);
-  return {id,type:'public-reference',imageUrl:imageUrl.href.slice(0,2000),prompt:String(value.prompt||'').slice(0,5000),category:cleanCategory(value.category),createdAt,updatedAt};
+  return {id,type:'public-reference',imageUrl:imageUrl.href.slice(0,2000),prompt:String(value.prompt||'').slice(0,5000),model:String(value.model||'').slice(0,80),category:cleanCategory(value.category),createdAt,updatedAt};
 }
 export async function onRequestOptions(){return new Response(null,{status:204,headers:{Allow:'GET, POST, OPTIONS'}})}
 export async function onRequestGet(context){

@@ -16,6 +16,7 @@ const assetsEls={
   taskCenter:$('#assetsTaskCenter'),taskCount:$('#assetsTaskCount'),taskList:$('#assetsTaskList')
 };
 const assetsShell=document.querySelector('.assets-shell'),assetsLedger=document.querySelector('.assets-ledger'),assetsScrollFades=document.querySelector('.assets-scroll-fades');
+const assetPublish={modal:$('#assetPublishModal'),form:$('#assetPublishForm'),close:$('#assetPublishClose'),cancel:$('#assetPublishCancel'),url:$('#assetPublishImageUrl'),model:$('#assetPublishModel'),category:$('#assetPublishCategory'),prompt:$('#assetPublishPrompt'),error:$('#assetPublishError'),submit:$('#assetPublishSubmit'),item:null,button:null};
 function updateAssetsScrollFades(){
   if(!assetsShell||!assetsLedger||!assetsScrollFades)return;
   const ledgerBounds=assetsLedger.getBoundingClientRect(),top=ledgerBounds.top,bottom=ledgerBounds.bottom,borderInset=1;
@@ -545,11 +546,17 @@ function assetInfoButton(item,expiry){
 }
 function publishedAssetIds(){try{const value=JSON.parse(localStorage.getItem(PUBLISHED_ASSET_IDS_KEY)||'[]');return new Set(Array.isArray(value)?value:[])}catch(_){return new Set()}}
 function setAssetPublishButton(button,published){button.classList.toggle('is-published',published);button.classList.toggle('is-favorited',published);button.title=published?'已发布到公共库':'发布到公共库';button.setAttribute('aria-label',button.title);button.disabled=published;button.replaceChildren(assetImageIcon('publish'))}
-async function publishAsset(item,button){
+function setAssetPublishError(message=''){assetPublish.error.textContent=message;assetPublish.error.hidden=!message}
+function openAssetPublish(item,button){
+  if(publishedAssetIds().has(String(item.id))){setAssetPublishButton(button,true);return}
+  assetPublish.item=item;assetPublish.button=button;assetPublish.form.reset();assetPublish.url.value=item.url||'';assetPublish.model.value=ASSET_MODEL_NAMES[item.model]||item.model||'图片模型';assetPublish.prompt.value=item.prompt||'';setAssetPublishError();assetPublish.modal.hidden=false;requestAnimationFrame(()=>assetPublish.category.focus());
+}
+function closeAssetPublish(){assetPublish.modal.hidden=true;assetPublish.item=null;assetPublish.button=null;setAssetPublishError()}
+async function publishAsset(item,button,category,prompt){
   const published=publishedAssetIds();if(published.has(String(item.id))){setAssetPublishButton(button,true);return}
   button.disabled=true;
   try{
-    const createdAt=new Date().toISOString(),publicItem={id:'public-asset-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),imageUrl:item.url,prompt:item.prompt||'',category:'other',createdAt,updatedAt:createdAt};
+    const createdAt=new Date().toISOString(),publicItem={id:'public-asset-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),imageUrl:item.url,prompt:prompt||'',model:item.model||'',category,createdAt,updatedAt:createdAt};
     const response=await fetch('/api/public-references',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({item:publicItem})}),data=await response.json().catch(()=>({}));
     if(!response.ok)throw new Error(data.error||'发布失败。');published.add(String(item.id));localStorage.setItem(PUBLISHED_ASSET_IDS_KEY,JSON.stringify([...published].slice(-1000)));setAssetPublishButton(button,true);toast('已发布到公共库');
   }catch(error){console.warn('发布公共库失败',error);button.disabled=false;toast(error.message||'发布失败，请稍后重试')}
@@ -631,7 +638,7 @@ function renderAssets(){
     meta.append(assetInfoButton(item,expiry));
     const actions=document.createElement('div');actions.className='asset-actions';
     const publish=document.createElement('button');publish.type='button';publish.className='asset-favorite asset-publish';
-    setAssetPublishButton(publish,publishedAssetIds().has(String(item.id)));publish.onclick=()=>publishAsset(item,publish);meta.append(publish);
+    setAssetPublishButton(publish,publishedAssetIds().has(String(item.id)));publish.onclick=()=>openAssetPublish(item,publish);meta.append(publish);
     const edit=document.createElement('button');edit.type='button';edit.className='asset-local-edit';edit.title='编辑图片';edit.setAttribute('aria-label','编辑图片');
     edit.appendChild(assetImageIcon('edit'));
     edit.onclick=()=>openLocalEdit(item,edit);actions.appendChild(edit);
@@ -650,6 +657,7 @@ function renderAssets(){
   requestAnimationFrame(updateAssetsScrollFades);
 }
 assetsEls.dateFilter.onchange=()=>{activeAssetMonth=assetsEls.dateFilter.value;renderAssets()};
+assetPublish.close.onclick=closeAssetPublish;assetPublish.cancel.onclick=closeAssetPublish;assetPublish.modal.addEventListener('click',event=>{if(event.target===assetPublish.modal)closeAssetPublish()});assetPublish.form.onsubmit=async event=>{event.preventDefault();if(!assetPublish.item||!assetPublish.button)return;if(!assetPublish.category.value){setAssetPublishError('请选择分类后再发布。');assetPublish.category.focus();return}assetPublish.submit.disabled=true;assetPublish.submit.textContent='正在发布…';await publishAsset(assetPublish.item,assetPublish.button,assetPublish.category.value,assetPublish.prompt.value.trim());if(assetPublish.button.classList.contains('is-published'))closeAssetPublish();assetPublish.submit.disabled=false;assetPublish.submit.textContent='发布到公共库'};
 assetsLedger?.addEventListener('scroll',updateAssetsScrollFades,{passive:true});
 window.addEventListener('resize',updateAssetsScrollFades);
 
