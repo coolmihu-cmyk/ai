@@ -474,7 +474,7 @@ function markAssetUnavailable(id){
   const card=[...assetsEls.grid.querySelectorAll('[data-asset-id]')].find(node=>node.dataset.assetId===String(id));
   if(!card)return;
   card.classList.add('is-expired');
-  card.querySelector('.asset-model')?.classList.add('is-warning');
+  card.querySelector('.asset-info')?.classList.add('is-warning');
 }
 function setupAssetImageLoading(){
   assetImageObserver?.disconnect();
@@ -527,6 +527,21 @@ async function renderTaskCenter(){
 }
 function assetImageIcon(name){
   const image=document.createElement('img');image.src='icon/asset-'+name+'.svg';image.alt='';image.setAttribute('aria-hidden','true');return image;
+}
+function assetInfoDate(value){
+  const date=new Date(value||Date.now());
+  if(Number.isNaN(date.getTime()))return '日期未知';
+  return date.getFullYear()+'.'+String(date.getMonth()+1).padStart(2,'0')+'.'+String(date.getDate()).padStart(2,'0')+' '+String(date.getHours()).padStart(2,'0')+':'+String(date.getMinutes()).padStart(2,'0');
+}
+function assetInfoButton(item,expiry){
+  const settings=item.settings||{},model=ASSET_MODEL_NAMES[item.model]||item.model||'图片模型',ratio=settings.ratio||settings.size||'自动',resolution=String(settings.resolution||'—').toUpperCase(),date=assetInfoDate(item.createdAt);
+  const info=document.createElement('button');info.type='button';info.className='asset-info'+(!expiry.archived?' is-warning':'');info.setAttribute('aria-label','查看图片信息：模型 '+model+'，比例 '+ratio+'，分辨率 '+resolution+'，生成日期 '+date);info.setAttribute('aria-expanded','false');
+  info.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.25"></circle><path d="M12 10.6v5.2M12 7.7h.01"></path></svg>';
+  const tooltip=document.createElement('span');tooltip.className='asset-info-tooltip';
+  for(const [label,value] of [['模型',model],['比例',ratio],['分辨率',resolution],['生成日期',date]]){const row=document.createElement('span'),key=document.createElement('b'),content=document.createElement('span');key.textContent=label;content.textContent=value;row.append(key,content);tooltip.append(row)}
+  info.append(tooltip);
+  info.onclick=event=>{event.preventDefault();event.stopPropagation();const open=!info.classList.contains('is-open');info.classList.toggle('is-open',open);info.setAttribute('aria-expanded',String(open))};
+  return info;
 }
 function assetReferences(){
   try{const references=JSON.parse(localStorage.getItem(REFERENCE_LIBRARY_KEY)||'[]');return Array.isArray(references)?references:[]}catch(_){return []}
@@ -621,9 +636,7 @@ function renderAssets(){
     image.dataset.src=ImageDelivery.thumbnail(item.url);image.dataset.original=item.url;image.alt=item.prompt||'生成图片';image.loading='lazy';image.decoding='async';image.className='is-loading';media.appendChild(image);
     media.onclick=()=>openImage(item.url);
     const meta=document.createElement('div');meta.className='asset-meta';
-    const model=document.createElement('span');model.className='asset-model';model.textContent=ASSET_MODEL_NAMES[item.model]||item.model;
-    if(!expiry.archived)model.classList.add('is-warning');
-    meta.append(model);
+    meta.append(assetInfoButton(item,expiry));
     const actions=document.createElement('div');actions.className='asset-actions';
     const favorite=document.createElement('button');favorite.type='button';favorite.className='asset-favorite';
     setAssetFavoriteButton(favorite,isAssetFavorited(item));favorite.onclick=()=>{if(favoriteAsset(item))setAssetFavoriteButton(favorite,true)};meta.append(favorite);
