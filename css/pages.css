@@ -90,10 +90,10 @@
 .price-modal .price-name b{font-family:var(--studio-display)}
 
 /* ===== Generation: prompt as an instrument ===== */
-.home-page .app{height:100vh;min-height:100vh;padding-left:74px;position:relative;background:transparent}
+.home-page .app{min-height:100vh;padding-left:74px;position:relative;background:transparent}
 .home-page .main{
-  width:100%;height:100%;padding:44px clamp(24px,6vw,100px);display:flex;align-items:center;
-  justify-content:center;gap:18px;overflow:hidden;background:transparent;
+  width:100%;min-height:100vh;padding:44px clamp(24px,6vw,100px) 112px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:18px;overflow:visible;background:transparent;
 }
 .home-intro{
   width:min(760px,100%);margin-bottom:3px;position:relative;z-index:1;pointer-events:none;

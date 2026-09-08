@@ -13,8 +13,8 @@
   <link rel="stylesheet" href="css/base.css?v=20260828-141842">
   <link rel="stylesheet" href="css/layout.css?v=20260727-32">
   <link rel="stylesheet" href="css/components.css?v=20260727-32">
-  <link rel="stylesheet" href="css/pages.css?v=20260831-125949">
-  <link rel="stylesheet" href="css/modern-ui.css?v=20260908-103218">
+  <link rel="stylesheet" href="css/pages.css?v=20260908-105154">
+  <link rel="stylesheet" href="css/modern-ui.css?v=20260908-105154">
 </head>
 <body class="home-page">
 
@@ -35,7 +35,7 @@
       <img class="home-mascot" src="image/cat.png?v=20260727-32" alt="拿着画笔的黑猫">
     </section>
 
-  <div class="bottom-area">
+    <div class="bottom-area">
   <!-- 对话式输入卡片 -->
     <section class="composer" id="composer">
       <div class="error-msg" id="errorMsg"></div>
@@ -113,11 +113,35 @@
 
       </section>
     </div>
+    <section class="home-public-library" aria-labelledby="publicLibraryTitle">
+      <div class="home-public-library-head">
+        <div>
+          <span>PUBLIC REFERENCE</span>
+          <h2 id="publicLibraryTitle">公共参考库</h2>
+        </div>
+        <span class="home-public-library-count" id="publicReferenceCount">0 张图片</span>
+      </div>
+      <div class="home-public-library-tools">
+        <div class="reference-filter" role="group" aria-label="公共参考分类">
+          <button type="button" class="is-active" data-public-reference-filter="all">全部</button>
+          <button type="button" data-public-reference-filter="photography">摄影</button>
+          <button type="button" data-public-reference-filter="design">设计</button>
+          <button type="button" data-public-reference-filter="commerce">电商</button>
+          <button type="button" data-public-reference-filter="other">其它</button>
+        </div>
+      </div>
+      <section class="home-public-reference-empty" id="publicReferenceEmpty" hidden>
+        <b id="publicReferenceEmptyTitle">公共参考库正在整理</b>
+        <p>这里会持续收录可直接用于创作的公开参考。</p>
+        <a href="settings.html#artist-welcome">新建参考</a>
+      </section>
+      <section class="home-public-reference-grid" id="publicReferenceGrid" aria-live="polite"></section>
+    </section>
   </main>
 </div>
 
-<footer class="home-site-address">PIC.SUPMIHU.CN <span id="appVersion">V245.0</span></footer>
-<a class="home-help-button" href="mj.html" aria-label="打开 Midjourney 创作页" title="Midjourney">?</a>
+<footer class="home-site-address">PIC.SUPMIHU.CN <span id="appVersion">V246.0</span></footer>
+<button class="home-help-button" id="publicReferenceManage" type="button" aria-label="输入公共参考管理口令" title="管理公共参考"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v2"></path></svg></button>
 
 <!-- 隐藏的文件输入 -->
 <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden>
@@ -125,10 +149,24 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="shared.js?v=20260908-103812"></script>
+<div class="reference-modal" id="publicReferenceModal" hidden>
+  <div class="reference-modal-card" role="dialog" aria-modal="true" aria-labelledby="publicReferenceModalTitle">
+    <div class="reference-modal-head"><div><span>PUBLIC REFERENCE</span><h2 id="publicReferenceModalTitle">新建公共参考</h2></div><button type="button" id="publicReferenceClose" aria-label="关闭">×</button></div>
+    <form id="publicReferenceForm">
+      <label>图片链接<input id="publicReferenceImageUrl" name="imageUrl" type="url" placeholder="https://example.com/image.jpg" required autocomplete="url"></label>
+      <label>分类<select id="publicReferenceCategory" name="category"><option value="photography">摄影</option><option value="design">设计</option><option value="commerce">电商</option><option value="other">其它</option></select></label>
+      <label>提示词<textarea id="publicReferencePrompt" name="prompt" rows="5" placeholder="记录这张图片的提示词、画面描述或灵感…"></textarea></label>
+      <p class="reference-form-error" id="publicReferenceFormError" hidden></p>
+      <div class="reference-modal-actions"><button type="button" id="publicReferenceCancel">取消</button><button type="submit">发布参考</button></div>
+    </form>
+  </div>
+</div>
+
+<script src="shared.js?v=20260908-105154"></script>
 <script src="core.js?v=20260901-200000"></script>
 <script src="model-ui.js?v=20260901-200000"></script>
 <script src="generation.js?v=20260907-112459"></script>
 <script src="app.js?v=20260826-113159"></script>
+<script src="public-reference-library.js?v=20260908-154500"></script>
 </body>
 </html>
