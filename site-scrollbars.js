@@ -54,7 +54,7 @@
     scroller.addEventListener("scroll", () => {
       rail.classList.add("is-scrolling");
       clearTimeout(hideTimer);
-      hideTimer = window.setTimeout(() => rail.classList.remove("is-scrolling"), 420);
+      hideTimer = window.setTimeout(() => rail.classList.remove("is-scrolling"), 700);
       requestUpdate();
     }, { passive: true });
 
