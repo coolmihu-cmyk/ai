@@ -336,7 +336,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   border:1px solid var(--ui-line);
   border-radius:var(--ui-radius-xl);
   background:#fff;
-  box-shadow:var(--ui-shadow);
+  box-shadow:none;
 }
 .home-page .composer::before,.home-page .composer::after{display:none}
 .home-page .composer-input{
