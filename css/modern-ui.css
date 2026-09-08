@@ -1409,6 +1409,8 @@ body.home-page{height:100%;min-height:0;overflow:hidden}.home-page .app{height:1
 
 /* Keep the next creative surface in view instead of leaving a silent first screen. */
 @media(min-width:721px){.home-page .main{padding-top:clamp(22px,2.1vw,38px);padding-bottom:48px;gap:16px}.home-intro,.home-page .main > .bottom-area{transform:translateY(-58px)}.home-public-library{margin-top:-54px}}
+
+@media(min-width:721px){.home-page .main > .bottom-area{width:min(1180px,100%)}.home-page .composer{padding:16px 22px 12px;gap:8px}.home-page .composer-input{min-height:76px;max-height:min(32dvh,300px)}.home-page .composer-bar{padding-top:9px}.prompt-input-meta{min-height:26px;margin-top:4px}}
 @media(max-width:720px){.assets-ledger,.reference-ledger{padding:18px 14px 22px;border-radius:10px}.assets-ledger-head{margin-bottom:18px}.assets-ledger-meta{gap:6px}.assets-date-filter{gap:0}.assets-date-filter>span{display:none}.assets-date-filter select{max-width:104px;padding-left:8px;font-size:10px}.reference-ledger-tools{align-items:flex-start;gap:10px;margin-bottom:18px;padding-bottom:12px}.reference-ledger-meta{gap:6px}.reference-date-filter{gap:0}.reference-date-filter>span{display:none}.reference-date-filter select{max-width:104px;padding-left:8px;font-size:10px}.reference-count{padding:0 7px;font-size:10px}.reference-filter{margin-bottom:18px;gap:4px;flex-wrap:wrap}.reference-ledger .reference-filter{margin:0}.reference-filter button{height:30px;padding:0 10px;font-size:10px}}
 
 /* Final image-editor composer geometry */
