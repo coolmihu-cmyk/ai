@@ -4,16 +4,17 @@
 (() => {
   const targets = [
     { selector: ".home-page .app", inset: 20, edge: 5 },
-    { selector: ".assets-ledger", inset: 8, edge: 8 },
+    { selector: ".assets-ledger", edgeSelector: ".assets-shell", inset: 8, edge: 8 },
     { selector: ".reference-ledger", inset: 8, edge: 8 },
     { selector: ".settings-shell", inset: 8, edge: 8 },
     { selector: ".mj-shell", inset: 8, edge: 8 },
     { selector: ".mj-page", inset: 12, edge: 5 }
   ];
 
-  function addScrollbar({ selector, inset, edge }) {
+  function addScrollbar({ selector, edgeSelector, inset, edge }) {
     const scroller = document.querySelector(selector);
     if (!scroller) return;
+    const edgeSurface = edgeSelector ? document.querySelector(edgeSelector) : scroller;
 
     const rail = document.createElement("div");
     rail.className = "site-scrollbar";
@@ -27,13 +28,14 @@
     function update() {
       frame = 0;
       const rect = scroller.getBoundingClientRect();
+      const edgeRect = edgeSurface?.getBoundingClientRect() || rect;
       const viewport = scroller.clientHeight;
       const total = scroller.scrollHeight;
       const travel = Math.max(0, total - viewport);
       const homeSurface = selector === ".home-page .app";
       const top = homeSurface ? inset : Math.round(rect.top + inset);
       const height = homeSurface ? Math.max(0, window.innerHeight - inset * 2) : Math.max(0, Math.round(rect.height - inset * 2));
-      const right = homeSurface ? edge : Math.max(edge, Math.round(window.innerWidth - rect.right + edge));
+      const right = homeSurface ? edge : Math.max(edge, Math.round(window.innerWidth - edgeRect.right + edge));
 
       rail.style.top = `${top}px`;
       rail.style.right = `${right}px`;
@@ -56,7 +58,9 @@
       requestUpdate();
     }, { passive: true });
 
-    new ResizeObserver(requestUpdate).observe(scroller);
+    const resizeObserver = new ResizeObserver(requestUpdate);
+    resizeObserver.observe(scroller);
+    if (edgeSurface && edgeSurface !== scroller) resizeObserver.observe(edgeSurface);
     new MutationObserver(requestUpdate).observe(scroller, { childList: true, subtree: true });
     window.addEventListener("resize", requestUpdate, { passive: true });
     requestUpdate();
