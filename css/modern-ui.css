@@ -9,7 +9,7 @@
 }
 
 :root{
-  --ui-canvas:#ffffff;
+  --ui-canvas:#f8f9fa;
   --ui-surface:#ffffff;
   --ui-soft:#f5f6f7;
   --ui-soft-strong:#eceeef;
@@ -40,9 +40,9 @@
   --text-dim:var(--ui-faint);
 }
 
-html{background:#fff}
+html{background:var(--ui-canvas)}
 body{
-  background:#fff;
+  background:var(--ui-canvas);
   color:var(--ui-ink);
   font-family:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
   font-size:15px;
@@ -220,7 +220,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 }
 
 /* Creation page */
-.home-page{position:relative;isolation:isolate;background:#fff;overflow:hidden}
+.home-page{position:relative;isolation:isolate;background:var(--ui-canvas);overflow:hidden}
 .home-page .app{
   position:relative;
   z-index:1;
@@ -809,7 +809,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .home-page.home-has-result .home-intro,.home-page.home-generating .home-intro{display:none}
 
 /* Editor */
-.edit-page{background:#fff;color:var(--ui-ink);overflow:hidden}
+.edit-page{background:var(--ui-canvas);color:var(--ui-ink);overflow:hidden}
 .editor-shell{
   height:100dvh;
   padding:20px 20px 20px 118px;
@@ -1064,7 +1064,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   padding:5px 9px;
   border:1px solid var(--ui-line-strong);
   border-radius:8px;
-  background:#fff;
+  background:var(--ui-canvas);
   color:var(--ui-ink);
   font-size:11px;
   font-weight:650;
@@ -1682,3 +1682,10 @@ body.home-page{height:100%;min-height:0;overflow:hidden}.home-page .app{height:1
 .local-edit-conversation .local-edit-choice-options{display:grid;grid-template-columns:1fr;gap:6px}
 .local-edit-conversation .local-edit-choice-options button{min-height:31px;padding:7px 10px;border:1px solid #d1d6d8;border-radius:7px;background:#fff;color:#424a4f;font:600 11px/1.25 var(--studio-sans);cursor:pointer;text-align:left}
 .local-edit-conversation .local-edit-choice-options button:hover,.local-edit-conversation .local-edit-choice-options button:focus-visible{border-color:#8d989e;background:#f8f9f9;color:#15191b;outline:0}
+
+/* One neutral site canvas; bordered workspace cards stay white. */
+.assets-shell,.reference-shell,.settings-shell{background:#fff}
+.assets-scroll-fades{display:none!important}
+.home-public-library-tools{background:var(--ui-canvas)}
+.assets-page,.reference-page,.settings-page{background:var(--ui-canvas)}
+.assets-generation-error-actions button{background:#fff}

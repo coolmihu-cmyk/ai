@@ -6,3 +6,6 @@
 @media(max-width:1080px){.mj-workspace{grid-template-columns:1fr}.mj-composer-card textarea{min-height:180px}.mj-controls-card{display:grid;grid-template-columns:1fr;gap:20px}.mj-sliders{padding-top:19px;border-top:1px solid var(--ui-line)}}
 @media(max-width:720px){.mj-page{height:auto;min-height:100dvh;overflow:auto}.mj-shell{height:auto;min-height:calc(100dvh - 104px);margin:10px 10px 94px;padding:24px 16px 32px;border-radius:14px}.mj-header{margin-bottom:22px}.mj-header h1{font-size:39px}.mj-workspace{gap:12px}.mj-composer-card,.mj-controls-card{padding:18px;border-radius:10px}.mj-card-head h2{font-size:19px}.mj-composer-card textarea{min-height:145px;font-size:15px}.mj-controls-card{grid-template-columns:1fr;gap:17px}.mj-controls-card>.mj-card-head,.mj-controls-card>.mj-advanced{grid-column:auto}.mj-settings,.mj-switches{grid-template-columns:repeat(2,minmax(0,1fr))}.mj-sliders{padding-block:15px;border-top:1px solid var(--ui-line)}.mj-submit{align-items:flex-start;flex-direction:column}.mj-submit button{width:100%;justify-content:space-between}}
 @media(max-width:390px){.mj-settings,.mj-switches{grid-template-columns:1fr}.mj-history-link{height:32px;font-size:11px}}
+
+.mj-page{background:var(--ui-canvas)}
+.mj-shell{background:#fff}
