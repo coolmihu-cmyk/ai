@@ -1412,7 +1412,7 @@ body.home-page{height:100%;min-height:0;overflow:hidden}.home-page .app{height:1
 @media(max-width:720px){.home-public-library .reference-filter{flex-wrap:nowrap;gap:2px;margin:0 -14px;padding:0 14px}.home-public-library .reference-filter button{height:34px;padding:0 11px;font-size:11px}}
 
 /* A quiet sign-off gives the visual archive room to end. */
-.home-site-footer{width:min(1480px,100%);margin:30px 0 48px;color:#a3a9ad;font-family:var(--studio-mono);font-size:10px;font-weight:650;letter-spacing:.16em;line-height:1;text-align:center}.home-site-footer::before{content:"";display:block;width:100%;height:1px;margin-bottom:18px;background:#eceeef}@media(max-width:720px){.home-site-footer{margin:24px 0 34px;font-size:9px;letter-spacing:.13em}.home-site-footer::before{margin-bottom:14px}}
+.home-site-footer{width:min(1480px,100%);margin:30px 0 0;padding:0 0 34px;color:#a3a9ad;font-family:var(--studio-mono);font-size:10px;font-weight:650;letter-spacing:.16em;line-height:1;text-align:center}.home-site-footer::before{display:none}@media(max-width:720px){.home-site-footer{margin:24px 0 0;padding-bottom:26px;font-size:9px;letter-spacing:.13em}}
 
 /* Keep the next creative surface in view instead of leaving a silent first screen. */
 @media(min-width:721px){.home-page .main{padding-top:clamp(22px,2.1vw,38px);padding-bottom:48px;gap:16px}.home-intro,.home-page .main > .bottom-area{transform:translateY(-58px)}.home-public-library{margin-top:-54px}}
