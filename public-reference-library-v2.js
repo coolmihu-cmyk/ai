@@ -13,7 +13,6 @@
   function setError(message=""){el.error.textContent=message;el.error.hidden=!message}
   function openModal(item=null){editingId=item?.id||null;el.form.reset();setError();el.modalTitle.textContent=item?"编辑公共参考":"新建公共参考";el.save.textContent=item?"保存修改":"发布参考";if(item){el.imageUrl.value=item.imageUrl||"";el.category.value=categoryOf(item.category);el.prompt.value=item.prompt||""}el.modal.hidden=false;requestAnimationFrame(()=>el.imageUrl.focus())}
   function closeModal(){el.modal.hidden=true;editingId=null}
-  async function verifyAdmin(token){adminToken=token;await request("/api/public-references?verify=1")}
   function startManage(){openModal()}
   async function remove(item){if(!confirm("删除这条公共参考？"))return;try{await request("/api/public-references",{method:"DELETE",body:{id:item.id}});items=items.filter(entry=>entry.id!==item.id);render();toast("公共参考已删除")}catch(error){toast(error.message)}}
   async function load(){try{const data=await request("/api/public-references");items=Array.isArray(data.items)?data.items:[];render()}catch(error){el.empty.hidden=false;el.emptyTitle.textContent="公共参考库暂时不可用";toast(error.message)}}
