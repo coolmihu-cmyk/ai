@@ -1,6 +1,7 @@
 "use strict";
 (() => {
   const STORAGE_KEY='mihu-reference-library-v1',MAX_ITEMS=300;
+  const LIBRARY_NAME=document.body.dataset.libraryName||'参考';
   const CATEGORIES=['photography','design','commerce','other'];
   const el={grid:$('#referenceGrid'),empty:$('#referenceEmpty'),emptyTitle:$('#referenceEmptyTitle'),modal:$('#referenceModal'),modalTitle:$('#referenceModalTitle'),form:$('#referenceForm'),imageUrl:$('#referenceImageUrl'),category:$('#referenceCategory'),prompt:$('#referencePrompt'),error:$('#referenceFormError'),save:$('#referenceForm button[type="submit"]'),create:$('#referenceCreate'),emptyCreate:$('#referenceEmptyCreate'),close:$('#referenceClose'),cancel:$('#referenceCancel'),filters:[...document.querySelectorAll('[data-reference-filter]')],dateFilter:$('#referenceDateFilter'),count:$('#referenceCount')};
   let items=[],activeCategory='all',activeMonth='all',editingId=null;
@@ -49,13 +50,13 @@
   function formatDate(value){const date=new Date(value);return Number.isNaN(date.getTime())?'刚刚添加':new Intl.DateTimeFormat('zh-CN',{month:'short',day:'numeric'}).format(date)}
   function openModal(item=null){
     editingId=item?.id||null;el.form.reset();setError('');
-    el.modalTitle.textContent=item?'编辑参考':'新建参考';el.save.textContent=item?'保存修改':'保存参考';
+    el.modalTitle.textContent=item?'编辑'+LIBRARY_NAME:'新建'+LIBRARY_NAME;el.save.textContent=item?'保存修改':'保存'+LIBRARY_NAME;
     if(item){el.imageUrl.value=item.imageUrl||'';el.category.value=categoryOf(item.category)||'other';el.prompt.value=item.prompt||''}
     el.modal.hidden=false;requestAnimationFrame(()=>el.imageUrl.focus())
   }
   function closeModal(){el.modal.hidden=true;editingId=null}
   function setError(message){el.error.textContent=message;el.error.hidden=!message}
-  function remove(id){items=items.filter(item=>item.id!==id);persist();render();cloudRemove(id);toast('已删除参考')}
+  function remove(id){items=items.filter(item=>item.id!==id);persist();render();cloudRemove(id);toast('已删除'+LIBRARY_NAME)}
   function useReference(item){try{sessionStorage.setItem('mihu_reference_payload',JSON.stringify({url:item.imageUrl,prompt:item.prompt||''}))}catch(_){}navigateWithLoading('index.html')}
   function categoryOf(value){return CATEGORIES.includes(value)?value:''}
   function monthKey(value){const date=new Date(value||0);return Number.isNaN(date.getTime())?'':date.toISOString().slice(0,7)}
@@ -73,7 +74,7 @@
     refreshMonthOptions();
     const visibleItems=items.filter(item=>(activeCategory==='all'||categoryOf(item.category)===activeCategory)&&(activeMonth==='all'||monthKey(item.createdAt)===activeMonth));
     el.count.textContent=visibleItems.length+' 张图片';
-    el.grid.replaceChildren();el.empty.hidden=visibleItems.length>0;el.emptyTitle.textContent=items.length&&(activeCategory!=='all'||activeMonth!=='all')?'这个筛选条件下还没有参考':'还没有参考';
+    el.grid.replaceChildren();el.empty.hidden=visibleItems.length>0;el.emptyTitle.textContent=items.length&&(activeCategory!=='all'||activeMonth!=='all')?'这个筛选条件下还没有'+LIBRARY_NAME:'还没有'+LIBRARY_NAME;
     const columns=Array.from({length:getColumnCount()},()=>{const column=document.createElement('div');column.className='reference-column';return column});
     visibleItems.forEach((item,index)=>{
       const card=document.createElement('article');card.className='reference-card';
@@ -84,8 +85,8 @@
       const meta=document.createElement('div');meta.className='reference-card-meta';const date=document.createElement('span');date.textContent=formatDate(item.createdAt);meta.appendChild(date);body.appendChild(meta);
       const actions=document.createElement('div');actions.className='reference-card-actions';
       const use=document.createElement('button');use.type='button';use.title='带入创意';use.appendChild(icon(['M12 3v18','M3 12h18']));use.onclick=()=>useReference(item);
-      const edit=document.createElement('button');edit.type='button';edit.title='编辑参考';edit.appendChild(icon(['M4 16.5V20h3.5L18.2 9.3l-3.5-3.5L4 16.5Z','m12.7 7.8 3.5 3.5','M13.8 5.7 15.4 4a2 2 0 0 1 2.8 2.8l-1.7 1.6']));edit.onclick=()=>openModal(item);
-      const del=document.createElement('button');del.type='button';del.title='删除参考';del.appendChild(icon(['M4 7h16','M9 7V5h6v2','M7 7l1 13h8l1-13']));del.onclick=()=>remove(item.id);
+      const edit=document.createElement('button');edit.type='button';edit.title='编辑'+LIBRARY_NAME;edit.appendChild(icon(['M4 16.5V20h3.5L18.2 9.3l-3.5-3.5L4 16.5Z','m12.7 7.8 3.5 3.5','M13.8 5.7 15.4 4a2 2 0 0 1 2.8 2.8l-1.7 1.6']));edit.onclick=()=>openModal(item);
+      const del=document.createElement('button');del.type='button';del.title='删除'+LIBRARY_NAME;del.appendChild(icon(['M4 7h16','M9 7V5h6v2','M7 7l1 13h8l1-13']));del.onclick=()=>remove(item.id);
       actions.append(use,edit,del);card.append(media,body,actions);columns[index%columns.length].appendChild(card);
     });
     el.grid.append(...columns);
@@ -105,11 +106,11 @@
       const index=items.findIndex(item=>item.id===editingId);
       if(index<0){setError('这条参考已不存在，请重新添加。');return}
       items[index]={...items[index],...next};
-      const updated=items[index];persist();render();cloudSave(updated);closeModal();toast('参考已更新');
+      const updated=items[index];persist();render();cloudSave(updated);closeModal();toast(LIBRARY_NAME+'已更新');
       return;
     }
     const item={id:'reference-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),...next,createdAt:new Date().toISOString()};items.unshift(item);
-    persist();render();cloudSave(item);closeModal();toast('参考已保存');
+    persist();render();cloudSave(item);closeModal();toast(LIBRARY_NAME+'已保存');
   };
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!el.modal.hidden)closeModal()});
   let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(render,120)});

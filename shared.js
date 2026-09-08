@@ -1,7 +1,7 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 // 每次完成一次改动并提交时递增。
-const APP_VERSION='244.0';
+const APP_VERSION='245.0';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
@@ -98,6 +98,7 @@ function hideError(el){if(!el)return;el.style.display='none';el.textContent=''}
 const APP_RAIL_ITEMS=[
   {key:'index',href:'index.html',title:'创意',icon:'icon/chuangzuo.svg'},
   {key:'assets',href:'assets.html',title:'资产',icon:'icon/folder.svg'},
+  {key:'favorites',href:'favorites.html',title:'收藏',icon:'icon/favorite.svg'},
   {key:'reference',href:'reference.html',title:'参考',icon:'icon/reference-library.svg'},
   {key:'settings',href:'settings.html',title:'设置',icon:'icon/shezhi.svg'}
 ];
@@ -117,7 +118,7 @@ const Settings={
   setKey(k){localStorage.setItem('apimart_api_key',k)},
   getCurrentPage(){
     const page=location.pathname.split('/').pop()||'index.html';
-    return /^(index|reference|assets|mj)\.html$/.test(page)?page:'index.html';
+    return /^(index|favorites|reference|assets|mj)\.html$/.test(page)?page:'index.html';
   },
   openPage(){
     if(location.pathname.endsWith('/settings.html'))return;

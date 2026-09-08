@@ -549,18 +549,18 @@ function assetReferences(){
 function isAssetFavorited(item){return assetReferences().some(reference=>reference.imageUrl===item.url)}
 function setAssetFavoriteButton(button,favorited){
   button.classList.toggle('is-favorited',favorited);
-  button.title=favorited?'已收藏到参考':'收藏到参考';
+  button.title=favorited?'已收藏':'收藏';
   button.setAttribute('aria-label',button.title);
   button.replaceChildren(assetImageIcon(favorited?'favorite-solid':'favorite-outline'));
 }
 function favoriteAsset(item){
   try{
     const references=assetReferences();
-    if(references.some(reference=>reference.imageUrl===item.url)){toast('这张图片已收藏到参考');return true}
+    if(references.some(reference=>reference.imageUrl===item.url)){toast('这张图片已收藏');return true}
     references.unshift({id:'reference-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),imageUrl:item.url,prompt:item.prompt||'',createdAt:new Date().toISOString()});
     localStorage.setItem(REFERENCE_LIBRARY_KEY,JSON.stringify(references.slice(0,REFERENCE_LIBRARY_LIMIT)));
-    toast('已收藏到参考');return true;
-  }catch(error){console.warn('收藏到参考失败',error);toast('收藏失败，请检查浏览器本地存储');return false}
+    toast('已收藏');return true;
+  }catch(error){console.warn('收藏失败',error);toast('收藏失败，请检查浏览器本地存储');return false}
 }
 function sendAssetToComposer(item){
   try{
