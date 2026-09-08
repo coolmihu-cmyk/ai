@@ -2,6 +2,7 @@ const MAX_IMAGE_BYTES=20*1024*1024;
 const ARCHIVE_WINDOW_MS=60*60*1000;
 const ARCHIVE_LIMIT_PER_WINDOW=24;
 const APIMART_IMAGE_HOSTS=new Set(['upload.apimart.ai','getapib.org']);
+const APIMART_IMAGE_HOST_SUFFIXES=['.apimart.ai','.byteimg.com','.douyinpic.com','.volces.com'];
 const ALLOWED_TYPES=new Map([
   ['image/png','png'],['image/jpeg','jpg'],['image/webp','webp']
 ]);
@@ -41,7 +42,9 @@ function readConfig(env){
 }
 function validateSourceUrl(value){
   const url=new URL(value);
-  if(url.protocol!=='https:'||!APIMART_IMAGE_HOSTS.has(url.hostname))throw new Error('仅允许归档 APIMart 生成的图片。');
+  const host=url.hostname.toLowerCase();
+  const allowed=APIMART_IMAGE_HOSTS.has(host)||APIMART_IMAGE_HOST_SUFFIXES.some(suffix=>host.endsWith(suffix));
+  if(url.protocol!=='https:'||!allowed)throw new Error('仅允许归档 APIMart 生成的图片。');
   return url;
 }
 function historyToken(request){
