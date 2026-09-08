@@ -32,7 +32,7 @@ function updateAssetsScrollFades(){
 }
 let assetItems=[],activeAssetMonth='all',generationElapsedTimer=null,queueAdvancing=false,activeGenerationUsesHighDefinition=false;
 let unavailableAssetIds=new Set(),assetImageObserver=null;
-const PUBLISHED_ASSET_IDS_KEY='mihu-published-public-assets-v1';
+const PUBLISHED_ASSET_IDS_KEY='mihu-published-public-assets-v1',PUBLIC_REFERENCE_ADMIN_TOKEN_KEY='mihu_public_reference_admin_token';
 
 const localEdit={
   layer:$('#localEditLayer'),close:$('#localEditClose'),stage:$('#localEditStage'),image:$('#localEditImage'),
@@ -547,8 +547,15 @@ function assetInfoButton(item,expiry){
 function publishedAssetIds(){try{const value=JSON.parse(localStorage.getItem(PUBLISHED_ASSET_IDS_KEY)||'[]');return new Set(Array.isArray(value)?value:[])}catch(_){return new Set()}}
 function setAssetPublishButton(button,published){button.classList.toggle('is-published',published);button.classList.toggle('is-favorited',published);button.title=published?'已发布到公共库':'发布到公共库';button.setAttribute('aria-label',button.title);button.disabled=published;button.replaceChildren(assetImageIcon('publish'))}
 function setAssetPublishError(message=''){assetPublish.error.textContent=message;assetPublish.error.hidden=!message}
-function openAssetPublish(item,button){
+async function publicReferenceToken(){
+  let token=localStorage.getItem(PUBLIC_REFERENCE_ADMIN_TOKEN_KEY)||'';
+  if(!token){token=window.prompt('请输入公共参考库管理口令（将仅保存在这台设备的浏览器中）：')?.trim()||'';if(!token)return ''}
+  const response=await fetch('/api/public-references?verify=1',{headers:{'X-Public-Reference-Admin':token,'Accept':'application/json'}}),data=await response.json().catch(()=>({}));
+  if(!response.ok){localStorage.removeItem(PUBLIC_REFERENCE_ADMIN_TOKEN_KEY);throw new Error(data.error||'管理口令无效。')}localStorage.setItem(PUBLIC_REFERENCE_ADMIN_TOKEN_KEY,token);return token;
+}
+async function openAssetPublish(item,button){
   if(publishedAssetIds().has(String(item.id))){setAssetPublishButton(button,true);return}
+  try{assetPublish.token=await publicReferenceToken()}catch(error){toast(error.message);return}if(!assetPublish.token)return;
   assetPublish.item=item;assetPublish.button=button;assetPublish.form.reset();assetPublish.url.value=item.url||'';assetPublish.model.value=ASSET_MODEL_NAMES[item.model]||item.model||'图片模型';assetPublish.prompt.value=item.prompt||'';setAssetPublishError();assetPublish.modal.hidden=false;requestAnimationFrame(()=>assetPublish.category.focus());
 }
 function closeAssetPublish(){assetPublish.modal.hidden=true;assetPublish.item=null;assetPublish.button=null;setAssetPublishError()}
@@ -557,7 +564,7 @@ async function publishAsset(item,button,category,prompt){
   button.disabled=true;
   try{
     const createdAt=new Date().toISOString(),publicItem={id:'public-asset-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),imageUrl:item.url,prompt:prompt||'',model:item.model||'',category,createdAt,updatedAt:createdAt};
-    const response=await fetch('/api/public-references',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({item:publicItem})}),data=await response.json().catch(()=>({}));
+    const response=await fetch('/api/public-references',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json','X-Public-Reference-Admin':assetPublish.token||''},body:JSON.stringify({item:publicItem})}),data=await response.json().catch(()=>({}));
     if(!response.ok)throw new Error(data.error||'发布失败。');published.add(String(item.id));localStorage.setItem(PUBLISHED_ASSET_IDS_KEY,JSON.stringify([...published].slice(-1000)));setAssetPublishButton(button,true);toast('已发布到公共库');
   }catch(error){console.warn('发布公共库失败',error);button.disabled=false;toast(error.message||'发布失败，请稍后重试')}
 }
