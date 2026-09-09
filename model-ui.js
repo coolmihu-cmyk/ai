@@ -27,9 +27,18 @@ function makeCreationVisual(type,value){
     return img;
   }
   if(type==='ratio'){
-    const img=document.createElement('img');
-    img.className='ratio-icon';img.src='icon/ratio.png';img.alt='';
-    return img;
+    if(value==='auto'){
+      const mark=document.createElement('span');
+      mark.className='ratio-auto-mark';
+      mark.textContent='A';
+      return mark;
+    }
+    const frame=document.createElement('i');
+    const size=getRatioFrameSize(value);
+    frame.className='ratio-frame';
+    frame.style.width=size.width+'px';
+    frame.style.height=size.height+'px';
+    return frame;
   }
   if(type==='quality'||type==='moderation'){
     const mark=document.createElement('span');
