@@ -494,7 +494,6 @@ a{color:inherit;text-decoration:none}
   background:currentColor;opacity:.55;border-radius:2px;
 }
 
-/* 更多参数弹层（MJ） */
 .more-pop{
   min-width:320px;max-width:380px;
   max-height:70vh;overflow-y:auto;

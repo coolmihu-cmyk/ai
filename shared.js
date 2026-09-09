@@ -1,7 +1,7 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 // 每次完成一次改动并提交时递增。
-const APP_VERSION='286.0';
+const APP_VERSION='294.0';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
@@ -96,9 +96,9 @@ async function downloadImage(url){
 function showError(el,msg){if(!el)return;el.textContent=msg;el.style.display='block'}
 function hideError(el){if(!el)return;el.style.display='none';el.textContent=''}
 const APP_RAIL_ITEMS=[
-  {key:'index',href:'index.html',title:'创意',icon:'icon/inspiration-outline.png',activeIcon:'icon/inspiration-solid.png'},
-  {key:'assets',href:'assets.html',title:'资产',icon:'icon/folder-outline.png',activeIcon:'icon/folder-solid.png'},
-  {key:'settings',href:'settings.html',title:'设置',icon:'icon/settings-outline.png',activeIcon:'icon/settings-solid.png'}
+  {key:'index',href:'index.html',title:'创意',icon:'logo.png',activeIcon:'logo.png'},
+  {key:'assets',href:'assets.html',title:'资产',icon:'icon/folder-solid.png',activeIcon:'icon/folder-solid.png'},
+  {key:'settings',href:'settings.html',title:'设置',icon:'icon/settings-solid.png',activeIcon:'icon/settings-solid.png'}
 ];
 function renderAppRails(){
   document.querySelectorAll('[data-app-rail]').forEach(rail=>{
@@ -116,7 +116,7 @@ const Settings={
   setKey(k){localStorage.setItem('apimart_api_key',k)},
   getCurrentPage(){
     const page=location.pathname.split('/').pop()||'index.html';
-    return /^(index|assets|mj)\.html$/.test(page)?page:'index.html';
+    return /^(index|assets|settings)\.html$/.test(page)?page:'index.html';
   },
   openPage(){
     if(location.pathname.endsWith('/settings.html'))return;

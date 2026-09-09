@@ -3,12 +3,10 @@
 /* A single visual scrollbar system for every scrollable application surface. */
 (() => {
   const targets = [
-    { selector: ".home-page .app", inset: 20, edge: 5 },
+    { selector: ".home-page .app", inset: 8, edge: 8 },
     { selector: ".assets-ledger", edgeSelector: ".assets-shell", inset: 8, edge: 8 },
     { selector: ".reference-ledger", inset: 8, edge: 8 },
-    { selector: ".settings-shell", inset: 8, edge: 8 },
-    { selector: ".mj-shell", inset: 8, edge: 8 },
-    { selector: ".mj-page", inset: 12, edge: 5 }
+    { selector: ".settings-shell", inset: 8, edge: 8 }
   ];
 
   function addScrollbar({ selector, edgeSelector, inset, edge }) {
@@ -32,10 +30,9 @@
       const viewport = scroller.clientHeight;
       const total = scroller.scrollHeight;
       const travel = Math.max(0, total - viewport);
-      const homeSurface = selector === ".home-page .app";
-      const top = homeSurface ? inset : Math.round(rect.top + inset);
-      const height = homeSurface ? Math.max(0, window.innerHeight - inset * 2) : Math.max(0, Math.round(rect.height - inset * 2));
-      const right = homeSurface ? edge : Math.max(edge, Math.round(window.innerWidth - edgeRect.right + edge));
+      const top = Math.round(rect.top + inset);
+      const height = Math.max(0, Math.round(rect.height - inset * 2));
+      const right = Math.max(edge, Math.round(window.innerWidth - edgeRect.right + edge));
 
       rail.style.top = `${top}px`;
       rail.style.right = `${right}px`;

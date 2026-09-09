@@ -187,7 +187,7 @@ function updatePlaceholder(){
     nano:'描述你想生成的画面，Nano Banana PRO 擅长高质量创作、文字渲染与多参考图一致性…',
     seedream:'描述你想生成的画面，Seedream 5 PRO 支持文生图与最多 10 张参考图融合…'
   };
-  els.promptInput.placeholder=phs[activeModel]||'描述你想生成的图片…';
+  els.promptInput.placeholder='请输入提示词';
 }
 
 /* ===================== 外置模型输出设置 ===================== */
