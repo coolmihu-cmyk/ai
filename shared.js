@@ -16,14 +16,14 @@ const MODEL_CONFIG={
   gpt25flare:{
     name:'GPT Image2.5 Flare',icon:'icon/model-gpt-chatgpt.svg',promptLimit:3000,
     ratios:['auto','1:1','3:2','2:3','4:3','3:4','5:4','4:5','16:9','9:16','2:1','1:2'],
-    resolutions:[{v:'1k',l:'1K'},{v:'2k',l:'2K'},{v:'4k',l:'4K'}],
+    resolutions:[{v:'1k',l:'标准'},{v:'2k',l:'高清'},{v:'4k',l:'超清'}],
     qualities:[{v:'auto',l:'自动'},{v:'low',l:'低'},{v:'medium',l:'中'},{v:'high',l:'高'},{v:'xhigh',l:'超高'},{v:'max',l:'最高'}],
     defaultResolution:'1k',defaultQuality:'auto',defaultModeration:'low',generationModel:'gpt-image-2.5-flare',editModel:'gpt-image-2.5-flare',supportsTransparent:true
   },
   gpt25sunburst:{
     name:'GPT Image2.5 Sunburst',icon:'icon/model-gpt-chatgpt.svg',promptLimit:3000,
     ratios:['auto','1:1','3:2','2:3','4:3','3:4','5:4','4:5','16:9','9:16','2:1','1:2'],
-    resolutions:[{v:'1k',l:'1K'},{v:'2k',l:'2K'},{v:'4k',l:'4K'}],
+    resolutions:[{v:'1k',l:'标准'},{v:'2k',l:'高清'},{v:'4k',l:'超清'}],
     qualities:[{v:'auto',l:'自动'},{v:'low',l:'低'},{v:'medium',l:'中'},{v:'high',l:'高'},{v:'xhigh',l:'超高'},{v:'max',l:'最高'}],
     defaultResolution:'1k',defaultQuality:'auto',defaultModeration:'low',generationModel:'gpt-image-2.5-sunburst',editModel:'gpt-image-2.5-sunburst',supportsTransparent:true
   },
