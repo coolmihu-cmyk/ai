@@ -1,4 +1,5 @@
-const MAX_IMAGE_BYTES=20*1024*1024;
+const MAX_IMAGE_BYTES=64*1024*1024;
+const ARCHIVE_FETCH_TIMEOUT_MS=120000;
 const ARCHIVE_WINDOW_MS=60*60*1000;
 const ARCHIVE_LIMIT_PER_WINDOW=24;
 const APIMART_IMAGE_HOSTS=new Set(['upload.apimart.ai','getapib.org']);
@@ -46,6 +47,23 @@ function validateSourceUrl(value){
   const allowed=APIMART_IMAGE_HOSTS.has(host)||APIMART_IMAGE_HOST_SUFFIXES.some(suffix=>host.endsWith(suffix));
   if(url.protocol!=='https:'||!allowed)throw new Error('仅允许归档 APIMart 生成的图片。');
   return url;
+}
+function limitedImageStream(body,maxBytes){
+  if(!body)throw new Error('临时图片内容为空。');
+  let received=0;
+  return body.pipeThrough(new TransformStream({
+    transform(chunk,controller){
+      received+=Number(chunk?.byteLength??chunk?.length??0);
+      if(received>maxBytes)throw new Error('图片超过 64MB，无法归档。');
+      controller.enqueue(chunk);
+    },
+    flush(){
+      if(!received)throw new Error('临时图片内容为空。');
+    }
+  }));
+}
+function archiveFetchOptions(extra={}){
+  return {...extra,eo:{timeoutSetting:{connectTimeout:30000,readTimeout:ARCHIVE_FETCH_TIMEOUT_MS,writeTimeout:ARCHIVE_FETCH_TIMEOUT_MS}}};
 }
 function historyToken(request){
   const token=request.headers.get('X-History-Key')||'';
@@ -117,15 +135,14 @@ export async function onRequestPost(context){
     const source=validateSourceUrl(sourceUrl);
     const token=await consumeArchiveQuota(context.env,context.request);
     const config=readConfig(context.env);
-    const sourceResponse=await fetch(source.toString(),{redirect:'manual'});
+    const sourceResponse=await fetch(source.toString(),archiveFetchOptions({redirect:'manual'}));
     if(!sourceResponse.ok)throw new Error('临时图片下载失败（HTTP '+sourceResponse.status+'）。');
     const contentType=(sourceResponse.headers.get('Content-Type')||'').split(';')[0].trim().toLowerCase();
     const extension=ALLOWED_TYPES.get(contentType);
     if(!extension)throw new Error('归档服务仅接受 PNG、JPG 或 WebP 图片。');
     const declaredSize=Number(sourceResponse.headers.get('Content-Length')||0);
-    if(declaredSize>MAX_IMAGE_BYTES)throw new Error('图片超过 20MB，无法归档。');
-    const image=await sourceResponse.arrayBuffer();
-    if(!image.byteLength||image.byteLength>MAX_IMAGE_BYTES)throw new Error('图片超过 20MB，无法归档。');
+    if(declaredSize>MAX_IMAGE_BYTES)throw new Error('图片超过 64MB，无法归档。');
+    const imageStream=limitedImageStream(sourceResponse.body,MAX_IMAGE_BYTES);
 
     const objectKey=makeObjectKey(extension,token),host=config.COS_BUCKET+'.cos.'+config.COS_REGION+'.myqcloud.com';
     const pathname='/'+objectKey,now=Math.floor(Date.now()/1000),keyTime=now+';'+(now+900);
@@ -136,10 +153,10 @@ export async function onRequestPost(context){
       'x-cos-forbid-overwrite':'true'
     };
     const authorization=await cosAuthorization({secretId:config.COS_SECRET_ID,secretKey:config.COS_SECRET_KEY,keyTime,method:'PUT',pathname,headers});
-    const upload=await fetch('https://'+host+pathname,{method:'PUT',headers:{
+    const upload=await fetch('https://'+host+pathname,archiveFetchOptions({method:'PUT',headers:{
       'Authorization':authorization,'Cache-Control':headers['cache-control'],'Content-Type':contentType,
       'x-cos-forbid-overwrite':'true'
-    },body:image});
+    },body:imageStream}));
     if(!upload.ok)throw new Error('COS 写入失败（HTTP '+upload.status+'）。');
     const base=config.COS_PUBLIC_BASE_URL.replace(/\/+$/,'');
     const url=base+'/'+objectKey;
