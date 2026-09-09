@@ -24,7 +24,7 @@ async function buildPendingGeneration(){
   }
   const body={model:config.generationModel,prompt,size:state.ratio,resolution:state.resolution,n:1};
   if(state.quality)body.quality=state.quality;
-  if(state.moderation)body.moderation=state.moderation;
+  if(state.moderation||config.defaultModeration)body.moderation=state.moderation||config.defaultModeration;
   if(config.supportsTransparent&&els.transparentBgBtn.checked){body.background='transparent';body.output_format='png'}
   if(referenceUrls.length)body.image_urls=referenceUrls;
 

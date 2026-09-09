@@ -239,7 +239,7 @@ function localEditShouldShowQualityWarning(){
   catch(_){return true}
 }
 function localEditClosestRatio(width,height){
-  const ratios=['1:1','3:2','2:3','4:3','3:4','5:4','4:5','16:9','9:16','2:1','1:2','3:1','1:3','21:9','9:21'];
+  const ratios=['1:1','3:2','2:3','4:3','3:4','5:4','4:5','16:9','9:16','2:1','1:2'];
   const target=width/height;
   return ratios.reduce((best,ratio)=>{
     const [w,h]=ratio.split(':').map(Number);
