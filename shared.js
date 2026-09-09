@@ -1,7 +1,7 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 // 每次完成一次改动并提交时递增。
-const APP_VERSION='302.0';
+const APP_VERSION='303.0';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
@@ -11,7 +11,23 @@ const MODEL_CONFIG={
     name:'GPT Image2',icon:'icon/model-gpt-chatgpt.svg',promptLimit:3000,
     ratios:['auto','1:1','3:2','2:3','4:3','3:4','16:9','9:16'],
     resolutions:[{v:'1k',l:'快速',price:'0.085积分/张'},{v:'2k',l:'高清',price:'0.14积分/张'},{v:'4k',l:'超清',price:'0.21积分/张'}],
-    defaultResolution:'1k',generationModel:'gpt-image-2',editModel:'gpt-image-2'
+    defaultResolution:'1k',generationModel:'gpt-image-2',editModel:'gpt-image-2',supportsTransparent:true
+  },
+  gpt25flare:{
+    name:'GPT Image2.5 Flare',description:'快速响应',icon:'icon/model-gpt-chatgpt.svg',promptLimit:3000,
+    ratios:['auto','1:1','3:2','2:3','4:3','3:4','5:4','4:5','16:9','9:16','2:1','1:2','21:9','9:21','3:1','1:3'],
+    resolutions:[{v:'1k',l:'1K'},{v:'2k',l:'2K'},{v:'4k',l:'4K'}],
+    qualities:[{v:'auto',l:'自动'},{v:'low',l:'低'},{v:'medium',l:'中'},{v:'high',l:'高'},{v:'xhigh',l:'超高'},{v:'max',l:'最高'}],
+    moderations:[{v:'low',l:'低强度'},{v:'auto',l:'自动'}],
+    defaultResolution:'1k',defaultQuality:'auto',defaultModeration:'low',generationModel:'gpt-image-2.5-flare',editModel:'gpt-image-2.5-flare',supportsTransparent:true
+  },
+  gpt25sunburst:{
+    name:'GPT Image2.5 Sunburst',description:'更高质量',icon:'icon/model-gpt-chatgpt.svg',promptLimit:3000,
+    ratios:['auto','1:1','3:2','2:3','4:3','3:4','5:4','4:5','16:9','9:16','2:1','1:2','21:9','9:21','3:1','1:3'],
+    resolutions:[{v:'1k',l:'1K'},{v:'2k',l:'2K'},{v:'4k',l:'4K'}],
+    qualities:[{v:'auto',l:'自动'},{v:'low',l:'低'},{v:'medium',l:'中'},{v:'high',l:'高'},{v:'xhigh',l:'超高'},{v:'max',l:'最高'}],
+    moderations:[{v:'low',l:'低强度'},{v:'auto',l:'自动'}],
+    defaultResolution:'1k',defaultQuality:'auto',defaultModeration:'low',generationModel:'gpt-image-2.5-sunburst',editModel:'gpt-image-2.5-sunburst',supportsTransparent:true
   },
   seedream:{
     name:'Seedream 5 PRO',icon:'icon/model-sd5-jimeng.svg',promptLimit:3000,

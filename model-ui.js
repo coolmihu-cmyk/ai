@@ -40,6 +40,12 @@ function makeCreationVisual(type,value){
     frame.style.height=size.height+'px';
     return frame;
   }
+  if(type==='quality'||type==='moderation'){
+    const mark=document.createElement('span');
+    mark.className='creation-parameter-mark';
+    mark.textContent=type==='quality'?'Q':'S';
+    return mark;
+  }
   const img=document.createElement('img');
   img.src=RESOLUTION_ICONS[value]||RESOLUTION_ICONS['1K'];
   img.alt='';
@@ -99,6 +105,12 @@ function syncCreationDropdown(dropdown){
     const title=document.createElement('strong');
     title.textContent=option.textContent;
     copy.appendChild(title);
+    if(type==='model'&&option.dataset.description){
+      const description=document.createElement('small');
+      description.className='creation-option-description';
+      description.textContent=option.dataset.description;
+      copy.appendChild(description);
+    }
     if(type==='resolution'&&option.dataset.price){
       const price=document.createElement('small');
       price.className='creation-option-price';
@@ -143,6 +155,12 @@ els.creationRatioSelect.onchange=()=>{
 };
 els.creationResolutionSelect.onchange=()=>{
   modelState[activeModel].resolution=els.creationResolutionSelect.value;
+};
+els.creationQualitySelect.onchange=()=>{
+  modelState[activeModel].quality=els.creationQualitySelect.value;
+};
+els.creationModerationSelect.onchange=()=>{
+  modelState[activeModel].moderation=els.creationModerationSelect.value;
 };
 
 function switchModel(key){
@@ -192,7 +210,7 @@ function updatePlaceholder(){
 
 /* ===================== 外置模型输出设置 ===================== */
 function renderModelSettings(){
-  const res=MODEL_CONFIG[activeModel].resolutions;
+  const config=MODEL_CONFIG[activeModel],res=config.resolutions;
   els.creationResolutionSelect.innerHTML='';
   els.creationResolutionControl.hidden=!res;
 
@@ -207,11 +225,26 @@ function renderModelSettings(){
     }
   }
   syncCreationDropdown(els.creationResolutionControl);
+
+  const renderOptionalSetting=(items,control,select,stateKey)=>{
+    control.hidden=!items?.length;
+    select.replaceChildren();
+    if(!items?.length)return;
+    for(const item of items){
+      const option=document.createElement('option');
+      option.value=item.v;option.textContent=item.l;
+      option.selected=modelState[activeModel][stateKey]===item.v;
+      select.appendChild(option);
+    }
+    syncCreationDropdown(control);
+  };
+  renderOptionalSetting(config.qualities,els.creationQualityControl,els.creationQualitySelect,'quality');
+  renderOptionalSetting(config.moderations,els.creationModerationControl,els.creationModerationSelect,'moderation');
 }
 
 function syncTransparentBackgroundControl(){
   const control=els.transparentBgBtn?.closest('.prompt-transparent-switch');
-  if(control)control.hidden=activeModel!=='gpt';
+  if(control)control.hidden=!MODEL_CONFIG[activeModel].supportsTransparent;
 }
 function renderResPop(){renderModelSettings()}
 
@@ -274,6 +307,8 @@ function applyReferenceLibraryPayload(){
       const config=MODEL_CONFIG[payload.model],settings=payload.settings||{},state=modelState[payload.model];
       if(config.ratios.includes(settings.ratio))state.ratio=settings.ratio;
       if(config.resolutions?.some(item=>item.v===settings.resolution))state.resolution=settings.resolution;
+      if(config.qualities?.some(item=>item.v===settings.quality))state.quality=settings.quality;
+      if(config.moderations?.some(item=>item.v===settings.moderation))state.moderation=settings.moderation;
       if(payload.model!==activeModel)switchModel(payload.model);
       else{
         renderModelSettings();
@@ -356,6 +391,8 @@ els.oneClickStyleInput?.addEventListener('change',async event=>{
 /* ===================== 优化提示词 ===================== */
 const ENHANCE_SYSTEMS={
   gpt:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其结构清晰、具体且适合图片生成模型。不得改变核心意图、主体数量、人物身份和指定元素。只输出优化后的最终提示词，不要解释。',
+  gpt25flare:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 GPT Image 2.5 Flare 快速图像生成，保留核心意图并清晰描述主体、构图、文字、光线和材质。只输出优化后的最终提示词，不要解释。',
+  gpt25sunburst:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 GPT Image 2.5 Sunburst 高质量图像生成与精细编辑，保留核心意图并准确描述主体、构图、文字、光线、材质和细节。只输出优化后的最终提示词，不要解释。',
   nano:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 Nano Banana PRO（Gemini 3 Pro Image）图片生成模型。突出主体、构图、光线、材质、文字内容和参考图一致性。只输出优化后的最终提示词，不要解释。',
   seedream:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 Seedream 5 PRO 的文生图或多参考图图生图。突出主体、构图、镜头、光线、材质与画面文字；有参考图时保留主体与视觉要素的一致性。只输出优化后的最终提示词，不要解释。'
 };

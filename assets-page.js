@@ -40,7 +40,7 @@ const localEdit={
   conversation:$('.local-edit-conversation'),conversationToggle:$('#localEditConversationToggle'),composer:$('.local-edit-composer'),prompt:$('#localEditPrompt'),promptCount:$('#localEditPromptCount'),upload:$('#localEditUpload'),fileInput:$('#localEditFileInput'),referencePreview:$('#localEditReferencePreview'),referencePreviewImage:$('#localEditReferencePreviewImage'),referenceClear:$('#localEditReferenceClear'),settings:$('.local-edit-settings'),error:$('#localEditError'),submit:$('#localEditSubmit'),
   modelSelect:$('#localEditModel'),modelPicker:$('#localEditModelPicker'),modelTrigger:$('#localEditModelTrigger'),modelMenu:$('#localEditModelMenu'),ratioSelect:$('#localEditRatio'),ratioPicker:$('#localEditRatioPicker'),ratioTrigger:$('#localEditRatioTrigger'),ratioMenu:$('#localEditRatioMenu'),resolutionSelect:$('#localEditResolution'),resolutionPicker:$('#localEditResolutionPicker'),resolutionTrigger:$('#localEditResolutionTrigger'),resolutionMenu:$('#localEditResolutionMenu'),
   thread:$('#localEditThread'),status:$('#localEditStatus'),
-  item:null,model:'gpt',ratio:'auto',resolution:'1k',editRootId:null,editGroupId:null,referenceData:null,submitting:false,guiding:false,lastFocus:null,versions:[],messages:[],view:{scale:1,x:0,y:0,pointerId:null,startX:0,startY:0,originX:0,originY:0}
+  item:null,model:'gpt',ratio:'auto',resolution:'1k',quality:'',moderation:'',editRootId:null,editGroupId:null,referenceData:null,submitting:false,guiding:false,lastFocus:null,versions:[],messages:[],view:{scale:1,x:0,y:0,pointerId:null,startX:0,startY:0,originX:0,originY:0}
 };
 let localEditScrollTimer=0;
 function isHighDefinitionResolution(value){return Number.parseFloat(String(value||'').toLowerCase())>1}
@@ -49,8 +49,8 @@ function highDefinitionWaitNotice(message){return isHighDefinitionResolution(loc
 localEdit.image.draggable=false;
 localEdit.upload.textContent='+';
 const localEditSettingsTrigger=document.createElement('button');localEditSettingsTrigger.type='button';localEditSettingsTrigger.className='local-edit-settings-trigger';localEditSettingsTrigger.setAttribute('aria-haspopup','dialog');localEditSettingsTrigger.setAttribute('aria-expanded','false');localEdit.settings.append(localEditSettingsTrigger);
-const localEditSettingsPopover=document.createElement('section');localEditSettingsPopover.className='local-edit-settings-popover';localEditSettingsPopover.hidden=true;localEditSettingsPopover.setAttribute('role','dialog');localEditSettingsPopover.setAttribute('aria-label','图片生成设置');localEditSettingsPopover.innerHTML='<div class="local-edit-settings-section"><b>模型</b><div class="local-edit-settings-models"></div></div><div class="local-edit-settings-section"><b>分辨率</b><div class="local-edit-settings-resolutions"></div></div><div class="local-edit-settings-section"><b>比例</b><div class="local-edit-settings-ratios"></div></div>';localEdit.composer.append(localEditSettingsPopover);
-Object.assign(localEdit,{settingsTrigger:localEditSettingsTrigger,settingsPopover:localEditSettingsPopover,settingsModels:localEditSettingsPopover.querySelector('.local-edit-settings-models'),settingsResolutions:localEditSettingsPopover.querySelector('.local-edit-settings-resolutions'),settingsRatios:localEditSettingsPopover.querySelector('.local-edit-settings-ratios')});
+const localEditSettingsPopover=document.createElement('section');localEditSettingsPopover.className='local-edit-settings-popover';localEditSettingsPopover.hidden=true;localEditSettingsPopover.setAttribute('role','dialog');localEditSettingsPopover.setAttribute('aria-label','图片生成设置');localEditSettingsPopover.innerHTML='<div class="local-edit-settings-section"><b>模型</b><div class="local-edit-settings-models"></div></div><div class="local-edit-settings-section"><b>分辨率</b><div class="local-edit-settings-resolutions"></div></div><div class="local-edit-settings-section"><b>比例</b><div class="local-edit-settings-ratios"></div></div><div class="local-edit-settings-section local-edit-quality-section"><b>质量</b><div class="local-edit-settings-qualities"></div></div><div class="local-edit-settings-section local-edit-moderation-section"><b>内容审核强度</b><div class="local-edit-settings-moderations"></div></div>';localEdit.composer.append(localEditSettingsPopover);
+Object.assign(localEdit,{settingsTrigger:localEditSettingsTrigger,settingsPopover:localEditSettingsPopover,settingsModels:localEditSettingsPopover.querySelector('.local-edit-settings-models'),settingsResolutions:localEditSettingsPopover.querySelector('.local-edit-settings-resolutions'),settingsRatios:localEditSettingsPopover.querySelector('.local-edit-settings-ratios'),settingsQualitySection:localEditSettingsPopover.querySelector('.local-edit-quality-section'),settingsQualities:localEditSettingsPopover.querySelector('.local-edit-settings-qualities'),settingsModerationSection:localEditSettingsPopover.querySelector('.local-edit-moderation-section'),settingsModerations:localEditSettingsPopover.querySelector('.local-edit-settings-moderations')});
 function localEditSetSubmitIcon(){localEdit.submit.classList.remove('is-loading');localEdit.submit.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m0 0-5 5m5-5 5 5"/></svg>';localEdit.submit.setAttribute('aria-label','生成图片');localEdit.submit.title='生成图片'}
 function localEditSetSubmitLoading(){localEdit.submit.classList.add('is-loading');localEdit.submit.innerHTML='<svg fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z" opacity=".25"/><path d="M10.72,19.9a8,8,0,0,1-6.5-9.79A7.77,7.77,0,0,1,10.4,4.16a8,8,0,0,1,9.49,6.52A1.54,1.54,0,0,0,21.38,12h.13a1.37,1.37,0,0,0,1.38-1.54,11,11,0,1,0-12.7,12.39A1.54,1.54,0,0,0,12,21.34h0A1.47,1.47,0,0,0,10.72,19.9Z"><animateTransform attributeName="transform" type="rotate" dur="0.75s" values="0 12 12;360 12 12" repeatCount="indefinite"/></path></svg>';localEdit.submit.setAttribute('aria-label','正在处理图片');localEdit.submit.title='正在处理图片'}
 localEditSetSubmitIcon();
@@ -105,15 +105,19 @@ function localEditRenderRatioPicker(config){
 }
 function localEditRenderUnifiedSettings(config){
   const current=MODEL_CONFIG[localEdit.model];
-  const ratioLabel=localEdit.ratio==='auto'?'AUTO':localEdit.ratio;localEdit.settingsTrigger.textContent=current.name+' · '+ratioLabel+' · '+localEdit.resolution.toUpperCase();localEdit.settingsTrigger.title='打开模型、比例与分辨率设置';localEdit.settingsTrigger.setAttribute('aria-label','图片设置：'+localEdit.settingsTrigger.textContent);
-  localEdit.settingsModels.replaceChildren(...Object.entries(MODEL_CONFIG).map(([key,item])=>{const button=document.createElement('button');button.type='button';button.className='local-edit-settings-option is-model';button.classList.toggle('is-selected',key===localEdit.model);button.textContent=item.name;button.onclick=()=>{localEdit.model=key;localEdit.modelSelect.value=key;localEditSyncSettings()};return button}));
+  const ratioLabel=localEdit.ratio==='auto'?'AUTO':localEdit.ratio,extra=[localEdit.quality&&localEdit.quality.toUpperCase(),localEdit.moderation&&('审核 '+localEdit.moderation)].filter(Boolean);localEdit.settingsTrigger.textContent=[current.name,ratioLabel,localEdit.resolution.toUpperCase(),...extra].join(' · ');localEdit.settingsTrigger.title='打开图片生成设置';localEdit.settingsTrigger.setAttribute('aria-label','图片设置：'+localEdit.settingsTrigger.textContent);
+  localEdit.settingsModels.replaceChildren(...Object.entries(MODEL_CONFIG).map(([key,item])=>{const button=document.createElement('button');button.type='button';button.className='local-edit-settings-option is-model';button.classList.toggle('is-selected',key===localEdit.model);button.textContent=item.name;button.title=item.description?item.name+' · '+item.description:item.name;button.onclick=()=>{localEdit.model=key;localEdit.modelSelect.value=key;localEditSyncSettings()};return button}));
   localEdit.settingsResolutions.replaceChildren(...config.resolutions.map(item=>{const button=document.createElement('button');button.type='button';button.className='local-edit-settings-option';button.classList.toggle('is-selected',item.v===localEdit.resolution);button.textContent=item.v.toUpperCase();button.onclick=()=>{localEdit.resolution=item.v;localEdit.resolutionSelect.value=item.v;localEditRenderResolutionPicker(config);localEditRenderUnifiedSettings(config)};return button}));
   localEdit.settingsRatios.replaceChildren(...config.ratios.map(value=>{const button=document.createElement('button');button.type='button';button.className='local-edit-settings-option';button.classList.toggle('is-selected',value===localEdit.ratio);button.textContent=value==='auto'?'AUTO':value;button.title=value;button.onclick=()=>{localEdit.ratio=value;localEdit.ratioSelect.value=value;localEditRenderRatioPicker(config);localEditRenderUnifiedSettings(config)};return button}));
+  localEdit.settingsQualitySection.hidden=!config.qualities?.length;localEdit.settingsQualities.replaceChildren(...(config.qualities||[]).map(item=>{const button=document.createElement('button');button.type='button';button.className='local-edit-settings-option';button.classList.toggle('is-selected',item.v===localEdit.quality);button.textContent=item.l;button.onclick=()=>{localEdit.quality=item.v;localEditRenderUnifiedSettings(config)};return button}));
+  localEdit.settingsModerationSection.hidden=!config.moderations?.length;localEdit.settingsModerations.replaceChildren(...(config.moderations||[]).map(item=>{const button=document.createElement('button');button.type='button';button.className='local-edit-settings-option';button.classList.toggle('is-selected',item.v===localEdit.moderation);button.textContent=item.l;button.onclick=()=>{localEdit.moderation=item.v;localEditRenderUnifiedSettings(config)};return button}));
 }
 function localEditSyncSettings(){
   const config=MODEL_CONFIG[localEdit.model];
   if(!config.ratios.includes(localEdit.ratio))localEdit.ratio='auto';
   if(!config.resolutions.some(option=>option.v===localEdit.resolution))localEdit.resolution=config.defaultResolution||config.resolutions[0]?.v||'';
+  if(!config.qualities?.some(option=>option.v===localEdit.quality))localEdit.quality=config.defaultQuality||'';
+  if(!config.moderations?.some(option=>option.v===localEdit.moderation))localEdit.moderation=config.defaultModeration||'';
   localEdit.modelSelect.replaceChildren(...Object.keys(MODEL_CONFIG).map(key=>new Option(key[0].toUpperCase(),key,key===localEdit.model,key===localEdit.model)));localEdit.ratioSelect.replaceChildren(...config.ratios.map(value=>new Option(value,value,value===localEdit.ratio,value===localEdit.ratio)));
   localEditRenderModelPicker();
   localEditRenderRatioPicker(config);localEdit.resolutionSelect.replaceChildren(...config.resolutions.map(item=>new Option(item.v.toUpperCase(),item.v,item.v===localEdit.resolution,item.v===localEdit.resolution)));localEditRenderResolutionPicker(config);localEditRenderUnifiedSettings(config);
@@ -124,6 +128,8 @@ function localEditSetInitialSettings(item){
   localEdit.model=localEditModelKey(item.model);
   localEdit.ratio=config.ratios.includes(settings.ratio)?settings.ratio:'auto';
   localEdit.resolution=config.resolutions.some(option=>option.v===settings.resolution)?settings.resolution:(config.defaultResolution||config.resolutions[0]?.v||'');
+  localEdit.quality=config.qualities?.some(option=>option.v===settings.quality)?settings.quality:(config.defaultQuality||'');
+  localEdit.moderation=config.moderations?.some(option=>option.v===settings.moderation)?settings.moderation:(config.defaultModeration||'');
   localEdit.prompt.value='';localEditSyncSettings();
 }
 function localEditSelectVersion(versionId,imageUrl,versionLabel=''){
@@ -332,7 +338,10 @@ async function submitLocalEdit({prompt:providedPrompt='',alreadyRecorded=false,s
     const editPrompt=prompt+'。以输入图片为基础进行编辑，保留用户未明确要求改变的主体、构图和重要视觉特征。';
     const config=MODEL_CONFIG[localEdit.model];
     const body={model:config.editModel||config.generationModel,prompt:editPrompt,size:localEdit.ratio,resolution:localEdit.resolution,n:1,image_urls:[localEdit.item.url,...(localEdit.referenceData?[localEdit.referenceData]:[])]};
-    promptLogId=await PromptLog.create({id:'editor-'+Date.now(),prompt,model:localEdit.model,settings:{ratio:localEdit.ratio,resolution:localEdit.resolution},body,scope:'editor',originalCosUrl:localEdit.item.url,referenceUrls:body.image_urls});
+    if(localEdit.quality)body.quality=localEdit.quality;
+    if(localEdit.moderation)body.moderation=localEdit.moderation;
+    const editSettings={ratio:localEdit.ratio,resolution:localEdit.resolution,...(localEdit.quality?{quality:localEdit.quality}:{}),...(localEdit.moderation?{moderation:localEdit.moderation}:{})};
+    promptLogId=await PromptLog.create({id:'editor-'+Date.now(),prompt,model:localEdit.model,settings:editSettings,body,scope:'editor',originalCosUrl:localEdit.item.url,referenceUrls:body.image_urls});
     let url=await Apimart.generate({apiKey,body,endpoint:'/images/generations',signal:generationController.signal,maxWaitMs:30*60*1000,onSubmitted:taskId=>{
       PromptLog.update(promptLogId,{taskId,status:'processing'});
     },onProgress:(status,progress)=>{
@@ -341,11 +350,11 @@ async function submitLocalEdit({prompt:providedPrompt='',alreadyRecorded=false,s
     const itemId=Date.now(),createdAt=new Date().toISOString();let archived=false,historyKey='';
     if(Archive.isAvailable()){
       try{
-        const archive=await Archive.image(url,{id:itemId,prompt,model:localEdit.model,settings:{ratio:localEdit.ratio,resolution:localEdit.resolution},editRootId:localEdit.editRootId,editGroupId:localEdit.editGroupId,createdAt,type:'image'});
+        const archive=await Archive.image(url,{id:itemId,prompt,model:localEdit.model,settings:editSettings,editRootId:localEdit.editRootId,editGroupId:localEdit.editGroupId,createdAt,type:'image'});
         url=archive.url;archived=true;historyKey=archive.historyKey||'';
       }catch(error){console.warn('图片编辑归档失败',error);localEditSetStatus('新版本已生成，但永久归档失败；请及时下载。')}
     }
-    const version={id:itemId,url,prompt,model:localEdit.model,settings:{ratio:localEdit.ratio,resolution:localEdit.resolution},editRootId:localEdit.editRootId,editGroupId:localEdit.editGroupId,archived,historyKey,createdAt,type:'image'};
+    const version={id:itemId,url,prompt,model:localEdit.model,settings:editSettings,editRootId:localEdit.editRootId,editGroupId:localEdit.editGroupId,archived,historyKey,createdAt,type:'image'};
     await History.save(version);assetItems=sortAssets([version,...assetItems.filter(asset=>asset.id!==version.id)]);renderAssets();
     localEditClearReference();localEditClearStatus();localEdit.versions.push(version);localEdit.messages.push({role:'assistant',text:'V'+localEdit.versions.length,generatedAt:localEditGeneratedDate(createdAt),imageUrl:version.url,versionId:version.id});localEditRenderThread();
     PromptLog.update(promptLogId,{status:'completed',cosUrl:archived?url:null,errorMessage:null});
@@ -535,11 +544,12 @@ function assetInfoDate(value){
   return date.getFullYear()+'.'+String(date.getMonth()+1).padStart(2,'0')+'.'+String(date.getDate()).padStart(2,'0')+' '+String(date.getHours()).padStart(2,'0')+':'+String(date.getMinutes()).padStart(2,'0');
 }
 function assetInfoButton(item,expiry){
-  const settings=item.settings||{},model=ASSET_MODEL_NAMES[item.model]||item.model||'图片模型',ratio=settings.ratio||settings.size||'自动',resolution=String(settings.resolution||'—').toUpperCase(),date=assetInfoDate(item.createdAt);
-  const info=document.createElement('button');info.type='button';info.className='asset-info'+(!expiry.archived?' is-warning':'');info.setAttribute('aria-label','查看图片信息：模型 '+model+'，比例 '+ratio+'，分辨率 '+resolution+'，生成日期 '+date);info.setAttribute('aria-expanded','false');
+  const settings=item.settings||{},model=ASSET_MODEL_NAMES[item.model]||item.model||'图片模型',ratio=settings.ratio||settings.size||'自动',resolution=String(settings.resolution||'—').toUpperCase(),quality=settings.quality?String(settings.quality).toUpperCase():'',moderation=settings.moderation||'',date=assetInfoDate(item.createdAt);
+  const info=document.createElement('button');info.type='button';info.className='asset-info'+(!expiry.archived?' is-warning':'');info.setAttribute('aria-label','查看图片信息：模型 '+model+'，比例 '+ratio+'，分辨率 '+resolution+(quality?'，质量 '+quality:'')+(moderation?'，审核 '+moderation:'')+'，生成日期 '+date);info.setAttribute('aria-expanded','false');
   info.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.25"></circle><path d="M12 10.6v5.2M12 7.7h.01"></path></svg>';
   const tooltip=document.createElement('span');tooltip.className='asset-info-tooltip';
-  for(const [label,value] of [['模型',model],['比例',ratio],['分辨率',resolution],['生成日期',date]]){const row=document.createElement('span'),key=document.createElement('b'),content=document.createElement('span');key.textContent=label;content.textContent=value;row.append(key,content);tooltip.append(row)}
+  const rows=[['模型',model],['比例',ratio],['分辨率',resolution],...(quality?[['质量',quality]]:[]),...(moderation?[['审核强度',moderation]]:[]),['生成日期',date]];
+  for(const [label,value] of rows){const row=document.createElement('span'),key=document.createElement('b'),content=document.createElement('span');key.textContent=label;content.textContent=value;row.append(key,content);tooltip.append(row)}
   info.append(tooltip);
   info.onclick=event=>{event.preventDefault();event.stopPropagation();const open=!info.classList.contains('is-open');info.classList.toggle('is-open',open);info.setAttribute('aria-expanded',String(open))};
   return info;

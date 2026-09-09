@@ -5,6 +5,8 @@ const TRANSPARENT_ELEMENT_PROMPT='透明背景,background="transparent"';
 function snapshotCreationState(model){
   const state=modelState[model],snapshot={ratio:state.ratio};
   if(state.resolution)snapshot.resolution=state.resolution;
+  if(state.quality)snapshot.quality=state.quality;
+  if(state.moderation)snapshot.moderation=state.moderation;
   return snapshot;
 }
 
@@ -13,26 +15,18 @@ async function buildPendingGeneration(){
   let prompt=els.promptInput.value.trim();
   const refMgr=refManagers[key],refCount=refMgr?refMgr.count():0;
   const referenceUrls=refCount?await refMgr.persist():[];
-  let body,endpoint;
-
-  if(key==='gpt'){
-    endpoint='/images/generations';
-    if(els.transparentBgBtn.checked){
-      prompt+=','+TRANSPARENT_ELEMENT_PROMPT;
-      if(!/background\s*=\s*["']transparent["']/i.test(prompt))prompt+='\nbackground="transparent"';
-    }
-    body={model:MODEL_CONFIG.gpt.generationModel,prompt,size:state.ratio,resolution:state.resolution,n:1};
-    if(els.transparentBgBtn.checked){body.background='transparent';body.output_format='png'}
-    if(referenceUrls.length)body.image_urls=referenceUrls;
-  }else if(key==='nano'){
-    endpoint='/images/generations';
-    body={model:MODEL_CONFIG.nano.generationModel,prompt,size:state.ratio,resolution:state.resolution,n:1};
-    if(referenceUrls.length)body.image_urls=referenceUrls;
-  }else if(key==='seedream'){
-    endpoint='/images/generations';
-    body={model:MODEL_CONFIG.seedream.generationModel,prompt,size:state.ratio,resolution:state.resolution,n:1};
-    if(referenceUrls.length)body.image_urls=referenceUrls;
+  const config=MODEL_CONFIG[key];
+  if(!config)throw new Error('当前图片模型不可用，请重新选择。');
+  const endpoint='/images/generations';
+  if(config.supportsTransparent&&els.transparentBgBtn.checked){
+    prompt+=','+TRANSPARENT_ELEMENT_PROMPT;
+    if(!/background\s*=\s*["']transparent["']/i.test(prompt))prompt+='\nbackground="transparent"';
   }
+  const body={model:config.generationModel,prompt,size:state.ratio,resolution:state.resolution,n:1};
+  if(state.quality)body.quality=state.quality;
+  if(state.moderation)body.moderation=state.moderation;
+  if(config.supportsTransparent&&els.transparentBgBtn.checked){body.background='transparent';body.output_format='png'}
+  if(referenceUrls.length)body.image_urls=referenceUrls;
 
   return {
     id:'generation-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),
