@@ -3,9 +3,9 @@ const CREATION_MODEL_ICONS=Object.fromEntries(
   Object.entries(MODEL_CONFIG).map(([key,config])=>[key,config.icon])
 );
 const RESOLUTION_ICONS={
-  '1k':'icon/resolution-1k.svg','1K':'icon/resolution-1k.svg',
-  '1.5K':'icon/resolution-1k-plus.svg','2k':'icon/resolution-2k.svg',
-  '2K':'icon/resolution-2k.svg','4k':'icon/resolution-4k.svg','4K':'icon/resolution-4k.svg'
+  '1k':'icon/resolution-1k.png','1K':'icon/resolution-1k.png',
+  '1.5K':'icon/resolution-1k-plus.png','2k':'icon/resolution-2k.png',
+  '2K':'icon/resolution-2k.png','4k':'icon/resolution-4k.png','4K':'icon/resolution-4k.png'
 };
 const sharedReferenceManager=createReferenceManager({
   dropzone:null,fileInput:null,grid:null,count:null,error:els.errorMsg
@@ -27,18 +27,9 @@ function makeCreationVisual(type,value){
     return img;
   }
   if(type==='ratio'){
-    if(value==='auto'){
-      const mark=document.createElement('span');
-      mark.className='ratio-auto-mark';
-      mark.textContent='A';
-      return mark;
-    }
-    const frame=document.createElement('i');
-    const size=getRatioFrameSize(value);
-    frame.className='ratio-frame';
-    frame.style.width=size.width+'px';
-    frame.style.height=size.height+'px';
-    return frame;
+    const img=document.createElement('img');
+    img.className='ratio-icon';img.src='icon/ratio.png';img.alt='';
+    return img;
   }
   if(type==='quality'||type==='moderation'){
     const mark=document.createElement('span');

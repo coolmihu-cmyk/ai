@@ -632,6 +632,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   color:#686e72;
 }
 .creation-select-visual img{width:17px;height:17px;display:block;object-fit:contain}
+.creation-select-visual .ratio-icon{width:18px;height:18px}
 .creation-select-visual .model-mark-gpt{width:19px;height:19px}
 .creation-select-visual .model-mark-nano{width:18px;height:18px}
 .creation-select-visual .model-mark-seedream{width:27px;height:27px}
@@ -703,6 +704,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   background:transparent;
 }
 .creation-option-visual img{width:27px;height:27px;display:block}
+.creation-option-visual .ratio-icon{width:22px;height:22px}
 .creation-option-visual .model-mark-gpt{width:25px;height:25px}
 .creation-option-visual .model-mark-nano{width:21px;height:25px}
 .creation-option-visual .model-mark-seedream{width:30px;height:40px}
