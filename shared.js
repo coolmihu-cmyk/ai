@@ -114,7 +114,7 @@ function hideError(el){if(!el)return;el.style.display='none';el.textContent=''}
 const APP_RAIL_ITEMS=[
   {key:'index',href:'index.html',title:'创意',icon:'logo.png',activeIcon:'logo.png'},
   {key:'assets',href:'assets.html',title:'资产',icon:'icon/folder-solid.png',activeIcon:'icon/folder-solid.png'},
-  {key:'settings',href:'settings.html',title:'设置',icon:'icon/settings-solid.png',activeIcon:'icon/settings-solid.png'}
+  {key:'settings',href:'settings.html',title:'设置',icon:'icon/key-solid.png',activeIcon:'icon/key-solid.png'}
 ];
 function renderAppRails(){
   document.querySelectorAll('[data-app-rail]').forEach(rail=>{
