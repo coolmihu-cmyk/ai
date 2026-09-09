@@ -28,10 +28,9 @@ function makeCreationVisual(type,value){
   }
   if(type==='ratio'){
     if(value==='auto'){
-      const mark=document.createElement('span');
-      mark.className='ratio-auto-mark';
-      mark.textContent='A';
-      return mark;
+      const img=document.createElement('img');
+      img.className='ratio-auto-icon';img.src='icon/ratio-auto.png';img.alt='';
+      return img;
     }
     const frame=document.createElement('i');
     const size=getRatioFrameSize(value);
