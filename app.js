@@ -48,3 +48,50 @@ syncTransparentBackgroundControl();
   }, { passive: true });
   syncMascotToCanvas();
 })();
+
+(() => {
+  const canvas = document.querySelector(".home-page .app");
+  const inspiration = document.querySelector(".home-page .home-public-library");
+  const backToTop = document.getElementById("homeBackToTop");
+  if (!canvas || !inspiration || !backToTop) return;
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let snapping = false;
+  let snapTimer = 0;
+
+  const inspirationTop = () => {
+    const canvasRect = canvas.getBoundingClientRect();
+    const inspirationRect = inspiration.getBoundingClientRect();
+    return Math.max(0, Math.round(canvas.scrollTop + inspirationRect.top - canvasRect.top - 14));
+  };
+
+  const snapTo = (top) => {
+    snapping = true;
+    clearTimeout(snapTimer);
+    canvas.scrollTo({ top, behavior: reduceMotion.matches ? "auto" : "smooth" });
+    snapTimer = window.setTimeout(() => { snapping = false; }, reduceMotion.matches ? 80 : 760);
+  };
+
+  canvas.addEventListener("wheel", (event) => {
+    if (event.ctrlKey || event.metaKey || Math.abs(event.deltaY) < 2) return;
+    if (snapping) {
+      event.preventDefault();
+      return;
+    }
+    const target = inspirationTop();
+    if (event.deltaY > 0 && canvas.scrollTop <= 2) {
+      event.preventDefault();
+      snapTo(target);
+      return;
+    }
+    if (event.deltaY < 0 && canvas.scrollTop > 2 && canvas.scrollTop <= target + 6) {
+      event.preventDefault();
+      snapTo(0);
+    }
+  }, { passive: false });
+
+  const syncBackToTop = () => backToTop.classList.toggle("is-visible", canvas.scrollTop > 120);
+  canvas.addEventListener("scroll", syncBackToTop, { passive: true });
+  backToTop.addEventListener("click", () => snapTo(0));
+  syncBackToTop();
+})();
