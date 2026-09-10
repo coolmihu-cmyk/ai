@@ -447,6 +447,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .one-click-style-btn:disabled{opacity:.55;cursor:wait}
 .one-click-style-btn img{width:17px;height:17px;display:block;object-fit:contain}
 .prompt-enhance-switch>img{width:17px;height:17px;display:block;object-fit:contain}
+.prompt-enhance-switch{width:32px;height:32px;padding:0;border:0;background:transparent;display:grid;place-items:center;color:inherit}
+.prompt-enhance-switch:hover{border:0;background:transparent}
 .creation-settings{
   width:100%;
   padding:12px;

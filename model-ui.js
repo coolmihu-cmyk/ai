@@ -451,7 +451,7 @@ async function optimizeCurrentPrompt(){
     showComposerError(message);
     return false;
   }finally{
-    els.enhanceBtn.disabled=false;
+    els.enhanceBtn.disabled=!!els.transparentBgBtn?.checked;
     els.enhanceBtn.closest('.prompt-enhance-switch')?.classList.remove('is-loading');
   }
 }

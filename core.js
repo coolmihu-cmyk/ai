@@ -21,11 +21,8 @@ const els={
   creationModerationControl:$('#creationModerationControl'),creationModerationSelect:$('#creationModerationSelect')
 };
 document.querySelector('#appVersion')?.replaceChildren('V'+APP_VERSION);
-els.enhanceBtn?.addEventListener('change',()=>{
-  if(els.enhanceBtn.checked&&els.transparentBgBtn)els.transparentBgBtn.checked=false;
-});
+els.enhanceBtn?.addEventListener('click',()=>window.optimizeCurrentPrompt?.());
 els.transparentBgBtn?.addEventListener('change',()=>{
-  if(els.transparentBgBtn.checked&&els.enhanceBtn)els.enhanceBtn.checked=false;
   if(els.enhanceBtn)els.enhanceBtn.disabled=els.transparentBgBtn.checked;
 });
 if(els.enhanceBtn&&els.transparentBgBtn)els.enhanceBtn.disabled=els.transparentBgBtn.checked;

@@ -49,11 +49,6 @@ async function doGenerate(){
   ensureNotificationPermission();
   try{
 
-    if(els.enhanceBtn.checked){
-      if(typeof window.optimizeCurrentPrompt!=='function')throw new Error('提示词优化功能尚未就绪，请刷新页面后重试。');
-      const optimized=await window.optimizeCurrentPrompt();
-      if(!optimized)return;
-    }
     const prompt=els.promptInput.value.trim();
     modelState[activeModel].promptText=prompt;
     const job=await buildPendingGeneration();
