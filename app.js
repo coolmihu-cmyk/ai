@@ -31,3 +31,20 @@ syncTransparentBackgroundControl();
   quoteAuthor.textContent = `— ${selected.artist}`;
   quoteRoot.classList.add("is-ready");
 })();
+
+(() => {
+  const canvas = document.querySelector(".home-page .app");
+  const mascot = document.querySelector(".home-page > .home-mascot-action");
+  if (!canvas || !mascot) return;
+
+  let frame = 0;
+  const syncMascotToCanvas = () => {
+    frame = 0;
+    mascot.style.setProperty("--home-mascot-scroll", `${-canvas.scrollTop}px`);
+  };
+
+  canvas.addEventListener("scroll", () => {
+    if (!frame) frame = requestAnimationFrame(syncMascotToCanvas);
+  }, { passive: true });
+  syncMascotToCanvas();
+})();
