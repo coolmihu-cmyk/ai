@@ -34,6 +34,7 @@ body.home-page{background:#e7e7e7}.home-page .app-rail{display:none}
 .home-page .ref-upload-btn{width:56px;min-width:56px;height:56px;border:1px dashed var(--ui-line);border-radius:12px;background:transparent;display:grid;place-items:center}
 .home-page .ref-upload-btn img{width:28px;height:28px}
 .home-page .composer{position:relative}
+.home-page .composer-bar{position:static}
 .home-page .ref-upload-btn{position:absolute;left:22px;top:28px;z-index:2}
 .home-page .prompt-input-shell{padding-left:78px}
 }
