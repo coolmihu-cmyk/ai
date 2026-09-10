@@ -33,7 +33,7 @@ body.home-page{background:#e7e7e7}.home-page .app-rail{display:none}
 .home-page .one-click-style-btn{width:32px;min-width:32px;padding:0;display:grid;place-items:center;border:0;background:transparent;text-decoration:none}
 .home-page .creation-transparent-switch{flex:0 0 auto;align-self:center}
 .home-page .ref-upload-btn{width:90px;min-width:90px;height:110px;border:1px dashed var(--ui-line);border-radius:14px;background:transparent;display:grid;place-items:center}
-.home-page .ref-upload-btn img{width:36px;height:36px}
+.home-page .ref-upload-btn>span{font-size:34px;font-weight:300;color:#6f7579}
 .home-page .composer{position:relative}
 .home-page .composer-bar{position:static}
 .home-page .ref-upload-btn{position:absolute;left:22px;top:18px;z-index:2}
