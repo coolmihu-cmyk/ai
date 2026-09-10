@@ -38,4 +38,8 @@ body.home-page{background:#e7e7e7}.home-page .app-rail{display:none}
 .home-page .ref-upload-btn{position:absolute;left:22px;top:18px;z-index:2}
 .home-page .prompt-input-shell{padding-left:110px}
 .home-page .composer:has(.ref-row:not(:empty)) .ref-upload-btn{display:none}
+.home-page .ref-row.has-refs{position:absolute;left:22px;top:18px;z-index:3;display:flex;flex-wrap:nowrap;gap:8px;width:calc(100% - 44px);max-height:110px;padding:0;overflow:visible}
+.home-page .ref-row.has-refs .ref-thumb,.home-page .ref-row.has-refs .ref-add{width:90px;height:110px;min-width:90px;border-radius:14px}
+.home-page .ref-row.has-refs .ref-thumb{box-shadow:3px 3px 0 #fff,5px 5px 0 var(--ui-line)}
+.home-page .ref-row.has-refs .ref-add{display:grid;place-items:center}
 }
