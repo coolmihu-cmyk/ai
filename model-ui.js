@@ -19,13 +19,14 @@ function getRatioFrameSize(ratio){
 }
 
 function makeCreationVisual(type,value){
-  if(type==='model'||type==='gpt-version'){
+  if(type==='model'){
     const img=document.createElement('img');
     img.className='model-mark model-mark-'+value;
     img.src=CREATION_MODEL_ICONS[value]||CREATION_MODEL_ICONS.gpt;
     img.alt='';
     return img;
   }
+  if(type==='gpt-version')return document.createElement('span');
   if(type==='ratio'){
     if(value==='auto'){
       const img=document.createElement('img');
