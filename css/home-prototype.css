@@ -31,10 +31,10 @@ body.home-page{background:#e7e7e7}.home-page .app-rail{display:none}
 .home-page .home-public-library-tools{order:1;position:sticky;top:0;padding:14px 0 16px;background:#fff}.home-page .reference-filter{width:100%;max-width:none;justify-content:center;gap:18px;margin:0;overflow:visible}.home-page .reference-filter button{height:26px;padding:0;border:0;border-radius:0;background:transparent;color:#373737;font-size:14px;font-weight:400;line-height:26px;flex:none}.home-page .reference-filter button.is-active{background:transparent;font-weight:700;text-decoration:underline;text-underline-offset:3px}
 .home-page .home-public-reference-grid{order:2;width:100%;grid-template-columns:repeat(5,minmax(0,1fr));gap:21px}.prototype-placeholders{display:grid;order:3;grid-template-columns:repeat(5,minmax(0,1fr));gap:21px}.prototype-placeholders i{display:block;height:240px;background:#e2e2e2;border-radius:16px}.home-public-library:has(.public-reference-card) .prototype-placeholders{display:none}.home-page .home-public-reference-empty,.home-page .home-site-footer{display:none}
 .home-page .one-click-style-btn{width:32px;min-width:32px;padding:0;display:grid;place-items:center;border:0;background:transparent;text-decoration:none}
-.home-page .ref-upload-btn{width:56px;min-width:56px;height:56px;border:1px dashed var(--ui-line);border-radius:12px;background:transparent;display:grid;place-items:center}
-.home-page .ref-upload-btn img{width:28px;height:28px}
+.home-page .ref-upload-btn{width:90px;min-width:90px;height:140px;border:1px dashed var(--ui-line);border-radius:14px;background:transparent;display:grid;place-items:center}
+.home-page .ref-upload-btn img{width:36px;height:36px}
 .home-page .composer{position:relative}
 .home-page .composer-bar{position:static}
 .home-page .ref-upload-btn{position:absolute;left:22px;top:28px;z-index:2}
-.home-page .prompt-input-shell{padding-left:78px}
+.home-page .prompt-input-shell{padding-left:110px}
 }
