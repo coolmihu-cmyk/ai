@@ -32,7 +32,8 @@ body.home-page{background:#e7e7e7}.home-page .app-rail{display:none}
 .home-page .home-public-reference-grid{order:2;width:100%;grid-template-columns:repeat(5,minmax(0,1fr));gap:21px}.prototype-placeholders{display:grid;order:3;grid-template-columns:repeat(5,minmax(0,1fr));gap:21px}.prototype-placeholders i{display:block;height:240px;background:#e2e2e2;border-radius:16px}.home-public-library:has(.public-reference-card) .prototype-placeholders{display:none}.home-page .home-public-reference-empty,.home-page .home-site-footer{display:none}
 .home-page .one-click-style-btn{width:32px;min-width:32px;padding:0;display:grid;place-items:center;border:0;background:transparent;text-decoration:none}
 .home-page .creation-transparent-select{width:92px;flex:0 0 92px;align-self:center}
-.home-page .creation-transparent-select .creation-select-menu{width:92px;min-width:92px}
+.home-page .creation-transparent-select .creation-select-menu{box-sizing:border-box;width:108px;min-width:108px;max-width:108px}
+.home-page .creation-transparent-select .creation-select-option{box-sizing:border-box;width:100%;min-width:0;padding-left:12px;padding-right:12px}
 .home-page .creation-transparent-select .creation-select-visual,.home-page .creation-transparent-select .creation-option-visual{display:none}
 .home-page .ref-upload-btn{width:90px;min-width:90px;height:110px;border:1px dashed var(--ui-line);border-radius:14px;background:transparent;display:grid;place-items:center}
 .home-page .ref-upload-btn>span{font-size:34px;font-weight:300;color:#6f7579}
