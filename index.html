@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="css/components.css?v=20260727-32">
   <link rel="stylesheet" href="css/pages.css?v=20260908-105154">
   <link rel="stylesheet" href="css/modern-ui.css?v=20260910-310">
-<link rel="stylesheet" href="css/home-prototype.css?v=320">
+<link rel="stylesheet" href="css/home-prototype.css?v=321">
 </head>
 <body class="home-page">
 <header class="prototype-header"><div class="prototype-tab"><b>New folder</b><span>PIC.SUPMIHU.CN BETA <strong id="appVersion">V304.0</strong></span></div><nav><a href="assets.html"><img src="icon/folder-solid.png" alt="">资产 / 任务</a><a href="settings.html"><img src="icon/key-solid.png" alt="">输入密钥</a></nav></header>
@@ -110,17 +110,17 @@
             <button class="creation-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false"><span class="creation-select-copy"><strong data-creation-current>低强度</strong></span><span class="creation-select-visual" data-creation-visual aria-hidden="true"></span><svg class="creation-select-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4.5 6.5 3.5 3 3.5-3"/></svg></button>
             <div class="creation-select-menu" role="listbox" aria-label="选择内容审核强度"></div>
           </div>
+          <label class="prompt-transparent-switch creation-transparent-switch" for="transparentBgBtn">
+            <span>透明背景</span>
+            <input id="transparentBgBtn" type="checkbox">
+            <i aria-hidden="true"></i>
+          </label>
         </div>
         <button class="bar-btn clear-prompt-btn" id="clearPromptBtn" title="清空当前提示词" aria-label="清空当前提示词">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V5h6v2"/><path d="m7 7 1 13h8l1-13"/><path d="M10 11v5M14 11v5"/></svg>
         </button>
         <div class="bar-spacer"></div>
         <div class="prompt-input-actions" aria-label="提示词选项">
-          <label class="prompt-transparent-switch" for="transparentBgBtn">
-            <span>透明背景</span>
-            <input id="transparentBgBtn" type="checkbox">
-            <i aria-hidden="true"></i>
-          </label>
           <button class="prompt-enhance-switch" id="enhanceBtn" type="button" title="优化已输入的提示词" aria-label="优化已输入的提示词">
             <img src="icon/ai-spark-edit.svg" alt="" aria-hidden="true">
           </button>
