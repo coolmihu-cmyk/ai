@@ -313,9 +313,6 @@ function renderRefRow(){
       thumb.className='ref-thumb';
       thumb.style.setProperty('--ref-index',String(i));
       thumb.style.setProperty('--ref-angle',i%2===0?'-3deg':'3deg');
-      thumb.style.setProperty('--ref-delay',(i*65)+'ms');
-      thumb.style.setProperty('--ref-return-delay',((refs.length-1-i)*34)+'ms');
-      thumb.style.setProperty('--ref-opacity',i===refs.length-1?'1':String(Math.min(.58+i*.1,.86)));
       thumb.style.setProperty('--ref-left',(i%3===2?-4:i%2===0?0:7)+'px');
       thumb.style.setProperty('--ref-top',(i%3)*2+'px');
       thumb.innerHTML='<img src="'+ref.dataUrl+'" alt="参考图"><button class="ref-remove" data-i="'+i+'">×</button>';
