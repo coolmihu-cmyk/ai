@@ -306,6 +306,7 @@ function renderRefRow(){
     els.refRow.classList.add('has-refs');
     const stack=document.createElement('div');
     stack.className='ref-stack';
+    stack.classList.toggle('is-single',refs.length===1);
     stack.style.setProperty('--ref-count',String(refs.length));
     refs.forEach((ref,i)=>{
       const thumb=document.createElement('div');
