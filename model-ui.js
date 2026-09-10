@@ -306,10 +306,14 @@ function renderRefRow(){
     els.refRow.classList.add('has-refs');
     const stack=document.createElement('div');
     stack.className='ref-stack';
+    stack.style.setProperty('--ref-count',String(refs.length));
     refs.forEach((ref,i)=>{
       const thumb=document.createElement('div');
       thumb.className='ref-thumb';
       thumb.style.setProperty('--ref-index',String(i));
+      thumb.style.setProperty('--ref-angle',i%2===0?'-3deg':'3deg');
+      thumb.style.setProperty('--ref-left',(i%3===2?-4:i%2===0?0:7)+'px');
+      thumb.style.setProperty('--ref-top',(i%3)*2+'px');
       thumb.innerHTML='<img src="'+ref.dataUrl+'" alt="参考图"><button class="ref-remove" data-i="'+i+'">×</button>';
       thumb.querySelector('.ref-remove').onclick=()=>{mgr.remove(i);renderRefRow()};
       stack.appendChild(thumb);
