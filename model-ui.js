@@ -26,7 +26,11 @@ function makeCreationVisual(type,value){
     img.alt='';
     return img;
   }
-  if(type==='gpt-version')return document.createElement('span');
+  if(type==='gpt-version'){
+    const img=document.createElement('img');
+    img.className='model-mark model-mark-gpt';img.src=CREATION_MODEL_ICONS.gpt;img.alt='';
+    return img;
+  }
   if(type==='ratio'){
     if(value==='auto'){
       const img=document.createElement('img');
