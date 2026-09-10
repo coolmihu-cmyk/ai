@@ -15,10 +15,10 @@
   <link rel="stylesheet" href="css/components.css?v=20260727-32">
   <link rel="stylesheet" href="css/pages.css?v=20260908-105154">
   <link rel="stylesheet" href="css/modern-ui.css?v=20260910-311">
-<link rel="stylesheet" href="css/home-prototype.css?v=325">
+<link rel="stylesheet" href="css/home-prototype.css?v=326">
 </head>
 <body class="home-page">
-<header class="prototype-header"><div class="prototype-tab"><b>New folder</b><span>PIC.SUPMIHU.CN BETA <strong id="appVersion">V304.0</strong></span></div><nav><a href="assets.html"><img src="icon/folder-solid.png" alt="">资产 / 任务</a><a href="settings.html"><img src="icon/key-solid.png" alt="">输入密钥</a></nav></header>
+<header class="prototype-header"><div class="prototype-tab"><b>New folder</b><span>PIC.SUPMIHU.CN BETA <strong id="appVersion">V304.0</strong></span></div><nav><a href="assets.html"><img src="icon/folder-solid.png" alt="">资产 / 任务</a></nav></header>
 <button class="home-mascot-action" id="publicReferenceManage" type="button" aria-label="发布公共参考" title="发布公共参考">
   <img class="home-mascot-screen" src="image/tv-signal.gif?v=20260909-300" alt="" aria-hidden="true">
   <img class="home-mascot" src="image/cat.png?v=20260909-300" alt="拿着画笔的黑猫">
@@ -30,7 +30,7 @@
   <main class="main">
     <section class="home-intro" aria-labelledby="homeIntroTitle">
       <div class="home-title-block">
-<h1 id="homeIntroTitle"><span>MIHU DESIGN <strong>LAB</strong></span></h1>
+<h1 id="homeIntroTitle"><span>MIHU DESIGN <strong>LAB</strong><a class="home-title-key" href="settings.html" aria-label="输入密钥" title="输入密钥"><img src="icon/key-solid.png" alt=""></a></span></h1>
         <p class="home-artist-quote" id="homeArtistQuote" aria-live="polite">
           <span id="homeArtistQuoteText"></span>
           <cite id="homeArtistQuoteAuthor"></cite>
@@ -48,7 +48,7 @@
 
       <!-- 提示词输入 -->
       <div class="prompt-input-shell">
-        <textarea class="composer-input" id="promptInput" placeholder="描述你想生成的图片…" maxlength="3000"></textarea>
+        <textarea class="composer-input" id="promptInput" placeholder="描述你想生成的图片…" maxlength="3000" autofocus></textarea>
         <div class="prompt-input-meta">
           <span class="char-counter prompt-char-counter"><span id="charCount">0</span>/3000</span>
         </div>
