@@ -308,6 +308,7 @@ function renderRefRow(){
     stack.className='ref-stack';
     stack.classList.toggle('is-single',refs.length===1);
     stack.style.setProperty('--ref-count',String(refs.length));
+    stack.addEventListener('mouseleave',()=>stack.classList.remove('is-expanded'));
     refs.forEach((ref,i)=>{
       const thumb=document.createElement('div');
       thumb.className='ref-thumb';
@@ -316,6 +317,7 @@ function renderRefRow(){
       thumb.style.setProperty('--ref-left',(i%3===2?-4:i%2===0?0:7)+'px');
       thumb.style.setProperty('--ref-top',(i%3)*2+'px');
       thumb.innerHTML='<img src="'+ref.dataUrl+'" alt="参考图"><button class="ref-remove" data-i="'+i+'">×</button>';
+      thumb.addEventListener('mouseenter',()=>stack.classList.add('is-expanded'));
       thumb.querySelector('.ref-remove').onclick=()=>{mgr.remove(i);renderRefRow()};
       stack.appendChild(thumb);
     });
