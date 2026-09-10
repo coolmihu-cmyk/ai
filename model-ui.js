@@ -299,20 +299,24 @@ function renderRefRow(){
   if(!refs.length){els.refRow.classList.remove('has-refs')}
   else{
     els.refRow.classList.add('has-refs');
+    const stack=document.createElement('div');
+    stack.className='ref-stack';
     refs.forEach((ref,i)=>{
       const thumb=document.createElement('div');
       thumb.className='ref-thumb';
+      thumb.style.setProperty('--ref-index',String(i));
       thumb.innerHTML='<img src="'+ref.dataUrl+'" alt="参考图"><button class="ref-remove" data-i="'+i+'">×</button>';
       thumb.querySelector('.ref-remove').onclick=()=>{mgr.remove(i);renderRefRow()};
-      els.refRow.appendChild(thumb);
+      stack.appendChild(thumb);
     });
     if(refs.length<10){
       const add=document.createElement('button');
       add.className='ref-add';
       add.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>';
       add.onclick=()=>els.fileInput.click();
-      els.refRow.appendChild(add);
+      stack.appendChild(add);
     }
+    els.refRow.appendChild(stack);
   }
 }
 
