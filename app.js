@@ -76,15 +76,15 @@ syncTransparentBackgroundControl();
     }
 
     snapping = true;
-    const duration = 1050;
+    const duration = 1450;
     const startedAt = performance.now();
-    const easeInOutCubic = (progress) => progress < 0.5
-      ? 4 * progress * progress * progress
-      : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+    const easeInOutQuart = (progress) => progress < 0.5
+      ? 8 * Math.pow(progress, 4)
+      : 1 - Math.pow(-2 * progress + 2, 4) / 2;
 
     const animate = (now) => {
       const progress = Math.min(1, (now - startedAt) / duration);
-      canvas.scrollTop = start + distance * easeInOutCubic(progress);
+      canvas.scrollTop = start + distance * easeInOutQuart(progress);
       if (progress < 1) {
         snapFrame = requestAnimationFrame(animate);
         return;
