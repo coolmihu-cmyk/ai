@@ -446,6 +446,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .one-click-style-btn:focus-visible{outline:2px solid var(--ui-ink);outline-offset:3px;border-radius:4px}
 .one-click-style-btn:disabled{opacity:.55;cursor:wait}
 .one-click-style-btn img{width:17px;height:17px;display:block;object-fit:contain}
+.one-click-style-btn.is-loading img{opacity:.45;animation:reverse-prompt-pulse .8s ease-in-out infinite alternate}
+@keyframes reverse-prompt-pulse{to{opacity:1}}
 .ref-upload-btn>span{display:block;font-size:28px;font-weight:300;line-height:1}
 .prompt-enhance-switch>img{width:17px;height:17px;display:block;object-fit:contain}
 .prompt-enhance-switch{width:32px;height:32px;padding:0;border:0;background:transparent;display:grid;place-items:center;color:inherit}

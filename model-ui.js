@@ -355,6 +355,7 @@ function applyReferenceLibraryPayload(){
 els.promptInput.addEventListener('input',()=>{
   els.charCount.textContent=els.promptInput.value.length;
   modelState[activeModel].promptText=els.promptInput.value;
+  if(els.promptInput.value.trim())hideComposerError();
   resizePromptInput();
 });
 els.clearPromptBtn.onclick=()=>{
@@ -389,8 +390,9 @@ async function reverseStyleFromImage(file){
   if(file.size>10*1024*1024){showComposerError('图片不能超过 10MB。');return}
   const apiKey=Settings.getKey();
   if(!apiKey){Settings.openPage();toast('请先保存 API Key');return}
-  const button=els.oneClickStyleBtn,originalMarkup=button.innerHTML;
-  hideComposerError();button.disabled=true;button.replaceChildren(document.createTextNode('正在分析…'));
+  const button=els.oneClickStyleBtn;
+  hideComposerError();button.disabled=true;button.classList.add('is-loading');
+  button.title='正在分析图片';button.setAttribute('aria-label','正在分析图片');
   try{
     const [imageUrl,frame]=await Promise.all([fileToDataURI(file),readImageFrame(file)]);
     const frameHint=frame?'图片真实尺寸为 '+frame.width+'×'+frame.height+'，最简画幅比例为 '+getSimplifiedRatio(frame.width,frame.height)+'。':'';
@@ -404,7 +406,8 @@ async function reverseStyleFromImage(file){
       :(error?.message||'图片分析失败，请稍后重试。');
     showComposerError(message);
   }finally{
-    button.disabled=false;button.innerHTML=originalMarkup;
+    button.disabled=false;button.classList.remove('is-loading');
+    button.title='上传图片反推提示词';button.setAttribute('aria-label','上传图片反推提示词');
   }
 }
 
