@@ -55,67 +55,28 @@ syncTransparentBackgroundControl();
   const backToTop = document.getElementById("homeBackToTop");
   if (!canvas || !inspiration || !backToTop) return;
 
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  let snapping = false;
-  let snapFrame = 0;
-
   const inspirationTop = () => {
     const canvasRect = canvas.getBoundingClientRect();
     const inspirationRect = inspiration.getBoundingClientRect();
     return Math.max(0, Math.round(canvas.scrollTop + inspirationRect.top - canvasRect.top - 14));
   };
 
-  const snapTo = (top) => {
-    cancelAnimationFrame(snapFrame);
-    const start = canvas.scrollTop;
-    const distance = top - start;
-    if (reduceMotion.matches || Math.abs(distance) < 2) {
-      canvas.scrollTop = top;
-      snapping = false;
-      return;
-    }
-
-    snapping = true;
-    const duration = 1450;
-    const startedAt = performance.now();
-    const easeInOutQuart = (progress) => progress < 0.5
-      ? 8 * Math.pow(progress, 4)
-      : 1 - Math.pow(-2 * progress + 2, 4) / 2;
-
-    const animate = (now) => {
-      const progress = Math.min(1, (now - startedAt) / duration);
-      canvas.scrollTop = start + distance * easeInOutQuart(progress);
-      if (progress < 1) {
-        snapFrame = requestAnimationFrame(animate);
-        return;
-      }
-      canvas.scrollTop = top;
-      snapping = false;
-      snapFrame = 0;
-    };
-    snapFrame = requestAnimationFrame(animate);
-  };
-
   canvas.addEventListener("wheel", (event) => {
     if (event.ctrlKey || event.metaKey || Math.abs(event.deltaY) < 2) return;
-    if (snapping) {
-      event.preventDefault();
-      return;
-    }
     const target = inspirationTop();
     if (event.deltaY > 0 && canvas.scrollTop <= 2) {
       event.preventDefault();
-      snapTo(target);
+      canvas.scrollTop = target;
       return;
     }
     if (event.deltaY < 0 && canvas.scrollTop > 2 && canvas.scrollTop <= target + 6) {
       event.preventDefault();
-      snapTo(0);
+      canvas.scrollTop = 0;
     }
   }, { passive: false });
 
   const syncBackToTop = () => backToTop.classList.toggle("is-visible", canvas.scrollTop > 120);
   canvas.addEventListener("scroll", syncBackToTop, { passive: true });
-  backToTop.addEventListener("click", () => snapTo(0));
+  backToTop.addEventListener("click", () => { canvas.scrollTop = 0; });
   syncBackToTop();
 })();
