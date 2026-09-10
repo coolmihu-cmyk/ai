@@ -10,7 +10,7 @@ body.home-page{background:#f0f0f0}.home-page .app-rail{display:none}
 .prototype-tab b{font-size:16px;color:#101010}.prototype-tab>span:last-child{margin-left:auto;font-size:10px;font-weight:500}.prototype-tab #appVersion{margin-left:4px;color:inherit;font:800 10px/1 PrototypeUI,Arial,sans-serif;letter-spacing:0}
 .prototype-header nav{position:absolute;z-index:2;right:53px;top:31px;display:flex;align-items:center;gap:18px;color:#373737;font:500 14px/1 PrototypeUI,Arial,sans-serif}
 .prototype-header a{display:flex;align-items:center;gap:6px;color:inherit;text-decoration:none}.prototype-header a img{display:block;width:15px;height:15px;object-fit:contain}
-.home-page .app{position:absolute;inset:72px 20px 20px;width:auto;height:auto;min-height:0;padding:0;border:1px solid #bbb;border-radius:0 30px 30px 30px;background:#fff;box-shadow:0 14px 36px rgba(17,19,21,.18);overflow:auto}
+.home-page .app{position:absolute;inset:72px 20px 20px;width:auto;height:auto;min-height:0;padding:0;border:1px solid #bbb;border-radius:0 30px 30px 30px;background:#fff;box-shadow:0 18px 46px rgba(17,19,21,.28);overflow:auto}
 .home-page .main{position:relative;width:100%;min-height:948px;height:auto;box-sizing:border-box;padding:28px 40px 40px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;background:#fff;overflow:visible}
 .home-page .home-intro{position:relative;z-index:2;width:min(1180px,100%);height:220px;min-height:220px;margin:0;padding:0 22px;box-sizing:border-box;display:flex;align-items:flex-start;gap:18px;text-align:left;pointer-events:none;transform:translateY(-15px)}
 .home-page .home-title-block{width:auto;min-width:0;margin-top:84px;margin-left:0;padding:0;transform:none}
