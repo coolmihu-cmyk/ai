@@ -580,8 +580,12 @@ async function publishAsset(item,button,category,prompt){
 }
 function sendAssetToComposer(item){
   try{
+    const referenceUrls=[...new Set([
+      ...(Array.isArray(item.referenceUrls)?item.referenceUrls:[]),
+      item.referenceUrl||''
+    ].filter(Boolean))];
     sessionStorage.setItem('mihu_reference_payload',JSON.stringify({
-      url:item.url,
+      urls:referenceUrls,
       prompt:item.prompt||'',
       replacePrompt:true,
       model:item.model,

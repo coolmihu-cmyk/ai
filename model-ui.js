@@ -334,7 +334,7 @@ function applyReferenceLibraryPayload(){
   try{
     const payload=JSON.parse(sessionStorage.getItem('mihu_reference_payload')||'null');
     sessionStorage.removeItem('mihu_reference_payload');
-    if(!payload?.url)return;
+    if(!payload)return;
     if(payload.model&&MODEL_CONFIG[payload.model]){
       const config=MODEL_CONFIG[payload.model],settings=payload.settings||{},state=modelState[payload.model];
       if(config.ratios.includes(settings.ratio))state.ratio=settings.ratio;
@@ -348,12 +348,19 @@ function applyReferenceLibraryPayload(){
       }
     }
     const manager=refManagers[activeModel];
-    if(!manager?.addRemote(payload.url,'参考库图片'))return;
+    const referenceUrls=[...new Set([
+      ...(Array.isArray(payload.urls)?payload.urls:[]),
+      payload.url||''
+    ].filter(Boolean))];
+    let addedReferences=0;
+    for(const [index,url] of referenceUrls.entries()){
+      if(manager?.addRemote(url,'原始参考图 '+(index+1)))addedReferences++;
+    }
     if(payload.prompt&&(payload.replacePrompt||!els.promptInput.value.trim())){
       const prompt=payload.prompt.slice(0,MODEL_CONFIG[activeModel].promptLimit);
       els.promptInput.value=prompt;modelState[activeModel].promptText=prompt;updateCharLimit();
     }
-    renderRefRow();toast('已带入参考图和提示词');
+    renderRefRow();toast(addedReferences?'已带入原始参考图和提示词':'已带入提示词和生成参数');
   }catch(_){}
 }
 /* ===================== 提示词字符计数 ===================== */
