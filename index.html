@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="css/layout.css?v=20260727-32">
   <link rel="stylesheet" href="css/components.css?v=20260727-32">
   <link rel="stylesheet" href="css/pages.css?v=20260908-105154">
-  <link rel="stylesheet" href="css/modern-ui.css?v=20260910-312">
+  <link rel="stylesheet" href="css/modern-ui.css?v=20260910-313">
 <link rel="stylesheet" href="css/home-prototype.css?v=328">
 </head>
 <body class="home-page">
@@ -66,7 +66,7 @@
               <option value="seedream">Seedream 5 PRO</option>
               <option value="nano">Nano Banana PRO</option>
             </select>
-            <button class="creation-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" title="选择模型">
+            <button class="creation-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" data-tooltip="选择模型">
               <span class="creation-select-copy"><strong data-creation-current>GPT Image2</strong></span>
               <span class="creation-select-visual" data-creation-visual><img id="creationModelIcon" src="icon/model-gpt-chatgpt.svg" alt=""></span>
               <svg class="creation-select-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4.5 6.5 3.5 3 3.5-3"/></svg>
@@ -79,12 +79,12 @@
               <option value="gpt25flare">2.5 Flare</option>
               <option value="gpt25sunburst">2.5 Sunburst</option>
             </select>
-            <button class="creation-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" title="选择版本"><span class="creation-select-copy"><strong data-creation-current>2.0</strong></span><span class="creation-select-visual" data-creation-visual aria-hidden="true"></span><svg class="creation-select-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4.5 6.5 3.5 3 3.5-3"/></svg></button>
+            <button class="creation-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" data-tooltip="选择版本"><span class="creation-select-copy"><strong data-creation-current>2.0</strong></span><span class="creation-select-visual" data-creation-visual aria-hidden="true"></span><svg class="creation-select-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4.5 6.5 3.5 3 3.5-3"/></svg></button>
             <div class="creation-select-menu" role="listbox" aria-label="选择 GPT IMAGE 版本"></div>
           </div>
           <div class="creation-select creation-ratio-select creation-dropdown" data-creation-dropdown="ratio">
             <select id="creationRatioSelect" aria-label="宽高比"></select>
-            <button class="creation-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" title="选择比例">
+            <button class="creation-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" data-tooltip="选择比例">
               <span class="creation-select-copy"><strong data-creation-current>1:1</strong></span>
               <span class="creation-select-visual" data-creation-visual aria-hidden="true"></span>
               <svg class="creation-select-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4.5 6.5 3.5 3 3.5-3"/></svg>
@@ -93,7 +93,7 @@
           </div>
           <div class="creation-select creation-resolution-select creation-dropdown" id="creationResolutionControl" data-creation-dropdown="resolution">
             <select id="creationResolutionSelect" aria-label="分辨率"></select>
-            <button class="creation-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" title="选择分辨率">
+            <button class="creation-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" data-tooltip="选择分辨率">
               <span class="creation-select-copy"><strong data-creation-current>1K · 快速</strong></span>
               <span class="creation-select-visual creation-resolution-mark" data-creation-visual aria-hidden="true">1K</span>
               <svg class="creation-select-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4.5 6.5 3.5 3 3.5-3"/></svg>
@@ -102,7 +102,7 @@
           </div>
           <div class="creation-select creation-quality-select creation-dropdown" id="creationQualityControl" data-creation-dropdown="quality" hidden>
             <select id="creationQualitySelect" aria-label="图片质量"></select>
-            <button class="creation-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" title="选择图片质量"><span class="creation-select-copy"><strong data-creation-current>自动</strong></span><span class="creation-select-visual" data-creation-visual aria-hidden="true"></span><svg class="creation-select-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4.5 6.5 3.5 3 3.5-3"/></svg></button>
+            <button class="creation-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" data-tooltip="选择图片质量"><span class="creation-select-copy"><strong data-creation-current>自动</strong></span><span class="creation-select-visual" data-creation-visual aria-hidden="true"></span><svg class="creation-select-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4.5 6.5 3.5 3 3.5-3"/></svg></button>
             <div class="creation-select-menu" role="listbox" aria-label="选择图片质量"></div>
           </div>
           <div class="creation-select creation-moderation-select creation-dropdown" id="creationModerationControl" data-creation-dropdown="moderation" hidden>
@@ -115,7 +115,7 @@
               <option value="no" selected>否</option>
               <option value="yes">是</option>
             </select>
-            <button class="creation-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" title="是否打开透明背景">
+            <button class="creation-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" data-tooltip="是否打开透明背景">
               <span class="creation-select-copy"><strong data-creation-current>否</strong></span>
               <span class="creation-select-visual" data-creation-visual aria-hidden="true"></span>
               <svg class="creation-select-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4.5 6.5 3.5 3 3.5-3"/></svg>
