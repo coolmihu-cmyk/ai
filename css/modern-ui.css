@@ -566,6 +566,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 }
 .creation-model-select{width:170px}
 .creation-gpt-version-select{width:166px}
+.creation-gpt-version-select .creation-select-visual,.creation-gpt-version-select .creation-option-visual{display:none}
 .creation-ratio-select{width:116px}
 .creation-resolution-select{width:142px}
 .creation-quality-select{width:112px}
