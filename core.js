@@ -26,6 +26,8 @@ els.enhanceBtn?.addEventListener('change',()=>{
 });
 els.transparentBgBtn?.addEventListener('change',()=>{
   if(els.transparentBgBtn.checked&&els.enhanceBtn)els.enhanceBtn.checked=false;
+  if(els.enhanceBtn)els.enhanceBtn.disabled=els.transparentBgBtn.checked;
 });
+if(els.enhanceBtn&&els.transparentBgBtn)els.enhanceBtn.disabled=els.transparentBgBtn.checked;
 initCommonPage();
 
