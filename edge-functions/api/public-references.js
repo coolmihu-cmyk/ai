@@ -17,7 +17,7 @@ function cleanItem(value){
   const createdAt=cleanDate(value.createdAt,Date.now()),updatedAt=cleanDate(value.updatedAt,createdAt);
   return {id,type:'public-reference',imageUrl:imageUrl.href.slice(0,2000),prompt:String(value.prompt||'').slice(0,5000),model:String(value.model||'').slice(0,80),category:cleanCategory(value.category),createdAt,updatedAt};
 }
-export async function onRequestOptions(){return new Response(null,{status:204,headers:{Allow:'GET, POST, PUT, OPTIONS'}})}
+export async function onRequestOptions(){return new Response(null,{status:204,headers:{Allow:'GET, POST, PUT, DELETE, OPTIONS'}})}
 export async function onRequestGet(context){
   try{if(!isSiteRequest(context.request))return json({error:'不允许跨站访问。'},403);const store=kv(context.env),url=new URL(context.request.url);if(url.searchParams.get('verify')==='1'){admin(context);return json({authorized:true})}const cursor=url.searchParams.get('cursor')||undefined,options={prefix:PREFIX,limit:MAX_PAGE_SIZE};if(cursor)options.cursor=cursor;const listed=await store.list(options),names=(listed.keys||[]).map(keyName).filter(Boolean),values=await Promise.all(names.map(name=>store.get(name))),items=[];values.forEach(value=>{try{const item=typeof value==='string'?JSON.parse(value):value;if(item?.type==='public-reference')items.push(item)}catch(_){}});return json({items,cursor:listed.cursor||null,complete:listed.complete??listed.list_complete??!listed.cursor})}
   catch(error){console.error('public-references:get',error);return json({error:error instanceof Error?error.message:'公共参考读取失败。'},400)}
@@ -29,4 +29,8 @@ export async function onRequestPost(context){
 export async function onRequestPut(context){
   try{if(!isSiteRequest(context.request))return json({error:'不允许跨站访问。'},403);admin(context);let item=cleanItem((await context.request.json()).item);const store=kv(context.env),key=PREFIX+item.id,currentValue=await store.get(key);if(!currentValue){const error=new Error('这条公共参考不存在，无法修改。');error.status=404;throw error}try{const current=typeof currentValue==='string'?JSON.parse(currentValue):currentValue;item={...item,createdAt:cleanDate(current?.createdAt,item.createdAt)}}catch(_){}await store.put(key,JSON.stringify(item));return json({item})}
   catch(error){console.error('public-references:put',error);return json({error:error instanceof Error?error.message:'公共参考修改失败。'},error?.status||400)}
+}
+export async function onRequestDelete(context){
+  try{if(!isSiteRequest(context.request))return json({error:'不允许跨站访问。'},403);admin(context);const id=cleanId((await context.request.json()).id);if(!id)throw new Error('无法识别要删除的公共参考。');const store=kv(context.env),key=PREFIX+id;if(!await store.get(key)){const error=new Error('这条公共参考不存在或已被删除。');error.status=404;throw error}await store.delete(key);return json({ok:true})}
+  catch(error){console.error('public-references:delete',error);return json({error:error instanceof Error?error.message:'公共参考删除失败。'},error?.status||400)}
 }
