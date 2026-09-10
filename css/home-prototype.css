@@ -14,13 +14,11 @@ body.home-page{background:#e7e7e7}.home-page .app-rail{display:none}
 .home-page .main{position:relative;width:100%;min-height:948px;height:auto;box-sizing:border-box;padding:28px 40px 40px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;background:#fff;overflow:visible}
 .home-page .home-intro{position:relative;z-index:2;width:min(1180px,100%);height:220px;min-height:220px;margin:0;padding:0 22px;box-sizing:border-box;display:flex;align-items:flex-start;gap:18px;text-align:left;pointer-events:none;transform:translateY(-15px)}
 .home-page .home-title-block{width:auto;min-width:0;margin-top:84px;margin-left:0;padding:0;transform:none}
-.home-page #homeIntroTitle>span{position:relative}
-.home-page .home-title-key{position:absolute;right:-24px;bottom:8px;width:18px;height:18px;display:grid;place-items:center}
-.home-page .home-title-key img{width:16px;height:16px;display:block;object-fit:contain}
+.home-page .home-title-secret{display:inline;padding:0;border:0;background:transparent;color:inherit;font:inherit;font-weight:inherit;letter-spacing:inherit;line-height:inherit;cursor:pointer}
 .home-page .home-intro h1{width:auto;margin:0;color:#141313;font-family:"Montserrat",PrototypeUI,Arial,sans-serif;font-size:46px;font-weight:740;line-height:1;letter-spacing:.075em;text-align:left;white-space:nowrap}
 .home-page .home-intro h1 strong{font-weight:900}.home-page .home-intro h1 #appVersion{display:inline;margin-left:.62em;vertical-align:middle;color:#a4a9ad;font:700 10px/1 Consolas,monospace;letter-spacing:.08em}
 .home-page .home-artist-quote{width:auto;max-width:520px;min-height:20px;margin:12px 0 0;color:#7c8185;font-size:12px;font-weight:450;line-height:1.6;letter-spacing:.025em;text-align:left}.home-page .home-artist-quote cite{margin-left:7px;color:#a0a4a7;font-style:normal;white-space:nowrap}
-.home-page .home-mascot-action{position:absolute;right:280px;top:12px;z-index:21;display:block;width:310px;height:295px;margin:0;padding:0;overflow:hidden;border:0;background:transparent;cursor:pointer;transform:translateY(var(--home-mascot-scroll,0));will-change:transform}
+.home-page .home-mascot-action{position:absolute;right:280px;top:12px;z-index:21;display:block;width:310px;height:295px;margin:0;padding:0;overflow:hidden;border:0;background:transparent;cursor:default;pointer-events:none;transform:translateY(var(--home-mascot-scroll,0));will-change:transform}
 .home-page .home-mascot-screen{position:absolute;left:114px;top:44px;z-index:0;display:block;width:72px;height:54px;object-fit:cover;pointer-events:none}
 .home-page .home-mascot-action .home-mascot{position:relative;z-index:1;display:block;width:310px;height:auto;margin:0;object-fit:contain;transform:none}
 .home-page .main>.bottom-area{position:relative;z-index:22;width:min(1180px,100%);margin:0;display:flex;flex-direction:column;gap:12px;flex:0 0 auto;transform:translateY(-15px)}
