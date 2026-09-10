@@ -392,7 +392,7 @@ async function reverseStyleFromImage(file){
   if(!apiKey){Settings.openPage();toast('请先保存 API Key');return}
   const button=els.oneClickStyleBtn;
   hideComposerError();button.disabled=true;button.classList.add('is-loading');
-  button.title='正在分析图片';button.setAttribute('aria-label','正在分析图片');
+  button.dataset.tooltip='正在分析图片';button.setAttribute('aria-label','正在分析图片');
   try{
     const [imageUrl,frame]=await Promise.all([fileToDataURI(file),readImageFrame(file)]);
     const frameHint=frame?'图片真实尺寸为 '+frame.width+'×'+frame.height+'，最简画幅比例为 '+getSimplifiedRatio(frame.width,frame.height)+'。':'';
@@ -407,7 +407,7 @@ async function reverseStyleFromImage(file){
     showComposerError(message);
   }finally{
     button.disabled=false;button.classList.remove('is-loading');
-    button.title='上传图片反推提示词';button.setAttribute('aria-label','上传图片反推提示词');
+    button.dataset.tooltip='上传图片反推提示词';button.setAttribute('aria-label','上传图片反推提示词');
   }
 }
 
