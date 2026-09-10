@@ -18,14 +18,14 @@ async function buildPendingGeneration(){
   const config=MODEL_CONFIG[key];
   if(!config)throw new Error('当前图片模型不可用，请重新选择。');
   const endpoint='/images/generations';
-  if(config.supportsTransparent&&els.transparentBgBtn.checked){
+  if(config.supportsTransparent&&els.transparentBgBtn.value==='yes'){
     prompt+=','+TRANSPARENT_ELEMENT_PROMPT;
     if(!/background\s*=\s*["']transparent["']/i.test(prompt))prompt+='\nbackground="transparent"';
   }
   const body={model:config.generationModel,prompt,size:state.ratio,resolution:state.resolution,n:1};
   if(state.quality)body.quality=state.quality;
   if(state.moderation||config.defaultModeration)body.moderation=state.moderation||config.defaultModeration;
-  if(config.supportsTransparent&&els.transparentBgBtn.checked){body.background='transparent';body.output_format='png'}
+  if(config.supportsTransparent&&els.transparentBgBtn.value==='yes'){body.background='transparent';body.output_format='png'}
   if(referenceUrls.length)body.image_urls=referenceUrls;
 
   return {

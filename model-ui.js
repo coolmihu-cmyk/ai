@@ -50,6 +50,7 @@ function makeCreationVisual(type,value){
     mark.textContent=type==='quality'?'Q':'S';
     return mark;
   }
+  if(type==='transparent')return document.createElement('span');
   const img=document.createElement('img');
   img.src=RESOLUTION_ICONS[value]||RESOLUTION_ICONS['1K'];
   img.alt='';
@@ -261,7 +262,7 @@ function renderGptVersionControl(){
 }
 
 function syncTransparentBackgroundControl(){
-  const control=els.transparentBgBtn?.closest('.prompt-transparent-switch');
+  const control=els.transparentBgBtn?.closest('.creation-transparent-select');
   if(control)control.hidden=!MODEL_CONFIG[activeModel].supportsTransparent;
 }
 function renderResPop(){renderModelSettings()}
@@ -455,7 +456,7 @@ async function optimizeCurrentPrompt(){
     showComposerError(message);
     return false;
   }finally{
-    els.enhanceBtn.disabled=!!els.transparentBgBtn?.checked;
+    els.enhanceBtn.disabled=els.transparentBgBtn?.value==='yes';
     els.enhanceBtn.closest('.prompt-enhance-switch')?.classList.remove('is-loading');
   }
 }

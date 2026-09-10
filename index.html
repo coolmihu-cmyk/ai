@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="css/components.css?v=20260727-32">
   <link rel="stylesheet" href="css/pages.css?v=20260908-105154">
   <link rel="stylesheet" href="css/modern-ui.css?v=20260910-311">
-<link rel="stylesheet" href="css/home-prototype.css?v=322">
+<link rel="stylesheet" href="css/home-prototype.css?v=323">
 </head>
 <body class="home-page">
 <header class="prototype-header"><div class="prototype-tab"><b>New folder</b><span>PIC.SUPMIHU.CN BETA <strong id="appVersion">V304.0</strong></span></div><nav><a href="assets.html"><img src="icon/folder-solid.png" alt="">资产 / 任务</a><a href="settings.html"><img src="icon/key-solid.png" alt="">输入密钥</a></nav></header>
@@ -110,11 +110,18 @@
             <button class="creation-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false"><span class="creation-select-copy"><strong data-creation-current>低强度</strong></span><span class="creation-select-visual" data-creation-visual aria-hidden="true"></span><svg class="creation-select-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4.5 6.5 3.5 3 3.5-3"/></svg></button>
             <div class="creation-select-menu" role="listbox" aria-label="选择内容审核强度"></div>
           </div>
-          <label class="prompt-transparent-switch creation-transparent-switch" for="transparentBgBtn">
-            <span>透明背景</span>
-            <input id="transparentBgBtn" type="checkbox">
-            <i aria-hidden="true"></i>
-          </label>
+          <div class="creation-select creation-transparent-select creation-dropdown" id="creationTransparentControl" data-creation-dropdown="transparent">
+            <select id="transparentBgBtn" aria-label="透明背景">
+              <option value="no" selected>否</option>
+              <option value="yes">是</option>
+            </select>
+            <button class="creation-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+              <span class="creation-select-copy"><strong data-creation-current>否</strong></span>
+              <span class="creation-select-visual" data-creation-visual aria-hidden="true"></span>
+              <svg class="creation-select-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4.5 6.5 3.5 3 3.5-3"/></svg>
+            </button>
+            <div class="creation-select-menu" role="listbox" aria-label="选择是否使用透明背景"></div>
+          </div>
         </div>
         <button class="bar-btn clear-prompt-btn" id="clearPromptBtn" title="清空当前提示词" aria-label="清空当前提示词">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V5h6v2"/><path d="m7 7 1 13h8l1-13"/><path d="M10 11v5M14 11v5"/></svg>
@@ -184,9 +191,9 @@
 </div>
 
 <script src="shared.js?v=20260909-307"></script>
-<script src="core.js?v=20260910-3042"></script>
-<script src="model-ui.js?v=20260910-3057"></script>
-<script src="generation.js?v=20260909-3032"></script>
+<script src="core.js?v=20260910-3043"></script>
+<script src="model-ui.js?v=20260910-3058"></script>
+<script src="generation.js?v=20260910-3033"></script>
 <script src="app.js?v=20260909-297"></script>
 <script src="public-reference-library-v2.js?v=20260908-114504"></script>
 <script src="site-scrollbars.js?v=20260909-104032"></script>

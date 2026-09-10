@@ -23,8 +23,8 @@ const els={
 document.querySelector('#appVersion')?.replaceChildren('V'+APP_VERSION);
 els.enhanceBtn?.addEventListener('click',()=>window.optimizeCurrentPrompt?.());
 els.transparentBgBtn?.addEventListener('change',()=>{
-  if(els.enhanceBtn)els.enhanceBtn.disabled=els.transparentBgBtn.checked;
+  if(els.enhanceBtn)els.enhanceBtn.disabled=els.transparentBgBtn.value==='yes';
 });
-if(els.enhanceBtn&&els.transparentBgBtn)els.enhanceBtn.disabled=els.transparentBgBtn.checked;
+if(els.enhanceBtn&&els.transparentBgBtn)els.enhanceBtn.disabled=els.transparentBgBtn.value==='yes';
 initCommonPage();
 
