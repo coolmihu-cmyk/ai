@@ -37,4 +37,5 @@ body.home-page{background:#e7e7e7}.home-page .app-rail{display:none}
 .home-page .composer-bar{position:static}
 .home-page .ref-upload-btn{position:absolute;left:22px;top:18px;z-index:2}
 .home-page .prompt-input-shell{padding-left:110px}
+.home-page .composer:has(.ref-row:not(:empty)) .ref-upload-btn{display:none}
 }
