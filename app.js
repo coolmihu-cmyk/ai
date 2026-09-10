@@ -57,7 +57,7 @@ syncTransparentBackgroundControl();
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   let snapping = false;
-  let snapTimer = 0;
+  let snapFrame = 0;
 
   const inspirationTop = () => {
     const canvasRect = canvas.getBoundingClientRect();
@@ -66,10 +66,34 @@ syncTransparentBackgroundControl();
   };
 
   const snapTo = (top) => {
+    cancelAnimationFrame(snapFrame);
+    const start = canvas.scrollTop;
+    const distance = top - start;
+    if (reduceMotion.matches || Math.abs(distance) < 2) {
+      canvas.scrollTop = top;
+      snapping = false;
+      return;
+    }
+
     snapping = true;
-    clearTimeout(snapTimer);
-    canvas.scrollTo({ top, behavior: reduceMotion.matches ? "auto" : "smooth" });
-    snapTimer = window.setTimeout(() => { snapping = false; }, reduceMotion.matches ? 80 : 760);
+    const duration = 1050;
+    const startedAt = performance.now();
+    const easeInOutCubic = (progress) => progress < 0.5
+      ? 4 * progress * progress * progress
+      : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+    const animate = (now) => {
+      const progress = Math.min(1, (now - startedAt) / duration);
+      canvas.scrollTop = start + distance * easeInOutCubic(progress);
+      if (progress < 1) {
+        snapFrame = requestAnimationFrame(animate);
+        return;
+      }
+      canvas.scrollTop = top;
+      snapping = false;
+      snapFrame = 0;
+    };
+    snapFrame = requestAnimationFrame(animate);
   };
 
   canvas.addEventListener("wheel", (event) => {
