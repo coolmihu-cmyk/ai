@@ -1,7 +1,7 @@
 @font-face{font-family:PrototypeUI;src:url('../fonts/montserrat-latin-variable.woff2') format('woff2');font-weight:100 900;font-display:swap}
 .prototype-header,.prototype-library-title,.prototype-placeholders{display:none}
 @media(min-width:721px){
-body.home-page{background:#e7e7e7}.home-page .app-rail{display:none}
+body.home-page{background-color:#f1f1f1;background-image:linear-gradient(45deg,#e4e4e4 25%,transparent 25%),linear-gradient(-45deg,#e4e4e4 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e4e4e4 75%),linear-gradient(-45deg,transparent 75%,#e4e4e4 75%);background-size:24px 24px;background-position:0 0,0 12px,12px -12px,-12px 0}.home-page .app-rail{display:none}
 .prototype-header{display:block;position:absolute;inset:0 0 auto;height:72px;z-index:20}
 .prototype-header::before,.prototype-header::after{content:"";position:absolute;top:15px;width:793px;height:57px;box-sizing:border-box;border-radius:10px 32px 0 0}
 .prototype-header::before{left:30px;z-index:0;background:#c2c2c2}
@@ -11,7 +11,7 @@ body.home-page{background:#e7e7e7}.home-page .app-rail{display:none}
 .prototype-header nav{position:absolute;z-index:2;right:53px;top:31px;display:flex;align-items:center;gap:18px;color:#373737;font:500 14px/1 PrototypeUI,Arial,sans-serif}
 .prototype-header a{display:flex;align-items:center;gap:6px;color:inherit;text-decoration:none}.prototype-header a img{display:block;width:15px;height:15px;object-fit:contain}
 .home-page .app{position:absolute;inset:72px 20px 20px;width:auto;height:auto;min-height:0;padding:0;border:1px solid #bbb;border-radius:0 30px 30px 30px;background:#fff;box-shadow:0 10px 30px rgba(17,19,21,.12);overflow:auto}
-.home-page .main{position:relative;width:100%;min-height:948px;height:auto;box-sizing:border-box;padding:28px 40px 40px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;background-color:#f8f8f8;background-image:linear-gradient(45deg,#eeeeee 25%,transparent 25%),linear-gradient(-45deg,#eeeeee 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#eeeeee 75%),linear-gradient(-45deg,transparent 75%,#eeeeee 75%);background-size:24px 24px;background-position:0 0,0 12px,12px -12px,-12px 0;overflow:visible}
+.home-page .main{position:relative;width:100%;min-height:948px;height:auto;box-sizing:border-box;padding:28px 40px 40px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;background:#fff;overflow:visible}
 .home-page .home-intro{position:relative;z-index:2;width:min(1180px,100%);height:220px;min-height:220px;margin:0;padding:0 22px;box-sizing:border-box;display:flex;align-items:flex-start;gap:18px;text-align:left;pointer-events:none;transform:translateY(-15px)}
 .home-page .home-title-block{width:auto;min-width:0;margin-top:84px;margin-left:0;padding:0;transform:none}
 .home-page .home-title-secret{display:inline;padding:0;border:0;background:transparent;color:inherit;font:inherit;font-weight:inherit;letter-spacing:inherit;line-height:inherit;cursor:pointer;pointer-events:auto}
