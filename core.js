@@ -14,6 +14,7 @@ const els={
   promptInput:$('#promptInput'),clearPromptBtn:$('#clearPromptBtn'),charCount:$('#charCount'),
   enhanceBtn:$('#enhanceBtn'),transparentBgBtn:$('#transparentBgBtn'),sendBtn:$('#sendBtn'),
   creationModelSelect:$('#creationModelSelect'),creationModelIcon:$('#creationModelIcon'),
+  creationGptVersionControl:$('#creationGptVersionControl'),creationGptVersionSelect:$('#creationGptVersionSelect'),
   creationRatioSelect:$('#creationRatioSelect'),
   creationResolutionControl:$('#creationResolutionControl'),creationResolutionSelect:$('#creationResolutionSelect'),
   creationQualityControl:$('#creationQualityControl'),creationQualitySelect:$('#creationQualitySelect'),

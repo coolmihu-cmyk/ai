@@ -19,7 +19,7 @@ function getRatioFrameSize(ratio){
 }
 
 function makeCreationVisual(type,value){
-  if(type==='model'){
+  if(type==='model'||type==='gpt-version'){
     const img=document.createElement('img');
     img.className='model-mark model-mark-'+value;
     img.src=CREATION_MODEL_ICONS[value]||CREATION_MODEL_ICONS.gpt;
@@ -148,7 +148,11 @@ function initCreationDropdowns(){
   });
 }
 
-els.creationModelSelect.onchange=()=>switchModel(els.creationModelSelect.value);
+els.creationModelSelect.onchange=()=>{
+  const key=els.creationModelSelect.value==='gpt'?(els.creationGptVersionSelect?.value||'gpt'):els.creationModelSelect.value;
+  switchModel(key);
+};
+els.creationGptVersionSelect.onchange=()=>switchModel(els.creationGptVersionSelect.value);
 els.creationRatioSelect.onchange=()=>{
   modelState[activeModel].ratio=els.creationRatioSelect.value;
 };
@@ -170,8 +174,10 @@ function switchModel(key){
     state.promptText=currentPrompt.slice(0,MODEL_CONFIG[modelKey].promptLimit);
   });
   activeModel=key;
-  els.creationModelSelect.value=key;
+  els.creationModelSelect.value=key.startsWith('gpt')?'gpt':key;
+  if(els.creationGptVersionSelect)els.creationGptVersionSelect.value=key.startsWith('gpt')?key:'gpt';
   syncCreationDropdown(els.creationModelSelect.closest('.creation-dropdown'));
+  syncCreationDropdown(els.creationGptVersionSelect?.closest('.creation-dropdown'));
   els.promptInput.value=modelState[key].promptText;
   els.promptInput.maxLength=MODEL_CONFIG[key].promptLimit;
   els.charCount.textContent=els.promptInput.value.length;
@@ -182,6 +188,7 @@ function switchModel(key){
   renderResPop();
   renderRatioPop();
   syncTransparentBackgroundControl();
+  renderGptVersionControl();
   // 更新占位符
   updatePlaceholder();
 }
@@ -239,6 +246,13 @@ function renderModelSettings(){
   };
   renderOptionalSetting(config.qualities,els.creationQualityControl,els.creationQualitySelect,'quality');
   renderOptionalSetting(config.moderations,els.creationModerationControl,els.creationModerationSelect,'moderation');
+}
+
+function renderGptVersionControl(){
+  const control=els.creationGptVersionControl;
+  if(!control)return;
+  control.hidden=!activeModel.startsWith('gpt');
+  if(els.creationGptVersionSelect){els.creationGptVersionSelect.value=activeModel.startsWith('gpt')?activeModel:'gpt';syncCreationDropdown(control)}
 }
 
 function syncTransparentBackgroundControl(){
