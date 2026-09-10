@@ -50,7 +50,11 @@ function makeCreationVisual(type,value){
     mark.textContent=type==='quality'?'Q':'S';
     return mark;
   }
-  if(type==='transparent')return document.createElement('span');
+  if(type==='transparent'){
+    const img=document.createElement('img');
+    img.className='transparent-mode-icon';img.src='icon/transparency.svg';img.alt='';
+    return img;
+  }
   const img=document.createElement('img');
   img.src=RESOLUTION_ICONS[value]||RESOLUTION_ICONS['1K'];
   img.alt='';
