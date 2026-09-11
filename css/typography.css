@@ -32,7 +32,8 @@ body :where(
   :disabled,[aria-disabled="true"],
   .home-artist-quote,.home-artist-quote *,
   .prototype-tab>span,.inner-prototype-tab>span,
-  .empty p,.assets-empty p,.reference-empty p
+  .empty p,.assets-empty p,.reference-empty p,
+  .asset-info.is-warning,.asset-info.is-warning>svg
 ){color:#898989!important}
 
 body :where(
@@ -46,7 +47,7 @@ body :where(
   .generation-model,.generation-model *,
   .assets-generation-model,.assets-generation-model *,
   .asset-group-badge,.asset-group-badge *,
-  .asset-info,.asset-info>svg,
+  .asset-info.is-archived,.asset-info.is-archived>svg,
   .asset-info-tooltip,.asset-info-tooltip *:not(b),
   .local-edit-download,.local-edit-download *,
   .creation-model-tab.active,.creation-model-tab.active *,

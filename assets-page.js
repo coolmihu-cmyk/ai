@@ -533,7 +533,7 @@ function assetInfoDate(value){
 }
 function assetInfoButton(item,expiry){
   const settings=item.settings||{},model=ASSET_MODEL_NAMES[item.model]||item.model||'图片模型',ratio=settings.ratio||settings.size||'自动',resolution=String(settings.resolution||'—').toUpperCase(),quality=settings.quality?String(settings.quality).toUpperCase():'',moderation=settings.moderation||'',date=assetInfoDate(item.createdAt);
-  const info=document.createElement('button');info.type='button';info.className='asset-info'+(!expiry.archived?' is-warning':'');info.setAttribute('aria-label','查看图片信息：模型 '+model+'，比例 '+ratio+'，分辨率 '+resolution+(quality?'，质量 '+quality:'')+(moderation?'，审核 '+moderation:'')+'，生成日期 '+date);info.setAttribute('aria-expanded','false');
+  const info=document.createElement('button');info.type='button';info.className='asset-info '+(expiry.archived?'is-archived':'is-warning');info.setAttribute('aria-label','查看图片信息：模型 '+model+'，比例 '+ratio+'，分辨率 '+resolution+(quality?'，质量 '+quality:'')+(moderation?'，审核 '+moderation:'')+'，生成日期 '+date);info.setAttribute('aria-expanded','false');
   info.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.25"></circle><path d="M12 10.6v5.2M12 7.7h.01"></path></svg>';
   const tooltip=document.createElement('span');tooltip.className='asset-info-tooltip';
   const rows=[['模型',model],['比例',ratio],['分辨率',resolution],...(quality?[['质量',quality]]:[]),...(moderation?[['审核强度',moderation]]:[]),['生成日期',date]];
