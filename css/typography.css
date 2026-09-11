@@ -49,7 +49,6 @@ body :where(
   .asset-info,.asset-info>svg,
   .asset-info-tooltip,.asset-info-tooltip *:not(b),
   .local-edit-download,.local-edit-download *,
-  .local-edit-message.is-user,.local-edit-message.is-user *,
   .creation-model-tab.active,.creation-model-tab.active *,
   .creation-ratio-item.active,.creation-ratio-item.active *,
   .creation-setting-chip.active,.creation-setting-chip.active *,
