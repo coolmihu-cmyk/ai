@@ -1,0 +1,65 @@
+/* Final typography palette: one ink, one quiet tone, plus white on dark controls. */
+:root{
+  --ui-ink:#373737;
+  --ui-muted:#d0d0d0;
+  --ui-faint:#d0d0d0;
+  --text:#373737;
+  --text-mid:#d0d0d0;
+  --text-dim:#d0d0d0;
+  --studio-ink:#373737;
+  --studio-steel:#d0d0d0;
+  --studio-amber:#373737;
+  --accent:#373737;
+}
+
+body,body *{color:#373737!important}
+body *::before,body *::after{color:inherit!important}
+body ::placeholder{color:#d0d0d0!important;opacity:1}
+
+body :where(
+  [class*="muted"],[class*="muted"] *,
+  [class*="faint"],[class*="faint"] *,
+  [class*="hint"],[class*="hint"] *,
+  [class*="description"],[class*="description"] *,
+  [class*="caption"],[class*="caption"] *,
+  [class*="counter"],[class*="counter"] *,
+  [class*="kicker"],[class*="kicker"] *,
+  [class*="eyebrow"],[class*="eyebrow"] *,
+  [class*="status"],[class*="status"] *,
+  [class*="meta"],[class*="meta"] *,
+  [class*="note"],[class*="note"] *,
+  time,small,cite,
+  :disabled,[aria-disabled="true"],
+  .home-artist-quote,.home-artist-quote *,
+  .prototype-tab>span,.inner-prototype-tab>span,
+  .empty p,.assets-empty p,.reference-empty p
+){color:#d0d0d0!important}
+
+body :where(
+  .primary,.primary *,
+  .send-btn,.send-btn *,
+  .settings-save,.settings-save *,
+  .assets-empty a,.assets-empty a *,
+  .reference-create,.reference-create *,
+  .reference-modal-actions button[type="submit"],
+  .reference-modal-actions button[type="submit"] *,
+  .generation-model,.generation-model *,
+  .assets-generation-model,.assets-generation-model *,
+  .asset-group-badge,.asset-group-badge *,
+  .asset-info,.asset-info>svg,
+  .asset-info-tooltip,.asset-info-tooltip *:not(b),
+  .local-edit-download,.local-edit-download *,
+  .local-edit-message.is-user,.local-edit-message.is-user *,
+  .creation-model-tab.active,.creation-model-tab.active *,
+  .creation-ratio-item.active,.creation-ratio-item.active *,
+  .creation-setting-chip.active,.creation-setting-chip.active *,
+  .model-tab.active,.model-tab.active *,
+  .setting-chip.active,.setting-chip.active *,
+  .opt-btn.active,.opt-btn.active *,
+  .toast,.toast *,
+  .ref-add,.ref-add *,
+  .home-back-to-top,.home-back-to-top *
+){color:#fff!important}
+
+body:not(.home-page) :where(.reference-filter button.is-active,.reference-filter button.is-active *){color:#fff!important}
+.asset-info-tooltip b{color:#d0d0d0!important}
