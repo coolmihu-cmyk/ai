@@ -463,9 +463,8 @@ function refreshAssetMonthOptions(){
 }
 function visibleAssetItems(){return activeAssetMonth==='all'?assetItems:assetItems.filter(item=>assetMonthKey(item.createdAt)===activeAssetMonth)}
 function assetExpiry(item){
-  if(unavailableAssetIds.has(String(item.id)))return {archived:false,expired:true};
-  if(item.archived||item.historyKey||item.cosKey||ImageDelivery.isArchivedUrl(item.url))return {archived:true,expired:false};
-  return {archived:false,expired:false};
+  const archived=!!(item.archived||item.historyKey||item.cosKey||ImageDelivery.isArchivedUrl(item.url));
+  return {archived,expired:unavailableAssetIds.has(String(item.id))};
 }
 function markAssetUnavailable(id){
   unavailableAssetIds.add(String(id));
