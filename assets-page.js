@@ -17,7 +17,7 @@ const assetsEls={
 };
 const assetPublish={modal:$('#assetPublishModal'),form:$('#assetPublishForm'),close:$('#assetPublishClose'),cancel:$('#assetPublishCancel'),url:$('#assetPublishImageUrl'),model:$('#assetPublishModel'),category:$('#assetPublishCategory'),prompt:$('#assetPublishPrompt'),error:$('#assetPublishError'),submit:$('#assetPublishSubmit'),item:null,button:null};
 let assetItems=[],activeAssetMonth='all',generationElapsedTimer=null,queueAdvancing=false,activeGenerationUsesHighDefinition=false;
-let unavailableAssetIds=new Set(),assetImageObserver=null;
+let unavailableAssetIds=new Set();
 const PUBLISHED_ASSET_IDS_KEY='mihu-published-public-assets-v1',PUBLIC_REFERENCE_ADMIN_TOKEN_KEY='mihu_public_reference_admin_token';
 
 const localEdit={
@@ -464,7 +464,7 @@ function refreshAssetMonthOptions(){
 function visibleAssetItems(){return activeAssetMonth==='all'?assetItems:assetItems.filter(item=>assetMonthKey(item.createdAt)===activeAssetMonth)}
 function assetExpiry(item){
   if(unavailableAssetIds.has(String(item.id)))return {archived:false,expired:true};
-  if(item.archived||ImageDelivery.isArchivedUrl(item.url))return {archived:true,expired:false};
+  if(item.archived||item.historyKey||item.cosKey||ImageDelivery.isArchivedUrl(item.url))return {archived:true,expired:false};
   return {archived:false,expired:false};
 }
 function markAssetUnavailable(id){
@@ -475,24 +475,19 @@ function markAssetUnavailable(id){
   card.querySelector('.asset-info')?.classList.add('is-warning');
 }
 function setupAssetImageLoading(){
-  assetImageObserver?.disconnect();
   const images=[...assetsEls.grid.querySelectorAll('img[data-src]')];
   const load=image=>{
     if(!image.dataset.src)return;
     image.onload=()=>image.classList.remove('is-loading');
     image.onerror=()=>{
-      if(image.dataset.original&&image.src!==image.dataset.original){
-        const original=image.dataset.original;delete image.dataset.original;image.src=original;return;
+      if(image.dataset.original&&image.dataset.fallbackTried!=='true'){
+        image.dataset.fallbackTried='true';image.src=image.dataset.original;return;
       }
       image.classList.remove('is-loading');markAssetUnavailable(image.closest('[data-asset-id]')?.dataset.assetId);
     };
     image.src=image.dataset.src;delete image.dataset.src;
   };
-  if(!('IntersectionObserver' in window)){images.forEach(load);return}
-  assetImageObserver=new IntersectionObserver(entries=>{
-    entries.forEach(entry=>{if(entry.isIntersecting){assetImageObserver.unobserve(entry.target);load(entry.target)}})
-  },{root:assetsEls.shell,rootMargin:'480px 0px',threshold:.01});
-  images.forEach(image=>assetImageObserver.observe(image));
+  images.forEach(load);
 }
 function taskState(job){
   if(job.failedAt)return {label:'等待处理',kind:'failed'};
