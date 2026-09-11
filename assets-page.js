@@ -15,21 +15,7 @@ const assetsEls={
   generationVisual:$('#assetsGenerationVisual'),generationReference:$('#assetsGenerationReference'),
   taskCenter:$('#assetsTaskCenter'),taskCount:$('#assetsTaskCount'),taskList:$('#assetsTaskList')
 };
-const assetsShell=document.querySelector('.assets-shell'),assetsLedger=document.querySelector('.assets-ledger'),assetsScrollFades=document.querySelector('.assets-scroll-fades');
 const assetPublish={modal:$('#assetPublishModal'),form:$('#assetPublishForm'),close:$('#assetPublishClose'),cancel:$('#assetPublishCancel'),url:$('#assetPublishImageUrl'),model:$('#assetPublishModel'),category:$('#assetPublishCategory'),prompt:$('#assetPublishPrompt'),error:$('#assetPublishError'),submit:$('#assetPublishSubmit'),item:null,button:null};
-function updateAssetsScrollFades(){
-  if(!assetsShell||!assetsLedger||!assetsScrollFades)return;
-  const ledgerBounds=assetsLedger.getBoundingClientRect(),top=ledgerBounds.top,bottom=ledgerBounds.bottom,borderInset=1;
-  const visible=bottom-top>borderInset*2&&ledgerBounds.width>borderInset*2;
-  assetsScrollFades.hidden=!visible;
-  if(!visible)return;
-  assetsScrollFades.style.left=Math.round(ledgerBounds.left+borderInset)+'px';
-  assetsScrollFades.style.top=Math.round(top+borderInset)+'px';
-  assetsScrollFades.style.width=Math.round(ledgerBounds.width-borderInset*2)+'px';
-  assetsScrollFades.style.height=Math.round(bottom-top-borderInset*2)+'px';
-  assetsScrollFades.classList.toggle('has-top-fade',assetsLedger.scrollTop>2);
-  assetsScrollFades.classList.toggle('has-bottom-fade',assetsLedger.scrollTop+assetsLedger.clientHeight<assetsLedger.scrollHeight-2);
-}
 let assetItems=[],activeAssetMonth='all',generationElapsedTimer=null,queueAdvancing=false,activeGenerationUsesHighDefinition=false;
 let unavailableAssetIds=new Set(),assetImageObserver=null;
 const PUBLISHED_ASSET_IDS_KEY='mihu-published-public-assets-v1',PUBLIC_REFERENCE_ADMIN_TOKEN_KEY='mihu_public_reference_admin_token';
@@ -627,7 +613,7 @@ function renderAssets(){
   refreshAssetMonthOptions();
   syncAssetsSummary();
   const visibleItems=visibleAssetItems();
-  if(!visibleItems.length){requestAnimationFrame(updateAssetsScrollFades);return}
+  if(!visibleItems.length)return
   const fragment=document.createDocumentFragment();
   const editGroups=new Map(),rootIds=new Set(visibleItems.map(item=>String(item.id)));
   visibleItems.forEach(item=>{if(item.editRootId&&rootIds.has(String(item.editRootId))){const key=String(item.editRootId);if(!editGroups.has(key))editGroups.set(key,[]);editGroups.get(key).push(item)}});
@@ -675,13 +661,9 @@ function renderAssets(){
   }
   assetsEls.grid.appendChild(fragment);
   setupAssetImageLoading();
-  requestAnimationFrame(updateAssetsScrollFades);
 }
 assetsEls.dateFilter.onchange=()=>{activeAssetMonth=assetsEls.dateFilter.value;renderAssets()};
 assetPublish.close.onclick=closeAssetPublish;assetPublish.cancel.onclick=closeAssetPublish;assetPublish.modal.addEventListener('click',event=>{if(event.target===assetPublish.modal)closeAssetPublish()});assetPublish.form.onsubmit=async event=>{event.preventDefault();if(!assetPublish.item||!assetPublish.button)return;if(!assetPublish.category.value){setAssetPublishError('请选择分类后再发布。');assetPublish.category.focus();return}assetPublish.submit.disabled=true;assetPublish.submit.textContent='正在发布…';await publishAsset(assetPublish.item,assetPublish.button,assetPublish.category.value,assetPublish.prompt.value.trim());if(assetPublish.button.classList.contains('is-published'))closeAssetPublish();assetPublish.submit.disabled=false;assetPublish.submit.textContent='发布到公共库'};
-assetsLedger?.addEventListener('scroll',updateAssetsScrollFades,{passive:true});
-window.addEventListener('resize',updateAssetsScrollFades);
-
 function showGeneration(job){
   activeGenerationUsesHighDefinition=isHighDefinitionResolution(job.settings?.resolution||job.body?.resolution);
   assetsEls.generation.hidden=false;
