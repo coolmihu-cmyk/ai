@@ -1,20 +1,20 @@
 /* Final typography palette: one ink, one quiet tone, plus white on dark controls. */
 :root{
-  --ui-ink:#373737;
-  --ui-muted:#d0d0d0;
-  --ui-faint:#d0d0d0;
-  --text:#373737;
-  --text-mid:#d0d0d0;
-  --text-dim:#d0d0d0;
-  --studio-ink:#373737;
-  --studio-steel:#d0d0d0;
-  --studio-amber:#373737;
-  --accent:#373737;
+  --ui-ink:#141313;
+  --ui-muted:#898989;
+  --ui-faint:#898989;
+  --text:#141313;
+  --text-mid:#898989;
+  --text-dim:#898989;
+  --studio-ink:#141313;
+  --studio-steel:#898989;
+  --studio-amber:#141313;
+  --accent:#141313;
 }
 
-body,body *{color:#373737!important}
+body,body *{color:#141313!important}
 body *::before,body *::after{color:inherit!important}
-body ::placeholder{color:#d0d0d0!important;opacity:1}
+body ::placeholder{color:#898989!important;opacity:1}
 
 body :where(
   [class*="muted"],[class*="muted"] *,
@@ -33,7 +33,7 @@ body :where(
   .home-artist-quote,.home-artist-quote *,
   .prototype-tab>span,.inner-prototype-tab>span,
   .empty p,.assets-empty p,.reference-empty p
-){color:#d0d0d0!important}
+){color:#898989!important}
 
 body :where(
   .primary,.primary *,
@@ -62,4 +62,4 @@ body :where(
 ){color:#fff!important}
 
 body:not(.home-page) :where(.reference-filter button.is-active,.reference-filter button.is-active *){color:#fff!important}
-.asset-info-tooltip b{color:#d0d0d0!important}
+.asset-info-tooltip b{color:#898989!important}
