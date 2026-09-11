@@ -31,6 +31,7 @@ const localEdit={
 let localEditScrollTimer=0;
 function isHighDefinitionResolution(value){return Number.parseFloat(String(value||'').toLowerCase())>1}
 const LOCAL_EDIT_HIGH_DEFINITION_WAIT='高画质图片需要更多生成时间，请耐心等候。';
+const LOCAL_EDIT_MODEL_KEYS=Object.keys(MODEL_CONFIG).filter(key=>key!=='gpt25flare'&&key!=='gpt25sunburst');
 function highDefinitionWaitNotice(message){return isHighDefinitionResolution(localEdit.resolution)?message+'（'+LOCAL_EDIT_HIGH_DEFINITION_WAIT+'）':message}
 localEdit.image.draggable=false;
 localEdit.upload.textContent='+';
@@ -63,13 +64,14 @@ function localEditSetStatus(message=''){
 function localEditClearReference(){localEdit.referenceData=null;localEdit.fileInput.value='';localEdit.referencePreview.hidden=true;localEdit.referencePreviewImage.removeAttribute('src');localEdit.upload.classList.remove('is-attached');localEdit.upload.setAttribute('aria-label','添加参考图片');localEdit.upload.title='添加参考图片'}
 function localEditApplyViewport(){const view=localEdit.view;localEdit.image.style.transform='translate('+view.x+'px,'+view.y+'px) scale('+view.scale+')'}
 function localEditResetViewport(){Object.assign(localEdit.view,{scale:1,x:0,y:0,pointerId:null});localEdit.stage.classList.remove('is-panning');localEditApplyViewport()}
-function localEditModelKey(value){return MODEL_CONFIG[value]?value:'gpt'}
+function localEditModelKey(value){return LOCAL_EDIT_MODEL_KEYS.includes(value)?value:'gpt'}
 function localEditUpdatePromptCount(){localEdit.promptCount.textContent=localEdit.prompt.value.length+'/'+localEdit.prompt.maxLength}
 function localEditRenderModelPicker(){
   const current=MODEL_CONFIG[localEdit.model];
   const label=document.createElement('span');label.textContent=current.name;localEdit.modelTrigger.replaceChildren(label);
   localEdit.modelTrigger.title=current.name;localEdit.modelTrigger.setAttribute('aria-label','编辑模型：'+current.name);
-  localEdit.modelMenu.replaceChildren(...Object.entries(MODEL_CONFIG).map(([key,config])=>{
+  localEdit.modelMenu.replaceChildren(...LOCAL_EDIT_MODEL_KEYS.map(key=>{
+    const config=MODEL_CONFIG[key];
     const button=document.createElement('button');button.type='button';button.className='creation-select-option';button.setAttribute('role','option');button.setAttribute('aria-selected',String(key===localEdit.model));button.title=config.name;button.setAttribute('aria-label',config.name);
     const optionIcon=document.createElement('img');optionIcon.src=config.icon;optionIcon.alt='';optionIcon.className='model-mark model-mark-'+key;
     const optionLabel=document.createElement('span');optionLabel.textContent=config.name;button.append(optionIcon,optionLabel);
@@ -92,7 +94,7 @@ function localEditRenderRatioPicker(config){
 function localEditRenderUnifiedSettings(config){
   const current=MODEL_CONFIG[localEdit.model];
   const ratioLabel=localEdit.ratio==='auto'?'AUTO':localEdit.ratio,extra=[localEdit.quality&&localEdit.quality.toUpperCase(),localEdit.moderation&&('审核 '+localEdit.moderation)].filter(Boolean);localEdit.settingsTrigger.textContent=[current.name,ratioLabel,localEdit.resolution.toUpperCase(),...extra].join(' · ');localEdit.settingsTrigger.title='打开图片生成设置';localEdit.settingsTrigger.setAttribute('aria-label','图片设置：'+localEdit.settingsTrigger.textContent);
-  localEdit.settingsModels.replaceChildren(...Object.entries(MODEL_CONFIG).map(([key,item])=>{const button=document.createElement('button');button.type='button';button.className='local-edit-settings-option is-model';button.classList.toggle('is-selected',key===localEdit.model);button.textContent=item.name;button.title=item.description?item.name+' · '+item.description:item.name;button.onclick=()=>{localEdit.model=key;localEdit.modelSelect.value=key;localEditSyncSettings()};return button}));
+  localEdit.settingsModels.replaceChildren(...LOCAL_EDIT_MODEL_KEYS.map(key=>{const item=MODEL_CONFIG[key],button=document.createElement('button');button.type='button';button.className='local-edit-settings-option is-model';button.classList.toggle('is-selected',key===localEdit.model);button.textContent=item.name;button.title=item.description?item.name+' · '+item.description:item.name;button.onclick=()=>{localEdit.model=key;localEdit.modelSelect.value=key;localEditSyncSettings()};return button}));
   localEdit.settingsResolutions.replaceChildren(...config.resolutions.map(item=>{const button=document.createElement('button');button.type='button';button.className='local-edit-settings-option';button.classList.toggle('is-selected',item.v===localEdit.resolution);button.textContent=item.v.toUpperCase();button.onclick=()=>{localEdit.resolution=item.v;localEdit.resolutionSelect.value=item.v;localEditRenderResolutionPicker(config);localEditRenderUnifiedSettings(config)};return button}));
   localEdit.settingsRatios.replaceChildren(...config.ratios.map(value=>{const button=document.createElement('button');button.type='button';button.className='local-edit-settings-option';button.classList.toggle('is-selected',value===localEdit.ratio);button.textContent=value==='auto'?'AUTO':value;button.title=value;button.onclick=()=>{localEdit.ratio=value;localEdit.ratioSelect.value=value;localEditRenderRatioPicker(config);localEditRenderUnifiedSettings(config)};return button}));
   localEdit.settingsQualitySection.hidden=!config.qualities?.length;localEdit.settingsQualities.replaceChildren(...(config.qualities||[]).map(item=>{const button=document.createElement('button');button.type='button';button.className='local-edit-settings-option';button.classList.toggle('is-selected',item.v===localEdit.quality);button.textContent=item.l;button.onclick=()=>{localEdit.quality=item.v;localEditRenderUnifiedSettings(config)};return button}));
@@ -104,7 +106,7 @@ function localEditSyncSettings(){
   if(!config.resolutions.some(option=>option.v===localEdit.resolution))localEdit.resolution=config.defaultResolution||config.resolutions[0]?.v||'';
   if(!config.qualities?.some(option=>option.v===localEdit.quality))localEdit.quality=config.defaultQuality||'';
   if(!config.moderations?.some(option=>option.v===localEdit.moderation))localEdit.moderation=config.defaultModeration||'';
-  localEdit.modelSelect.replaceChildren(...Object.keys(MODEL_CONFIG).map(key=>new Option(key[0].toUpperCase(),key,key===localEdit.model,key===localEdit.model)));localEdit.ratioSelect.replaceChildren(...config.ratios.map(value=>new Option(value,value,value===localEdit.ratio,value===localEdit.ratio)));
+  localEdit.modelSelect.replaceChildren(...LOCAL_EDIT_MODEL_KEYS.map(key=>new Option(key[0].toUpperCase(),key,key===localEdit.model,key===localEdit.model)));localEdit.ratioSelect.replaceChildren(...config.ratios.map(value=>new Option(value,value,value===localEdit.ratio,value===localEdit.ratio)));
   localEditRenderModelPicker();
   localEditRenderRatioPicker(config);localEdit.resolutionSelect.replaceChildren(...config.resolutions.map(item=>new Option(item.v.toUpperCase(),item.v,item.v===localEdit.resolution,item.v===localEdit.resolution)));localEditRenderResolutionPicker(config);localEditRenderUnifiedSettings(config);
   localEdit.prompt.maxLength=config.promptLimit;localEdit.prompt.value=localEdit.prompt.value.slice(0,config.promptLimit);localEditUpdatePromptCount();
