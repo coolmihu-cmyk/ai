@@ -63,6 +63,11 @@ body :where(
 
 body:not(.home-page) :where(.reference-filter button.is-active,.reference-filter button.is-active *){color:#fff!important}
 .asset-info-tooltip b{color:#898989!important}
+
+/* The folder tab metadata is one shared component on every page. */
+.prototype-tab>span:last-child,.inner-prototype-tab>span{font-size:10px;font-weight:500}
+.prototype-tab #appVersion,.inner-prototype-tab #appVersion{margin-left:4px;color:inherit;font:800 10px/1 Montserrat,Arial,sans-serif;letter-spacing:0}
+
 /* Keep every visible solid outline on one neutral tone. */
 *,*::before,*::after{border-color:#b8b8b8}
 

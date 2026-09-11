@@ -6,7 +6,8 @@
     { selector: ".home-page .app", inset: 8, edge: 8 },
     { selector: ".assets-ledger", edgeSelector: ".assets-shell", inset: 8, edge: 8 },
     { selector: ".reference-ledger", inset: 8, edge: 8 },
-    { selector: ".settings-shell", inset: 8, edge: 8 }
+    { selector: ".settings-shell", inset: 8, edge: 8 },
+    { selector: ".local-edit-thread", edgeSelector: ".local-edit-conversation", inset: 8, edge: 8 }
   ];
 
   function addScrollbar({ selector, edgeSelector, inset, edge }) {
@@ -16,6 +17,7 @@
 
     const rail = document.createElement("div");
     rail.className = "site-scrollbar";
+    if (selector === ".local-edit-thread") rail.classList.add("is-local-edit");
     rail.setAttribute("aria-hidden", "true");
     rail.innerHTML = "<i></i>";
     document.body.append(rail);

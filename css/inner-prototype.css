@@ -9,8 +9,7 @@
   .inner-prototype-header::after{left:80px;z-index:-1;background:#a8a8a8}
   .inner-prototype-tab{position:absolute;z-index:1;left:20px;top:15px;width:793px;height:57px;box-sizing:border-box;display:flex;align-items:center;padding:0 28px 0 18px;border:1px solid #bbb;border-bottom:0;border-radius:10px 32px 0 0;background:#fff;color:#c4c4c4;font-family:InnerPrototypeUI,Arial,sans-serif}
   .inner-prototype-tab b{font-size:16px;color:#101010}
-  .inner-prototype-tab>span{margin-left:auto;font-size:12px;font-weight:500}
-  .inner-prototype-tab strong{margin-left:4px;font-size:12px;font-weight:800}
+  .inner-prototype-tab>span{margin-left:auto}
   .inner-prototype-header nav{position:absolute;z-index:2;right:53px;top:31px;display:flex;align-items:center;gap:18px;color:#373737;font:500 14px/1 InnerPrototypeUI,Arial,sans-serif}
   .inner-prototype-header a{display:flex;align-items:center;gap:6px;color:inherit;text-decoration:none}
   .inner-prototype-header a img{display:block;width:15px;height:15px;object-fit:contain}
