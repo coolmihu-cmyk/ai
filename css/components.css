@@ -2,7 +2,7 @@
 /* 统一表面：纯色、细边框、轻阴影 */
 .sidebar,.result-panel,.composer,.empty .empty-icon{
   background:#fff;
-  border-color:var(--border);
+  border-color:#b8b8b8;
 }
 .result-panel{background:#f7f8f8}
 .sidebar-compose-slot .composer{box-shadow:0 6px 20px rgba(33,39,43,.06)}

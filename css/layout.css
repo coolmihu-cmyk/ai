@@ -4,13 +4,13 @@ body{background:var(--bg)}
 
 /* 左侧：对话式创作栏 */
 .sidebar{
-  width:390px;border:0;border-right:1px solid var(--border);border-radius:0;
+  width:390px;border:0;border-right:1px solid #b8b8b8;border-radius:0;
   background:#fff;box-shadow:none;overflow:hidden;transition:width .28s ease,opacity .2s;
 }
 .sidebar::before{display:none}
 .sidebar.collapsed{width:0;margin-left:0;border-right:0;opacity:0}
 .sidebar-head{
-  height:68px;padding:0 12px 0 18px;border-bottom:1px solid var(--border-soft);
+  height:68px;padding:0 12px 0 18px;border-bottom:1px solid #b8b8b8;
   box-shadow:none;flex-shrink:0;gap:10px;
 }
 .project-brand{display:flex;align-items:center;gap:9px;min-width:0}
@@ -32,11 +32,11 @@ body{background:var(--bg)}
 .history-loading b{font-size:13px;font-weight:620;color:var(--text-mid)}
 .history-loading-spinner{width:24px;height:24px;margin-bottom:7px;border:2px solid #b8b8b8;border-top-color:#606b72;border-radius:50%;animation:historyLoadingSpin .8s linear infinite}
 @keyframes historyLoadingSpin{to{transform:rotate(360deg)}}
-.empty-orb{width:54px;height:54px;border-radius:9px;background:#fff;border:1px solid var(--border);display:grid;place-items:center;margin-bottom:7px}
+.empty-orb{width:54px;height:54px;border-radius:9px;background:#fff;border:1px solid #b8b8b8;display:grid;place-items:center;margin-bottom:7px}
 .empty-orb span{width:18px;height:18px;border-radius:6px;background:linear-gradient(145deg,#c6cdd1,#5c666c);box-shadow:8px 8px 0 -5px #d9dde0,-8px -8px 0 -5px #eef0f1;transform:rotate(45deg)}
 
 .sidebar-compose-slot{padding:0 14px 10px;background:#f4f4f4;flex-shrink:0;z-index:25}
-.sidebar-expand{top:18px;left:18px;width:34px;height:34px;background:#fff;border-color:var(--border);border-radius:10px;box-shadow:0 4px 18px rgba(35,42,46,.09)}
+.sidebar-expand{top:18px;left:18px;width:34px;height:34px;background:#fff;border-color:#b8b8b8;border-radius:10px;box-shadow:0 4px 18px rgba(35,42,46,.09)}
 
 /* 左侧输入框 */
 .sidebar-compose-slot .bottom-area{display:block}
@@ -89,7 +89,7 @@ body{background:var(--bg)}
 .main{order:1}
 .sidebar-expand{order:2;left:auto;right:18px}
 .sidebar{
-  order:3;border-right:0;border-left:1px solid var(--border);
+  order:3;border-right:0;border-left:1px solid #b8b8b8;
   transition:width .28s ease,opacity .2s;
 }
 .sidebar.collapsed{width:0;margin-left:0}
@@ -109,7 +109,7 @@ body{background:var(--bg)}
 .model-settings-scroll::-webkit-scrollbar-thumb:hover{background:#b8bec2}
 .model-tabs{
   display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;
-  padding:4px;border:1px solid var(--border-soft);border-radius:12px;background:#f3f5f6;
+  padding:4px;border:1px solid #b8b8b8;border-radius:12px;background:#f3f5f6;
 }
 .model-tab{
   min-width:0;min-height:58px;padding:7px 3px;border:1px solid transparent;border-radius:9px;
@@ -134,12 +134,12 @@ body{background:var(--bg)}
 .setting-chip-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
 .setting-chip-grid.cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
 .setting-chip{
-  min-height:34px;padding:6px 8px;border:1px solid var(--border);border-radius:9px;
+  min-height:34px;padding:6px 8px;border:1px solid #b8b8b8;border-radius:9px;
   background:#f7f8f9;color:var(--text-mid);font-size:13px;line-height:1.25;
   transition:background-color .14s,border-color .14s,color .14s,opacity .14s;
 }
 .setting-chip:hover{background:#f1f3f4;color:var(--text)}
-.setting-chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.setting-chip.active{background:var(--accent);border-color:#b8b8b8;color:#fff}
 .model-icon-btn{width:31px;padding:0;justify-content:center;background:#f2f4f5}
 .model-icon-btn svg{width:16px;height:16px}
 .model-icon-btn .model-cube-icon{width:18px;height:18px;color:inherit;stroke-width:1.65}
@@ -155,7 +155,7 @@ body{background:var(--bg)}
 @media(max-width:760px){
   body{overflow:auto}
   .app{display:block;min-height:100dvh;height:auto}
-  .sidebar{position:relative;inset:auto;width:100%;height:58dvh;min-height:520px;border-left:0;border-right:0;border-top:1px solid var(--border);border-bottom:0;box-shadow:none;order:2}
+  .sidebar{position:relative;inset:auto;width:100%;height:58dvh;min-height:520px;border-left:0;border-right:0;border-top:1px solid #b8b8b8;border-bottom:0;box-shadow:none;order:2}
   .sidebar.collapsed{width:100%;height:0;min-height:0}
   .sidebar-expand{position:fixed}
   .sidebar-head{height:56px}
