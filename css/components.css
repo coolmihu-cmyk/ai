@@ -50,7 +50,7 @@
 }
 .generation-history-card[hidden]{display:none!important}
 .generation-thumb{width:92px;height:86px;border-radius:9px;background:linear-gradient(135deg,#eef1f3,#e1e6e9);display:grid;place-items:center;overflow:hidden}
-.generation-spinner{width:23px;height:23px;border:2px solid #b8b8b8;border-top-color:var(--accent);border-radius:50%;animation:generationSpin .8s linear infinite}
+.generation-spinner{width:23px;height:23px;border:2px solid #b8b8b8;border-top-color:#b8b8b8;border-radius:50%;animation:generationSpin .8s linear infinite}
 @keyframes generationSpin{to{transform:rotate(360deg)}}
 .generation-card-content{min-width:0;display:flex;flex-direction:column;gap:7px;padding:1px 0}
 .generation-card-head{display:flex;align-items:center;gap:6px;min-width:0}
