@@ -73,5 +73,5 @@ body:not(.home-page) :where(.reference-filter button.is-active,.reference-filter
 *,*::before,*::after{border-color:#b8b8b8}
 
 /* Dashed upload and empty-state outlines retain their lighter hierarchy. */
-.home-page .ref-upload-btn{border-color:#e5e7e9}
-.reference-empty,.home-public-reference-empty{border-color:#d5d8da}
+.home-page .ref-upload-btn{border-color:#b8b8b8}
+.reference-empty,.home-public-reference-empty{border-color:#b8b8b8}

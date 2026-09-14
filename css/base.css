@@ -97,14 +97,14 @@ a{color:inherit;text-decoration:none}
 .history-list{display:flex;flex-direction:column;gap:10px}
 .history-item{
   position:relative;min-height:86px;padding:8px;
-  border:1px solid #e4e7e9;border-radius:13px;
+  border:1px solid #b8b8b8;border-radius:13px;
   background:#fff;overflow:hidden;
   display:grid;grid-template-columns:72px minmax(0,1fr);gap:8px;
   cursor:pointer;transition:background-color .14s,border-color .14s;
   flex-shrink:0;
 }
-.history-item:hover{border-color:#d5dadd;background:#fafbfb}
-.history-item.active{border-color:#bfc7cc;background:#f8f9fa}
+.history-item:hover{border-color:#b8b8b8;background:#fafbfb}
+.history-item.active{border-color:#b8b8b8;background:#f8f9fa}
 .history-item img{width:100%;height:100%;object-fit:cover}
 .history-thumb{width:72px!important;height:68px!important;border-radius:8px;object-fit:cover;background:#edf0f1;align-self:start;cursor:zoom-in}
 .history-thumb:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -172,7 +172,7 @@ a{color:inherit;text-decoration:none}
   pointer-events:none;
 }
 .result-panel::after{
-  content:"";position:absolute;inset:7px;border:1px solid rgba(255,255,255,.76);
+  content:"";position:absolute;inset:7px;border:1px solid #b8b8b8;
   border-radius:10px;pointer-events:none;z-index:0;
 }
 .status .dot{
@@ -284,7 +284,7 @@ a{color:inherit;text-decoration:none}
 .progress-track{
   position:relative;height:22px;
   background:rgba(70,82,80,.10);
-  border:1px solid rgba(70,82,80,.10);
+  border:1px solid #b8b8b8;
   border-radius:99px;overflow:hidden;
 }
 .progress-bar{
@@ -425,7 +425,7 @@ a{color:inherit;text-decoration:none}
   transition:.15s;flex:0 0 34px;gap:0;
 }
 .send-btn svg{width:15px;height:15px}
-.send-btn:hover{background:#333;border-color:#333;box-shadow:none;transform:none}
+.send-btn:hover{background:#333;border-color:#b8b8b8;box-shadow:none;transform:none}
 .send-btn.cancel{background:linear-gradient(180deg,#b95d5d,#8f3f3f);border:0;letter-spacing:.2px}
 .send-btn.cancel:hover{background:linear-gradient(180deg,#c86b6b,#823737)}
 .send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
@@ -533,7 +533,7 @@ a{color:inherit;text-decoration:none}
   font-size:12.5px;outline:none;
 }
 .pop input[type=text]:focus,.pop input[type=number]:focus{
-  border-color:#9ea7ad;background:#fff;
+  border-color:#b8b8b8;background:#fff;
   box-shadow:0 0 0 3px rgba(70,79,85,.08);
 }
 
@@ -583,7 +583,7 @@ a{color:inherit;text-decoration:none}
   background:#fff;box-shadow:none;
   font-size:13.5px;outline:none;
 }
-.key-wrap input:focus{border-color:#9ea7ad;background:#fff;box-shadow:0 0 0 3px rgba(70,79,85,.08)}
+.key-wrap input:focus{border-color:#b8b8b8;background:#fff;box-shadow:0 0 0 3px rgba(70,79,85,.08)}
 .key-actions{
   position:absolute;right:6px;top:50%;transform:translateY(-50%);
   display:flex;gap:4px;
@@ -621,7 +621,7 @@ a{color:inherit;text-decoration:none}
 .modal-footer .secondary{background:#fff;border:1px solid var(--border);box-shadow:none;color:var(--text-mid)}
 .modal-footer .secondary:hover{background:#f1f3f4;border-color:var(--border)}
 .modal-footer .primary{background:var(--accent);border:1px solid var(--accent);box-shadow:none;color:#fff}
-.modal-footer .primary:hover{background:#333;border-color:#333}
+.modal-footer .primary:hover{background:#333;border-color:#b8b8b8}
 
 /* 价格参考弹窗 */
 .price-modal{max-width:400px}
