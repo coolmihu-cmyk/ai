@@ -23,6 +23,7 @@ async function buildPendingGeneration(){
     if(!/background\s*=\s*["']transparent["']/i.test(prompt))prompt+='\nbackground="transparent"';
   }
   const body={model:config.generationModel,prompt,size:state.ratio,resolution:state.resolution,n:1};
+  if(config.apiVersion)body.version=config.apiVersion;
   if(state.quality)body.quality=state.quality;
   if(state.moderation||config.defaultModeration)body.moderation=state.moderation||config.defaultModeration;
   if(config.supportsTransparent&&els.transparentBgBtn.value==='yes'){body.background='transparent';body.output_format='png'}
