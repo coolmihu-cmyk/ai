@@ -518,7 +518,7 @@ async function renderTaskCenter(){
   }
 }
 function assetImageIcon(name){
-  const image=document.createElement('img');image.src='icon/asset-'+name+(['redo','compare'].includes(name)?'.png':'.svg');image.alt='';image.setAttribute('aria-hidden','true');return image;
+  const image=document.createElement('img');image.src='icon/asset-'+name+(['redo','compare','publish'].includes(name)?'.png':'.svg');image.alt='';image.setAttribute('aria-hidden','true');return image;
 }
 function assetInfoDate(value){
   const date=new Date(value||Date.now());
