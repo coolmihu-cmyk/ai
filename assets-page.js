@@ -518,7 +518,7 @@ async function renderTaskCenter(){
   }
 }
 function assetImageIcon(name){
-  const image=document.createElement('img');image.src='icon/asset-'+name+'.svg';image.alt='';image.setAttribute('aria-hidden','true');return image;
+  const image=document.createElement('img');image.src='icon/asset-'+name+(name==='compare'?'.png':'.svg');image.alt='';image.setAttribute('aria-hidden','true');return image;
 }
 function assetInfoDate(value){
   const date=new Date(value||Date.now());
@@ -592,6 +592,20 @@ async function deleteAssetRecords(items,button){
     console.warn('历史删除失败',error);button.disabled=false;toast('删除失败，请稍后重试');
   }
 }
+const assetCompare=(()=>{
+  const layer=document.createElement('div');
+  layer.className='asset-compare-layer';layer.hidden=true;
+  layer.innerHTML='<section class="asset-compare-dialog" role="dialog" aria-modal="true" aria-labelledby="assetCompareTitle"><header><div><span>IMAGE COMPARE</span><h2 id="assetCompareTitle">原图与生成图对比</h2></div><button type="button" class="asset-compare-close" aria-label="关闭对比">×</button></header><div class="asset-compare-stage" style="--asset-compare-position:50%"><img class="asset-compare-original" alt="原图"><img class="asset-compare-generated" alt="生成图"><div class="asset-compare-divider" aria-hidden="true"><i></i></div><span class="asset-compare-label is-original">原图</span><span class="asset-compare-label is-generated">生成图</span><input class="asset-compare-range" type="range" min="0" max="100" value="50" aria-label="拖动分隔线比较原图和生成图"></div><p>拖动中线查看原图与生成图的差异</p></section>';
+  document.body.append(layer);
+  const stage=layer.querySelector('.asset-compare-stage'),original=layer.querySelector('.asset-compare-original'),generated=layer.querySelector('.asset-compare-generated'),range=layer.querySelector('.asset-compare-range'),close=layer.querySelector('.asset-compare-close');
+  let lastFocus=null;
+  const setPosition=value=>{const numeric=Number(value),position=Math.max(0,Math.min(100,Number.isFinite(numeric)?numeric:50));stage.style.setProperty('--asset-compare-position',position+'%');range.value=String(position)};
+  const closeDialog=()=>{layer.hidden=true;document.body.classList.remove('asset-compare-open');original.removeAttribute('src');generated.removeAttribute('src');lastFocus?.focus?.()};
+  close.onclick=closeDialog;layer.addEventListener('click',event=>{if(event.target===layer)closeDialog()});range.addEventListener('input',()=>setPosition(range.value));
+  generated.addEventListener('load',()=>{if(generated.naturalWidth&&generated.naturalHeight)stage.style.aspectRatio=generated.naturalWidth+'/'+generated.naturalHeight});
+  window.addEventListener('keydown',event=>{if(!layer.hidden&&event.key==='Escape'){event.preventDefault();closeDialog()}});
+  return {open(originalUrl,generatedUrl,trigger){lastFocus=trigger;setPosition(50);original.src=originalUrl;generated.src=generatedUrl;layer.hidden=false;document.body.classList.add('asset-compare-open');requestAnimationFrame(()=>range.focus())}};
+})();
 function buildEditGroupCard(root,edits){
   const versions=[root,...edits].sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
   const card=document.createElement('article');card.className='asset-card asset-edit-group';card.dataset.assetId=root.id;
@@ -600,6 +614,7 @@ function buildEditGroupCard(root,edits){
   const badge=document.createElement('span');badge.className='asset-group-badge';badge.textContent='图组 · '+versions.length+' 张';media.appendChild(badge);
   const actions=document.createElement('div');actions.className='asset-actions';
   const edit=document.createElement('button');edit.type='button';edit.className='asset-local-edit';edit.title='恢复图组对话';edit.setAttribute('aria-label','恢复图组对话');edit.appendChild(assetImageIcon('edit'));edit.onclick=()=>openLocalEditGroup(root,edits,edit);actions.appendChild(edit);
+  const compare=document.createElement('button');compare.type='button';compare.className='asset-compare';compare.title='对比原图与生成图';compare.setAttribute('aria-label','对比原图与生成图');compare.appendChild(assetImageIcon('compare'));compare.onclick=()=>assetCompare.open(root.url,versions[versions.length-1].url,compare);actions.appendChild(compare);
   const remove=document.createElement('button');remove.type='button';remove.className='asset-delete';remove.title='删除图组记录和文件';remove.setAttribute('aria-label','删除图组记录和文件');remove.appendChild(assetImageIcon('delete'));
   remove.onclick=()=>{if(confirm('删除这个图组的全部 '+versions.length+' 张图片、记录和文件？'))deleteAssetRecords(versions,remove)};actions.appendChild(remove);
   card.append(media,actions);return card;
