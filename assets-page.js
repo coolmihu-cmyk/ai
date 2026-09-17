@@ -26,12 +26,12 @@ const localEdit={
   conversation:$('.local-edit-conversation'),conversationToggle:$('#localEditConversationToggle'),composer:$('.local-edit-composer'),prompt:$('#localEditPrompt'),promptCount:$('#localEditPromptCount'),upload:$('#localEditUpload'),fileInput:$('#localEditFileInput'),referencePreview:$('#localEditReferencePreview'),referencePreviewImage:$('#localEditReferencePreviewImage'),referenceClear:$('#localEditReferenceClear'),settings:$('.local-edit-settings'),error:$('#localEditError'),submit:$('#localEditSubmit'),
   modelSelect:$('#localEditModel'),modelPicker:$('#localEditModelPicker'),modelTrigger:$('#localEditModelTrigger'),modelMenu:$('#localEditModelMenu'),ratioSelect:$('#localEditRatio'),ratioPicker:$('#localEditRatioPicker'),ratioTrigger:$('#localEditRatioTrigger'),ratioMenu:$('#localEditRatioMenu'),resolutionSelect:$('#localEditResolution'),resolutionPicker:$('#localEditResolutionPicker'),resolutionTrigger:$('#localEditResolutionTrigger'),resolutionMenu:$('#localEditResolutionMenu'),
   thread:$('#localEditThread'),status:$('#localEditStatus'),
-  item:null,model:'gpt',ratio:'auto',resolution:'1k',quality:'',moderation:'',editRootId:null,editGroupId:null,referenceData:null,submitting:false,guiding:false,lastFocus:null,versions:[],messages:[],view:{scale:1,x:0,y:0,pointerId:null,startX:0,startY:0,originX:0,originY:0}
+  item:null,model:'seedream',ratio:'auto',resolution:'1.5K',quality:'',moderation:'',editRootId:null,editGroupId:null,referenceData:null,submitting:false,guiding:false,lastFocus:null,versions:[],messages:[],view:{scale:1,x:0,y:0,pointerId:null,startX:0,startY:0,originX:0,originY:0}
 };
 let localEditScrollTimer=0;
 function isHighDefinitionResolution(value){return Number.parseFloat(String(value||'').toLowerCase())>1}
 const LOCAL_EDIT_HIGH_DEFINITION_WAIT='高画质图片需要更多生成时间，请耐心等候。';
-const LOCAL_EDIT_MODEL_KEYS=Object.keys(MODEL_CONFIG).filter(key=>key!=='gpt25flare'&&key!=='gpt25sunburst');
+const LOCAL_EDIT_MODEL_KEYS=['seedream','gpt25sunburst'];
 function highDefinitionWaitNotice(message){return isHighDefinitionResolution(localEdit.resolution)?message+'（'+LOCAL_EDIT_HIGH_DEFINITION_WAIT+'）':message}
 localEdit.image.draggable=false;
 localEdit.upload.textContent='+';
@@ -64,7 +64,7 @@ function localEditSetStatus(message=''){
 function localEditClearReference(){localEdit.referenceData=null;localEdit.fileInput.value='';localEdit.referencePreview.hidden=true;localEdit.referencePreviewImage.removeAttribute('src');localEdit.upload.classList.remove('is-attached');localEdit.upload.setAttribute('aria-label','添加参考图片');localEdit.upload.title='添加参考图片'}
 function localEditApplyViewport(){const view=localEdit.view;localEdit.image.style.transform='translate('+view.x+'px,'+view.y+'px) scale('+view.scale+')'}
 function localEditResetViewport(){Object.assign(localEdit.view,{scale:1,x:0,y:0,pointerId:null});localEdit.stage.classList.remove('is-panning');localEditApplyViewport()}
-function localEditModelKey(value){return LOCAL_EDIT_MODEL_KEYS.includes(value)?value:'gpt'}
+function localEditModelKey(value){return LOCAL_EDIT_MODEL_KEYS.includes(value)?value:'seedream'}
 function localEditUpdatePromptCount(){localEdit.promptCount.textContent=localEdit.prompt.value.length+'/'+localEdit.prompt.maxLength}
 function localEditRenderModelPicker(){
   const current=MODEL_CONFIG[localEdit.model];
