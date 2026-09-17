@@ -1524,7 +1524,7 @@ body.home-page{height:100%;min-height:0;overflow:hidden}.home-page .app{height:1
 :is(.prompt-enhance-switch,.one-click-style-btn)[data-tooltip]:hover::after,:is(.prompt-enhance-switch,.one-click-style-btn)[data-tooltip]:focus-visible::after{opacity:1;visibility:visible;transform:translate(-50%,0)}
 @media(max-width:720px){.home-mark{display:none}}
 
-/* Image-edit comparison: the original stays below; the generated version is clipped by the draggable divider. */
+/* Reference comparison: the first reference stays below; the generated version is clipped by the draggable divider. */
 .asset-compare-layer{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:24px;background:rgba(17,19,21,.54);backdrop-filter:blur(5px)}
 .asset-compare-layer[hidden]{display:none}
 .asset-compare-dialog{width:min(900px,calc(100vw - 32px));max-height:calc(100dvh - 32px);padding:18px;overflow:auto;border:1px solid #b8b8b8;border-radius:18px;background:#fff;box-shadow:0 28px 80px rgba(17,19,21,.24)}

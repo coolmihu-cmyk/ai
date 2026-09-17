@@ -614,7 +614,6 @@ function buildEditGroupCard(root,edits){
   const badge=document.createElement('span');badge.className='asset-group-badge';badge.textContent='图组 · '+versions.length+' 张';media.appendChild(badge);
   const actions=document.createElement('div');actions.className='asset-actions';
   const edit=document.createElement('button');edit.type='button';edit.className='asset-local-edit';edit.title='恢复图组对话';edit.setAttribute('aria-label','恢复图组对话');edit.appendChild(assetImageIcon('edit'));edit.onclick=()=>openLocalEditGroup(root,edits,edit);actions.appendChild(edit);
-  const compare=document.createElement('button');compare.type='button';compare.className='asset-compare';compare.title='对比原图与生成图';compare.setAttribute('aria-label','对比原图与生成图');compare.appendChild(assetImageIcon('compare'));compare.onclick=()=>assetCompare.open(root.url,versions[versions.length-1].url,compare);actions.appendChild(compare);
   const remove=document.createElement('button');remove.type='button';remove.className='asset-delete';remove.title='删除图组记录和文件';remove.setAttribute('aria-label','删除图组记录和文件');remove.appendChild(assetImageIcon('delete'));
   remove.onclick=()=>{if(confirm('删除这个图组的全部 '+versions.length+' 张图片、记录和文件？'))deleteAssetRecords(versions,remove)};actions.appendChild(remove);
   card.append(media,actions);return card;
@@ -660,6 +659,10 @@ function renderAssets(){
     const edit=document.createElement('button');edit.type='button';edit.className='asset-local-edit';edit.title='编辑图片';edit.setAttribute('aria-label','编辑图片');
     edit.appendChild(assetImageIcon('edit'));
     edit.onclick=()=>openLocalEdit(item,edit);actions.appendChild(edit);
+    const referenceUrl=item.referenceUrls?.[0]||item.referenceUrl;
+    if(referenceUrl){
+      const compare=document.createElement('button');compare.type='button';compare.className='asset-compare';compare.title='对比参考图与生成图';compare.setAttribute('aria-label','对比参考图与生成图');compare.appendChild(assetImageIcon('compare'));compare.onclick=()=>assetCompare.open(referenceUrl,item.url,compare);actions.appendChild(compare);
+    }
     const send=document.createElement('button');send.type='button';send.className='asset-send';send.title='重新生成';send.setAttribute('aria-label','重新生成');
     send.appendChild(assetImageIcon('redo'));
     send.onclick=()=>sendAssetToComposer(item);actions.appendChild(send);
