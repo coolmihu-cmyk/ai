@@ -47,6 +47,11 @@ body :where(
   .generation-model,.generation-model *,
   .assets-generation-model,.assets-generation-model *,
   .asset-group-badge,.asset-group-badge *,
+  .asset-compare-label,.asset-compare-label *,
+  .local-edit-version span,.local-edit-version span *,
+  .history-item .model-tag,.history-item .model-tag *,
+  .progress-label,.progress-label *,
+  .image-actions .icon-btn,.image-actions .icon-btn *,
   .asset-info.is-archived,.asset-info.is-archived>svg,
   .asset-info-tooltip,.asset-info-tooltip *:not(b),
   .local-edit-download,.local-edit-download *,
@@ -58,10 +63,9 @@ body :where(
   .opt-btn.active,.opt-btn.active *,
   .toast,.toast *,
   .ref-add,.ref-add *,
-  .home-back-to-top,.home-back-to-top *
+  .home-back-to-top,.home-back-to-top *,
+  .reference-filter button.is-active,.reference-filter button.is-active *
 ){color:#fff!important}
-
-body:not(.home-page) :where(.reference-filter button.is-active,.reference-filter button.is-active *){color:#fff!important}
 .asset-info-tooltip b{color:#898989!important}
 .asset-info.is-archived>svg{stroke:#fff!important}
 
