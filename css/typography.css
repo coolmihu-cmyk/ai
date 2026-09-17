@@ -32,8 +32,7 @@ body :where(
   :disabled,[aria-disabled="true"],
   .home-artist-quote,.home-artist-quote *,
   .prototype-tab>span,.inner-prototype-tab>span,
-  .empty p,.assets-empty p,.reference-empty p,
-  .asset-info.is-warning,.asset-info.is-warning>svg
+  .empty p,.assets-empty p,.reference-empty p
 ){color:#898989!important}
 
 body :where(
@@ -52,7 +51,7 @@ body :where(
   .history-item .model-tag,.history-item .model-tag *,
   .progress-label,.progress-label *,
   .image-actions .icon-btn,.image-actions .icon-btn *,
-  .asset-info.is-archived,.asset-info.is-archived>svg,
+  .asset-info,.asset-info *,
   .asset-info-tooltip,.asset-info-tooltip *:not(b),
   .local-edit-download,.local-edit-download *,
   .creation-model-tab.active,.creation-model-tab.active *,
@@ -67,7 +66,6 @@ body :where(
   .reference-filter button.is-active,.reference-filter button.is-active *
 ){color:#fff!important}
 .asset-info-tooltip b{color:#898989!important}
-.asset-info.is-archived>svg{stroke:#fff!important}
 
 /* The folder tab metadata is one shared component on every page. */
 .prototype-tab>span:last-child,.inner-prototype-tab>span{font-size:10px;font-weight:500}
