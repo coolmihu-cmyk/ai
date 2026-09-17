@@ -597,14 +597,26 @@ const assetCompare=(()=>{
   layer.className='asset-compare-layer';layer.hidden=true;
   layer.innerHTML='<section class="asset-compare-dialog" role="dialog" aria-modal="true" aria-labelledby="assetCompareTitle"><header><div><span>IMAGE COMPARE</span><h2 id="assetCompareTitle">原图与生成图对比</h2></div><button type="button" class="asset-compare-close" aria-label="关闭对比">×</button></header><div class="asset-compare-stage" style="--asset-compare-position:50%"><img class="asset-compare-original" alt="原图"><img class="asset-compare-generated" alt="生成图"><div class="asset-compare-divider" aria-hidden="true"><i></i></div><span class="asset-compare-label is-original">原图</span><span class="asset-compare-label is-generated">生成图</span><input class="asset-compare-range" type="range" min="0" max="100" value="50" aria-label="拖动分隔线比较原图和生成图"></div><p>拖动中线查看原图与生成图的差异</p></section>';
   document.body.append(layer);
-  const stage=layer.querySelector('.asset-compare-stage'),original=layer.querySelector('.asset-compare-original'),generated=layer.querySelector('.asset-compare-generated'),range=layer.querySelector('.asset-compare-range'),close=layer.querySelector('.asset-compare-close');
+  const dialog=layer.querySelector('.asset-compare-dialog'),stage=layer.querySelector('.asset-compare-stage'),original=layer.querySelector('.asset-compare-original'),generated=layer.querySelector('.asset-compare-generated'),range=layer.querySelector('.asset-compare-range'),close=layer.querySelector('.asset-compare-close');
   let lastFocus=null;
   const setPosition=value=>{const numeric=Number(value),position=Math.max(0,Math.min(100,Number.isFinite(numeric)?numeric:50));stage.style.setProperty('--asset-compare-position',position+'%');range.value=String(position)};
-  const closeDialog=()=>{layer.hidden=true;document.body.classList.remove('asset-compare-open');original.removeAttribute('src');generated.removeAttribute('src');lastFocus?.focus?.()};
+  const fitStage=()=>{
+    if(!generated.naturalWidth||!generated.naturalHeight)return;
+    const ratio=generated.naturalWidth/generated.naturalHeight;
+    const compact=window.matchMedia('(max-width:640px)').matches;
+    const outerSpace=compact?20:48,dialogPadding=compact?26:36,dialogChrome=compact?106:134;
+    const maxStageWidth=Math.min(864,Math.max(96,window.innerWidth-outerSpace-dialogPadding));
+    const maxStageHeight=Math.max(96,window.innerHeight-outerSpace-dialogChrome);
+    const stageWidth=Math.max(96,Math.min(maxStageWidth,Math.floor(maxStageHeight*ratio)));
+    stage.style.aspectRatio=generated.naturalWidth+'/'+generated.naturalHeight;
+    dialog.style.setProperty('--asset-compare-dialog-width',Math.ceil(stageWidth+dialogPadding)+'px');
+    stage.style.setProperty('--asset-compare-stage-width',stageWidth+'px');
+  };
+  const closeDialog=()=>{layer.hidden=true;document.body.classList.remove('asset-compare-open');original.removeAttribute('src');generated.removeAttribute('src');dialog.style.removeProperty('--asset-compare-dialog-width');stage.style.removeProperty('--asset-compare-stage-width');lastFocus?.focus?.()};
   close.onclick=closeDialog;layer.addEventListener('click',event=>{if(event.target===layer)closeDialog()});range.addEventListener('input',()=>setPosition(range.value));
-  generated.addEventListener('load',()=>{if(generated.naturalWidth&&generated.naturalHeight)stage.style.aspectRatio=generated.naturalWidth+'/'+generated.naturalHeight});
+  generated.addEventListener('load',fitStage);window.addEventListener('resize',()=>{if(!layer.hidden)fitStage()});
   window.addEventListener('keydown',event=>{if(!layer.hidden&&event.key==='Escape'){event.preventDefault();closeDialog()}});
-  return {open(originalUrl,generatedUrl,trigger){lastFocus=trigger;setPosition(50);original.src=originalUrl;generated.src=generatedUrl;layer.hidden=false;document.body.classList.add('asset-compare-open');requestAnimationFrame(()=>range.focus())}};
+  return {open(originalUrl,generatedUrl,trigger){lastFocus=trigger;setPosition(50);dialog.style.removeProperty('--asset-compare-dialog-width');stage.style.removeProperty('--asset-compare-stage-width');original.src=originalUrl;generated.src=generatedUrl;layer.hidden=false;document.body.classList.add('asset-compare-open');requestAnimationFrame(()=>{fitStage();range.focus()})}};
 })();
 function buildEditGroupCard(root,edits){
   const versions=[root,...edits].sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
