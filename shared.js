@@ -1,7 +1,7 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 // 每次完成一次改动并提交时递增。
-const APP_VERSION='423.0';
+const APP_VERSION='424.0';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
@@ -16,13 +16,13 @@ const MODEL_CONFIG={
   gpt25flare:{
     name:'GPT Image2.5 Flare',icon:'icon/model-gpt-chatgpt.svg',promptLimit:3000,
     ratios:['auto','1:1','3:2','2:3','4:3','3:4','5:4','4:5','16:9','9:16','21:9'],
-    resolutions:[{v:'1K',l:'标准'},{v:'2K',l:'高清'},{v:'4K',l:'超清'}],
+    resolutions:[{v:'1K',l:'标准',price:'0.085积分/张'},{v:'2K',l:'高清',price:'0.14积分/张'},{v:'4K',l:'超清',price:'0.21积分/张'}],
     defaultResolution:'1K',generationModel:'gpt-image-2.5-ext',editModel:'gpt-image-2.5-ext',apiVersion:'flare'
   },
   gpt25sunburst:{
     name:'GPT Image2.5 Sunburst',icon:'icon/model-gpt-chatgpt.svg',promptLimit:3000,
     ratios:['auto','1:1','3:2','2:3','4:3','3:4','5:4','16:9','9:16','21:9'],
-    resolutions:[{v:'1K',l:'标准'},{v:'2K',l:'高清'},{v:'4K',l:'超清'}],
+    resolutions:[{v:'1K',l:'标准',price:'0.085积分/张'},{v:'2K',l:'高清',price:'0.14积分/张'},{v:'4K',l:'超清',price:'0.21积分/张'}],
     defaultResolution:'1K',generationModel:'gpt-image-2.5-ext',editModel:'gpt-image-2.5-ext',apiVersion:'sunburst'
   },
   seedream:{
