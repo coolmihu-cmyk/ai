@@ -493,6 +493,12 @@ function taskState(job){
   if(job.scope==='editor')return {label:'旧编辑任务',kind:'editor'};
   return job.taskId?{label:'正在生成',kind:'running'}:{label:'排队中',kind:'queued'};
 }
+async function resetPendingGenerationForRetry(job){
+  delete job.failedAt;delete job.lastError;
+  job.taskId=null;
+  await PendingGeneration.save(job);
+  PromptLog.update(job.promptLogId,{status:'submitted',errorMessage:null});
+}
 async function renderTaskCenter(){
   if(!assetsEls.taskCenter)return;
   const currentJob=await PendingGeneration.load();
@@ -511,7 +517,7 @@ async function renderTaskCenter(){
     const prompt=document.createElement('p');prompt.textContent=job.prompt||'正在准备图片任务';copy.append(head,prompt);
     const actions=document.createElement('div');actions.className='asset-task-actions';
     if(job.scope!=='editor'&&job.failedAt){
-      const retry=document.createElement('button');retry.type='button';retry.textContent='重试';retry.onclick=async()=>{retry.disabled=true;delete job.failedAt;delete job.lastError;await PendingGeneration.save(job);runNextPendingGeneration().catch(()=>{})};actions.appendChild(retry);
+      const retry=document.createElement('button');retry.type='button';retry.textContent='重试';retry.onclick=async()=>{retry.disabled=true;await resetPendingGenerationForRetry(job);runNextPendingGeneration().catch(()=>{})};actions.appendChild(retry);
     }
     const cancel=document.createElement('button');cancel.type='button';cancel.className='is-quiet';cancel.textContent='取消';cancel.onclick=async()=>{cancel.disabled=true;await PendingGeneration.delete(job.id);renderTaskCenter()};actions.appendChild(cancel);
     row.append(copy,actions);assetsEls.taskList.appendChild(row);
@@ -771,8 +777,7 @@ function showGenerationFailure(job,message){
   cancel.type='button';cancel.textContent='取消任务';
   retry.onclick=async()=>{
     retry.disabled=true;cancel.disabled=true;
-    delete job.failedAt;delete job.lastError;
-    await PendingGeneration.save(job);
+    await resetPendingGenerationForRetry(job);
     showGeneration(job);
     runNextPendingGeneration().catch(()=>{});
   };
