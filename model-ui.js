@@ -62,11 +62,11 @@ function makeCreationVisual(type,value){
 }
 
 function createCreditMark(){
-  const icon=document.createElementNS('http://www.w3.org/2000/svg','svg');
-  icon.setAttribute('class','creation-credit-mark');
-  icon.setAttribute('viewBox','0 0 16 16');
+  const icon=document.createElement('img');
+  icon.className='creation-credit-mark';
+  icon.src='icon/credit.svg';
+  icon.alt='';
   icon.setAttribute('aria-hidden','true');
-  icon.innerHTML='<circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.35"/><path d="m8 4.7.8 2.5 2.5.8-2.5.8-.8 2.5-.8-2.5-2.5-.8 2.5-.8.8-2.5Z" fill="currentColor"/>';
   return icon;
 }
 
