@@ -348,8 +348,10 @@ async function submitLocalEdit({prompt:providedPrompt='',alreadyRecorded=false,s
     PromptLog.update(promptLogId,{status:'completed',cosUrl:archived?url:null,errorMessage:null});
     await loadLocalEditImage(version,{focus:true});toast('新版本已生成');
   }catch(error){
-    PromptLog.update(promptLogId,{status:'failed',errorMessage:error?.message||'图片编辑任务创建失败。'});
-    localEditSetError(error?.message||'图片编辑任务创建失败。');localEditSetStatus('生成未完成，请修改描述后重试。');
+    console.warn('图片编辑生成失败',error);
+    const message=generationErrorMessage(error);
+    PromptLog.update(promptLogId,{status:'failed',errorMessage:message});
+    localEditSetError(message);localEditSetStatus('生成未完成，请修改描述后重试。');
   }finally{
     clearTimeout(generationTimeoutId);
     localEdit.submitting=false;localEdit.submit.disabled=false;localEdit.close.disabled=false;localEditSetSubmitIcon();
@@ -760,6 +762,7 @@ function updateGeneration(status,progress,retryMessage){
   assetsEls.generationBar.style.width=numeric>0?numeric+'%':'28%';
 }
 function showGenerationFailure(job,message){
+  message=generationErrorMessage(message);
   assetsEls.generation.classList.remove('is-running','is-complete');
   assetsEls.generation.classList.add('is-failed');
   assetsEls.generationStatus.textContent='生成失败';
@@ -870,7 +873,8 @@ async function runPendingGeneration(job){
     notifyGenerated(ASSET_MODEL_NAMES[item.model]||item.model);
     return true;
   }catch(error){
-    const message=error?.name==='AbortError'?'请求超时，可以重试当前任务。':(error?.message||'生成失败，请重试。');
+    console.warn('图片生成失败',error);
+    const message=generationErrorMessage(error);
     job.failedAt=new Date().toISOString();
     job.lastError=message;
     PromptLog.update(job.promptLogId,{status:'failed',errorMessage:message});

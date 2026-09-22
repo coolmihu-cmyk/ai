@@ -1,7 +1,7 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 // 每次完成一次改动并提交时递增。
-const APP_VERSION='425.0';
+const APP_VERSION='426.0';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
@@ -184,6 +184,19 @@ const PromptLog={
   }
 };
 
+function generationErrorMessage(error){
+  const raw=String(error?.message||error||'').trim(),lower=raw.toLowerCase(),status=Number(error?.status)||0;
+  if(error?.name==='AbortError'||/timeout|timed out|time out/.test(lower))return '生成请求超时，请重试。';
+  if(/filtered by the safety system|generated content.*filtered|safety (system|policy|violation)|content policy|moderation/.test(lower))return '生成内容未通过安全审核，请调整提示词或参考图后重试。';
+  if(status===401||status===403||/unauthorized|forbidden|invalid api[ _-]?key|authentication/.test(lower))return 'API Key 无效或已失效，请重新检查密钥。';
+  if(status===402||/insufficient (credits|balance|quota)|not enough (credits|balance)|credit balance/.test(lower))return '账户积分不足，请充值后重试。';
+  if(status===429||/rate limit|too many requests|request limit/.test(lower))return '请求过于频繁，请稍后重试。';
+  if(/task not found|invalid task|does not exist/.test(lower))return '未找到生成任务，请重新提交。';
+  if(status>=500||/bad gateway|service unavailable|all channels failed|origin error|internal server error/.test(lower))return '生成服务暂时不可用，请稍后重试。';
+  if(/[\u4e00-\u9fff]/.test(raw))return raw;
+  return '生成服务暂时无法完成任务，请稍后重试。';
+}
+
 const Apimart={
   async getUserBalance(apiKey,signal){
     const key=String(apiKey||'').trim();
@@ -248,7 +261,7 @@ const Apimart={
   async submitTask(apiKey,body,endpoint,signal){
     const url=endpoint?APIMART_BASE+endpoint:APIMART_BASE+'/images/generations';
     const res=await fetch(url,{method:'POST',signal,headers:{'Authorization':'Bearer '+apiKey,'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(body)});
-    if(!res.ok){const t=await res.text();let m;try{const j=JSON.parse(t);m=j.error?.message||j.message||t}catch(e){m=t}throw new Error('提交失败（HTTP '+res.status+'）'+(m?': '+m.slice(0,400):''))}
+    if(!res.ok){const t=await res.text();let m;try{const j=JSON.parse(t);m=j.error?.message||j.message||t}catch(e){m=t}const error=new Error('提交失败（HTTP '+res.status+'）'+(m?': '+m.slice(0,400):''));error.status=res.status;throw error}
     const json=await res.json();
     const taskId=json.data?.[0]?.task_id||json.data?.task_id||json.data?.id||json.task_id||json.id;
     if(!taskId)throw new Error('接口未返回 task_id。返回内容：'+JSON.stringify(json).slice(0,400));
@@ -260,7 +273,7 @@ const Apimart={
       if(signal?.aborted)throw new DOMException('请求超时','AbortError');
       if(performance.now()-start>maxWait)throw new DOMException('请求超时','AbortError');
       const res=await fetch(APIMART_BASE+'/tasks/'+taskId,{method:'GET',signal,headers:{'Authorization':'Bearer '+apiKey,'Accept':'application/json'}});
-      if(!res.ok){const t=await res.text();throw new Error('查询任务失败（HTTP '+res.status+')'+(t?': '+t.slice(0,300):''))}
+      if(!res.ok){const t=await res.text();const error=new Error('查询任务失败（HTTP '+res.status+')'+(t?': '+t.slice(0,300):''));error.status=res.status;throw error}
       const json=await res.json();
       const d=json.data||json;
       const status=d.status,progress=d.progress||0;
