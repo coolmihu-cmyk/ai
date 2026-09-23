@@ -326,6 +326,7 @@ async function submitLocalEdit({prompt:providedPrompt='',alreadyRecorded=false,s
     const editPrompt=prompt+'。以输入图片为基础进行编辑，保留用户未明确要求改变的主体、构图和重要视觉特征。';
     const config=MODEL_CONFIG[localEdit.model];
     const body={model:config.editModel||config.generationModel,prompt:editPrompt,size:localEdit.ratio,resolution:localEdit.resolution,n:1,image_urls:[localEdit.item.url,...(localEdit.referenceData?[localEdit.referenceData]:[])]};
+    if(config.apiVersion)body.version=config.apiVersion;
     if(localEdit.quality)body.quality=localEdit.quality;
     if(localEdit.moderation)body.moderation=localEdit.moderation;
     const editSettings={ratio:localEdit.ratio,resolution:localEdit.resolution,...(localEdit.quality?{quality:localEdit.quality}:{}),...(localEdit.moderation?{moderation:localEdit.moderation}:{})};

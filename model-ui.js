@@ -267,7 +267,10 @@ function renderGptVersionControl(){
 
 function syncTransparentBackgroundControl(){
   const control=els.transparentBgBtn?.closest('.creation-transparent-select');
-  if(control)control.hidden=!MODEL_CONFIG[activeModel].supportsTransparent;
+  if(!control)return;
+  const config=MODEL_CONFIG[activeModel],trigger=control.querySelector('.creation-select-trigger');
+  control.hidden=!config.supportsTransparent;
+  if(trigger)trigger.dataset.tooltip=config.transparentRequiresSingleReference?'仅适用于单张带透明通道的参考图':'是否打开透明背景';
 }
 function renderResPop(){renderModelSettings()}
 

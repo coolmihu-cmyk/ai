@@ -13,12 +13,14 @@ function snapshotCreationState(model){
 async function buildPendingGeneration(){
   const key=activeModel,state=modelState[key];
   let prompt=els.promptInput.value.trim();
-  const refMgr=refManagers[key],refCount=refMgr?refMgr.count():0;
-  const referenceUrls=refCount?await refMgr.persist():[];
   const config=MODEL_CONFIG[key];
   if(!config)throw new Error('当前图片模型不可用，请重新选择。');
+  const refMgr=refManagers[key],refCount=refMgr?refMgr.count():0;
+  const transparentRequested=config.supportsTransparent&&els.transparentBgBtn.value==='yes';
+  if(transparentRequested&&config.transparentRequiresSingleReference&&refCount!==1)throw new Error('Seedream 透明背景需要恰好上传 1 张带透明通道的参考图。');
+  const referenceUrls=refCount?await refMgr.persist():[];
   const endpoint='/images/generations';
-  if(config.supportsTransparent&&els.transparentBgBtn.value==='yes'){
+  if(transparentRequested){
     prompt+=','+TRANSPARENT_ELEMENT_PROMPT;
     if(!/background\s*=\s*["']transparent["']/i.test(prompt))prompt+='\nbackground="transparent"';
   }
@@ -26,7 +28,7 @@ async function buildPendingGeneration(){
   if(config.apiVersion)body.version=config.apiVersion;
   if(state.quality)body.quality=state.quality;
   if(state.moderation||config.defaultModeration)body.moderation=state.moderation||config.defaultModeration;
-  if(config.supportsTransparent&&els.transparentBgBtn.value==='yes'){body.background='transparent';body.output_format='png'}
+  if(transparentRequested){body.background='transparent';body.output_format='png'}
   if(referenceUrls.length)body.image_urls=referenceUrls;
 
   return {
