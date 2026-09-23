@@ -32,7 +32,7 @@ body :where(
   :disabled,[aria-disabled="true"],
   .home-artist-quote,.home-artist-quote *,
   .prototype-tab>span,.inner-prototype-tab>span,
-  .empty p,.assets-empty p,.reference-empty p
+  .assets-empty p,.reference-empty p
 ){color:#898989!important}
 
 body :where(
@@ -43,23 +43,16 @@ body :where(
   .reference-create,.reference-create *,
   .reference-modal-actions button[type="submit"],
   .reference-modal-actions button[type="submit"] *,
-  .generation-model,.generation-model *,
   .assets-generation-model,.assets-generation-model *,
   .asset-group-badge,.asset-group-badge *,
   .asset-compare-label,.asset-compare-label *,
   .local-edit-version span,.local-edit-version span *,
-  .history-item .model-tag,.history-item .model-tag *,
-  .progress-label,.progress-label *,
-  .image-actions .icon-btn,.image-actions .icon-btn *,
   .asset-info,.asset-info *,
   .asset-info-tooltip,.asset-info-tooltip *:not(b),
   .local-edit-download,.local-edit-download *,
   .creation-model-tab.active,.creation-model-tab.active *,
   .creation-ratio-item.active,.creation-ratio-item.active *,
   .creation-setting-chip.active,.creation-setting-chip.active *,
-  .model-tab.active,.model-tab.active *,
-  .setting-chip.active,.setting-chip.active *,
-  .opt-btn.active,.opt-btn.active *,
   .toast,.toast *,
   .ref-add,.ref-add *,
   .home-back-to-top,.home-back-to-top *,

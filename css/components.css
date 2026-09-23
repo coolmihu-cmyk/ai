@@ -1,17 +1,15 @@
 /* ===== 统一简洁 UI ===== */
 /* 统一表面：纯色、细边框、轻阴影 */
-.sidebar,.result-panel,.composer,.empty .empty-icon{
+.composer{
   background:#fff;
   border-color:#b8b8b8;
 }
-.result-panel{background:#f7f8f8}
-.sidebar-compose-slot .composer{box-shadow:0 6px 20px rgba(33,39,43,.06)}
 
 /* 统一基础按钮 */
-.head-btn,.bar-btn,.key-actions .mini,.modal-head .close{
+.bar-btn{
   transition:background-color .14s,border-color .14s,color .14s,opacity .14s;
 }
-.head-btn:hover,.bar-btn:hover,.key-actions .mini:hover,.modal-head .close:hover{
+.bar-btn:hover{
   background:#f1f3f4;
   color:var(--text);
   box-shadow:none;
@@ -23,43 +21,12 @@
 }
 
 /* 上传与模型均采用同尺寸图标按钮 */
-.ref-upload-btn,.model-icon-btn,.clear-prompt-btn{
+.ref-upload-btn,.clear-prompt-btn{
   width:31px;height:30px;padding:0;justify-content:center;
   background:transparent;box-shadow:none;color:var(--text-mid);
 }
 .ref-upload-btn svg{width:16px;height:16px;stroke-width:1.8}
-.ref-upload-btn:hover,.model-icon-btn:hover,.clear-prompt-btn:hover{background:#f1f3f4;box-shadow:none}
+.ref-upload-btn:hover,.clear-prompt-btn:hover{background:#f1f3f4;box-shadow:none}
 
-.more-pop{scrollbar-width:thin;scrollbar-color:#d4d8db transparent}
-
-/* 允许右侧参数窗口向左覆盖画布 */
-.sidebar{overflow:visible;z-index:60}
-.sidebar-head,.sidebar-body,.sidebar-compose-slot{position:relative}
-.sidebar-head{z-index:2}
-.sidebar-body{z-index:1}
-.sidebar-compose-slot{z-index:70;overflow:visible}
-.sidebar-compose-slot .bottom-area,.sidebar-compose-slot .composer,.composer-bar,.bar-btn-wrap{overflow:visible}
-.sidebar .pop{z-index:120}
-.model-settings-pop,.ratio-pop-grid,.more-pop{isolation:isolate}
+.composer-bar{overflow:visible}
 .main{position:relative;z-index:1}
-
-/* 生成状态历史卡片 */
-.generation-history-card{
-  min-height:104px;margin-bottom:10px;padding:9px;border:1px solid #b8b8b8;border-radius:13px;
-  background:#fff;display:grid;grid-template-columns:92px minmax(0,1fr);gap:10px;
-}
-.generation-history-card[hidden]{display:none!important}
-.generation-thumb{width:92px;height:86px;border-radius:9px;background:linear-gradient(135deg,#eef1f3,#e1e6e9);display:grid;place-items:center;overflow:hidden}
-.generation-spinner{width:23px;height:23px;border:2px solid #b8b8b8;border-top-color:#b8b8b8;border-radius:50%;animation:generationSpin .8s linear infinite}
-@keyframes generationSpin{to{transform:rotate(360deg)}}
-.generation-card-content{min-width:0;display:flex;flex-direction:column;gap:7px;padding:1px 0}
-.generation-card-head{display:flex;align-items:center;gap:6px;min-width:0}
-.generation-card-head .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px rgba(23,23,23,.1);flex-shrink:0}
-.generation-model{max-width:105px;padding:4px 7px;border-radius:5px;background:#292f33;color:#fff;font-size:10px;line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.status-elapsed{margin-left:auto;color:#7f888d;font-size:10px;font-variant-numeric:tabular-nums}
-.generation-prompt{font-size:12px;line-height:1.4;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.generation-progress-row{margin-top:auto;display:flex;align-items:center;gap:8px;color:#667076;font-size:10.5px}
-.generation-progress-row .status-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.generation-progress-row .status-percent{margin-left:auto;font-variant-numeric:tabular-nums}
-.sidebar-progress-track{width:100%;height:3px;border-radius:999px;background:#e3e7e9;overflow:hidden}
-.sidebar-progress-bar{width:0;height:100%;border-radius:inherit;background:var(--accent);transition:width .45s ease}
