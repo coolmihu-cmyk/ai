@@ -215,14 +215,7 @@ function resizePromptInput(){
   input.style.height=Math.min(input.scrollHeight,Math.round(innerHeight*.42),420)+'px';
 }
 
-function updatePlaceholder(){
-  const phs={
-    gpt:'描述你想生成的画面，GPT Image2 擅长文字渲染、写实质感与原生 4K 输出…',
-    nano:'描述你想生成的画面，Nano Banana PRO 擅长高质量创作、文字渲染与多参考图一致性…',
-    seedream:'描述你想生成的画面，Seedream 5 PRO 支持文生图与最多 10 张参考图融合…'
-  };
-  els.promptInput.placeholder='请输入提示词';
-}
+function updatePlaceholder(){els.promptInput.placeholder='请输入提示词'}
 
 /* ===================== 外置模型输出设置 ===================== */
 function renderModelSettings(){
@@ -468,8 +461,7 @@ const ENHANCE_SYSTEMS={
   gpt:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其结构清晰、具体且适合图片生成模型。不得改变核心意图、主体数量、人物身份和指定元素。只输出优化后的最终提示词，不要解释。',
   gpt25flare:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 GPT Image 2.5 Flare 快速图像生成，保留核心意图并清晰描述主体、构图、文字、光线和材质。只输出优化后的最终提示词，不要解释。',
   gpt25sunburst:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 GPT Image 2.5 Sunburst 高质量图像生成与精细编辑，保留核心意图并准确描述主体、构图、文字、光线、材质和细节。只输出优化后的最终提示词，不要解释。',
-  nano:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 Nano Banana PRO（Gemini 3 Pro Image）图片生成模型。突出主体、构图、光线、材质、文字内容和参考图一致性。只输出优化后的最终提示词，不要解释。',
-  seedream:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 Seedream 5 PRO 的文生图或多参考图图生图。突出主体、构图、镜头、光线、材质与画面文字；有参考图时保留主体与视觉要素的一致性。只输出优化后的最终提示词，不要解释。'
+  nano:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 Nano Banana PRO（Gemini 3 Pro Image）图片生成模型。突出主体、构图、光线、材质、文字内容和参考图一致性。只输出优化后的最终提示词，不要解释。'
 };
 
 async function optimizeCurrentPrompt(){

@@ -17,7 +17,6 @@ async function buildPendingGeneration(){
   if(!config)throw new Error('当前图片模型不可用，请重新选择。');
   const refMgr=refManagers[key],refCount=refMgr?refMgr.count():0;
   const transparentRequested=config.supportsTransparent&&els.transparentBgBtn.value==='yes';
-  if(transparentRequested&&config.transparentRequiresSingleReference&&refCount!==1)throw new Error('Seedream 透明背景需要恰好上传 1 张带透明通道的参考图。');
   const referenceUrls=refCount?await refMgr.persist():[];
   const endpoint='/images/generations';
   if(transparentRequested){
