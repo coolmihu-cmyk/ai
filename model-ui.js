@@ -292,13 +292,41 @@ initCreationDropdowns();
 
 /* ===================== 参考图管理 ===================== */
 els.refBtn.onclick=()=>els.fileInput.click();
-els.fileInput.onchange=async e=>{
-  const files=Array.from(e.target.files||[]);
+async function addReferenceFiles(fileList){
+  const files=Array.from(fileList||[]);
   if(!files.length)return;
   await refManagers[activeModel].addFiles(files);
-  els.fileInput.value='';
   renderRefRow();
+}
+els.fileInput.onchange=async e=>{
+  await addReferenceFiles(e.target.files);
+  els.fileInput.value='';
 };
+
+let composerDragDepth=0;
+els.composer.addEventListener('dragenter',event=>{
+  if(!event.dataTransfer?.types?.includes('Files'))return;
+  event.preventDefault();
+  composerDragDepth++;
+  els.composer.classList.add('is-dragover');
+});
+els.composer.addEventListener('dragover',event=>{
+  if(!event.dataTransfer?.types?.includes('Files'))return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect='copy';
+});
+els.composer.addEventListener('dragleave',event=>{
+  if(!event.dataTransfer?.types?.includes('Files'))return;
+  composerDragDepth=Math.max(0,composerDragDepth-1);
+  if(composerDragDepth===0)els.composer.classList.remove('is-dragover');
+});
+els.composer.addEventListener('drop',event=>{
+  if(!event.dataTransfer?.types?.includes('Files'))return;
+  event.preventDefault();
+  composerDragDepth=0;
+  els.composer.classList.remove('is-dragover');
+  void addReferenceFiles(event.dataTransfer.files);
+});
 
 function renderRefRow(){
   const mgr=refManagers[activeModel];

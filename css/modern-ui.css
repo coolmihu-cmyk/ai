@@ -337,6 +337,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   box-shadow:none;
 }
 .home-page .composer-input::placeholder{color:#a6aaae;font-size:15px;line-height:1.6}
+.home-page .composer.is-dragover{outline:2px dashed #b8b8b8;outline-offset:4px}
 .prompt-input-shell{width:100%}
 .prompt-input-meta{
   min-height:32px;
