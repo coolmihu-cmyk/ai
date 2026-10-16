@@ -213,6 +213,7 @@ function resizePromptInput(){
   const input=els.promptInput;
   input.style.height='auto';
   input.style.height=Math.min(input.scrollHeight,Math.round(innerHeight*.42),420)+'px';
+  renderPromptHighlights();
 }
 
 function updatePlaceholder(){els.promptInput.placeholder='请输入提示词，输入 @ 引用参考图'}
@@ -282,6 +283,34 @@ function renderRatioPop(){
 }
 
 initCreationDropdowns();
+
+// Keep the native textarea for editing; mirror only the text styling underneath it.
+const promptEditor=document.createElement('div');promptEditor.className='prompt-editor';
+els.promptInput.before(promptEditor);promptEditor.appendChild(els.promptInput);
+const promptHighlights=document.createElement('div');promptHighlights.className='prompt-highlights';
+promptHighlights.setAttribute('aria-hidden','true');promptEditor.prepend(promptHighlights);
+function renderPromptHighlights(){
+  const input=els.promptInput,text=input.value;
+  const matches=[...text.matchAll(/@参考图\d+(?!\d)/g)];
+  promptEditor.classList.toggle('has-reference-mentions',matches.length>0);
+  promptHighlights.replaceChildren();
+  if(!matches.length)return;
+  let cursor=0;
+  for(const match of matches){
+    promptHighlights.append(document.createTextNode(text.slice(cursor,match.index)));
+    const mention=document.createElement('span');mention.className='prompt-reference-mention';mention.textContent=match[0];
+    promptHighlights.append(mention);cursor=match.index+match[0].length;
+  }
+  promptHighlights.append(document.createTextNode(text.slice(cursor)+'\n'));
+  const style=getComputedStyle(input);
+  for(const property of ['fontFamily','fontSize','fontWeight','fontStyle','lineHeight','letterSpacing','wordSpacing','textIndent','textAlign','paddingTop','paddingRight','paddingBottom','paddingLeft','overflowWrap','wordBreak','tabSize'])promptHighlights.style[property]=style[property];
+  promptHighlights.style.width=input.clientWidth+'px';promptHighlights.style.height=input.clientHeight+'px';
+  promptHighlights.style.left=input.offsetLeft+input.clientLeft+'px';promptHighlights.style.top=input.offsetTop+input.clientTop+'px';
+  promptHighlights.scrollTop=input.scrollTop;promptHighlights.scrollLeft=input.scrollLeft;
+}
+els.promptInput.addEventListener('scroll',()=>{promptHighlights.scrollTop=els.promptInput.scrollTop;promptHighlights.scrollLeft=els.promptInput.scrollLeft});
+new ResizeObserver(renderPromptHighlights).observe(els.promptInput);
+document.fonts.ready.then(renderPromptHighlights);
 
 /* ===================== 参考图管理 ===================== */
 let draggedReferenceIndex=null;

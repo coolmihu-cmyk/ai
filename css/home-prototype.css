@@ -66,3 +66,9 @@ body.home-page{background:#f0f0f0}.home-page .app-rail{display:none}
 .reference-mention-menu button.is-active,.reference-mention-menu button:hover{background:#141313;color:#fff}
 .reference-mention-menu img{width:34px;height:34px;object-fit:cover;border-radius:5px}
 @media(max-width:800px){.home-page .ref-number{left:2px;bottom:2px;padding:1px 3px;font-size:9px;white-space:nowrap}}
+.home-page .prompt-editor{position:relative;width:100%;min-width:0}
+.home-page .prompt-highlights{position:absolute;box-sizing:border-box;overflow:hidden;white-space:pre-wrap;pointer-events:none;color:#141313!important;display:none}
+.home-page .prompt-editor.has-reference-mentions .prompt-highlights{display:block}
+.home-page .prompt-reference-mention{color:#1677ff!important}
+.home-page .prompt-editor.has-reference-mentions .composer-input{position:relative;background:transparent;color:transparent!important;caret-color:#141313}
+.home-page .prompt-editor.has-reference-mentions .composer-input::selection{background:#cce1ff;color:#141313}
