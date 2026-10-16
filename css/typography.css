@@ -55,6 +55,9 @@ body :where(
   .creation-setting-chip.active,.creation-setting-chip.active *,
   .toast,.toast *,
   .ref-add,.ref-add *,
+  .ref-number,
+  .reference-mention-menu button.is-active,.reference-mention-menu button.is-active *,
+  .reference-mention-menu button:hover,.reference-mention-menu button:hover *,
   .home-back-to-top,.home-back-to-top *,
   .reference-filter button.is-active,.reference-filter button.is-active *
 ){color:#fff!important}

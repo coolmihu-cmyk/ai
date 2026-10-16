@@ -16,6 +16,10 @@ async function buildPendingGeneration(){
   const config=MODEL_CONFIG[key];
   if(!config)throw new Error('当前图片模型不可用，请重新选择。');
   const refMgr=refManagers[key],refCount=refMgr?refMgr.count():0;
+  prompt=prompt.replace(/@参考图(\d+)(?!\d)/g,(_,number)=>{
+    if(Number(number)<1||Number(number)>refCount)throw new Error('参考图 '+number+' 不存在，请重新选择。');
+    return '第'+Number(number)+'张参考图';
+  });
   const transparentRequested=config.supportsTransparent&&els.transparentBgBtn.value==='yes';
   const referenceUrls=refCount?await refMgr.persist():[];
   const endpoint='/images/generations';

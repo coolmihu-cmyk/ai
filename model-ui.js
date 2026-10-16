@@ -215,7 +215,7 @@ function resizePromptInput(){
   input.style.height=Math.min(input.scrollHeight,Math.round(innerHeight*.42),420)+'px';
 }
 
-function updatePlaceholder(){els.promptInput.placeholder='请输入提示词'}
+function updatePlaceholder(){els.promptInput.placeholder='请输入提示词，输入 @ 引用参考图'}
 
 /* ===================== 外置模型输出设置 ===================== */
 function renderModelSettings(){
@@ -284,6 +284,94 @@ function renderRatioPop(){
 initCreationDropdowns();
 
 /* ===================== 参考图管理 ===================== */
+let draggedReferenceIndex=null;
+function remapReferenceMentions(mapping){
+  const replace=text=>text.replace(/@参考图(\d+)(?!\d)/g,(token,number)=>{
+    const next=mapping[Number(number)-1];
+    return next===undefined?'[已移除参考图]':'@参考图'+(next+1);
+  });
+  for(const state of Object.values(modelState))state.promptText=replace(state.promptText||'');
+  const input=els.promptInput,start=input.selectionStart,end=input.selectionEnd;
+  const before=input.value;
+  input.value=replace(before);
+  input.setSelectionRange(replace(before.slice(0,start)).length,replace(before.slice(0,end)).length);
+  modelState[activeModel].promptText=input.value;
+  updateCharLimit();closeReferenceMentions();
+}
+function reorderReferences(from,to){
+  if(preparingGeneration||from===to)return;
+  const order=sharedReferenceManager.getAll().map((_,index)=>index);
+  order.splice(to,0,order.splice(from,1)[0]);
+  if(!sharedReferenceManager.move(from,to))return;
+  const mapping=[];order.forEach((oldIndex,newIndex)=>mapping[oldIndex]=newIndex);
+  remapReferenceMentions(mapping);renderRefRow();
+  els.refRow.querySelector('.ref-stack')?.classList.add('is-expanded');
+}
+const referenceMentionMenu=document.createElement('div');
+referenceMentionMenu.className='reference-mention-menu';referenceMentionMenu.hidden=true;
+referenceMentionMenu.id='referenceMentionMenu';referenceMentionMenu.setAttribute('role','listbox');
+referenceMentionMenu.setAttribute('aria-label','选择参考图');document.body.appendChild(referenceMentionMenu);
+els.promptInput.setAttribute('aria-controls',referenceMentionMenu.id);
+els.promptInput.setAttribute('aria-autocomplete','list');
+let referenceMentionRange=null,referenceMentionChoices=[],referenceMentionSelected=0;
+function closeReferenceMentions(){
+  referenceMentionMenu.hidden=true;referenceMentionRange=null;
+  els.promptInput.setAttribute('aria-expanded','false');els.promptInput.removeAttribute('aria-activedescendant');
+}
+function selectReferenceMention(index){
+  if(!referenceMentionRange)return;
+  const input=els.promptInput,{start,end}=referenceMentionRange,token='@参考图'+(index+1)+' ';
+  if(input.value.length-(end-start)+token.length>input.maxLength){toast('提示词已达到字数上限');return}
+  input.setRangeText(token,start,end,'end');closeReferenceMentions();input.focus();
+  input.dispatchEvent(new Event('input',{bubbles:true}));
+}
+function highlightReferenceMention(){
+  [...referenceMentionMenu.children].forEach((option,index)=>{
+    option.classList.toggle('is-active',index===referenceMentionSelected);
+    option.setAttribute('aria-selected',String(index===referenceMentionSelected));
+  });
+  const selected=referenceMentionMenu.children[referenceMentionSelected];
+  if(selected){els.promptInput.setAttribute('aria-activedescendant',selected.id);selected.scrollIntoView({block:'nearest'})}
+}
+function updateReferenceMentions(){
+  const input=els.promptInput,caret=input.selectionStart;
+  if(document.activeElement!==input||caret!==input.selectionEnd){closeReferenceMentions();return}
+  const match=input.value.slice(0,caret).match(/@(?:参考图)?(\d*)$/);
+  const refs=sharedReferenceManager.getAll();
+  if(!match||!refs.length){closeReferenceMentions();return}
+  referenceMentionChoices=refs.map((_,index)=>index).filter(index=>String(index+1).startsWith(match[1]));
+  if(!referenceMentionChoices.length){closeReferenceMentions();return}
+  referenceMentionRange={start:caret-match[0].length,end:caret};referenceMentionSelected=0;
+  referenceMentionMenu.replaceChildren();
+  referenceMentionChoices.forEach(index=>{
+    const option=document.createElement('button');option.type='button';option.setAttribute('role','option');
+    option.id='referenceMention-'+index;
+    const image=document.createElement('img');image.src=refs[index].dataUrl;image.alt='';image.draggable=false;
+    const label=document.createElement('span');label.textContent='参考图 '+(index+1);
+    option.append(image,label);option.addEventListener('mousedown',event=>event.preventDefault());
+    option.onclick=()=>selectReferenceMention(index);referenceMentionMenu.appendChild(option);
+  });
+  const rect=input.getBoundingClientRect();
+  referenceMentionMenu.style.left=Math.max(8,Math.min(rect.left,window.innerWidth-248))+'px';
+  referenceMentionMenu.style.top=Math.max(8,Math.min(rect.bottom,window.innerHeight-240))+'px';
+  referenceMentionMenu.hidden=false;input.setAttribute('aria-expanded','true');highlightReferenceMention();
+}
+els.promptInput.addEventListener('input',updateReferenceMentions);
+els.promptInput.addEventListener('click',updateReferenceMentions);
+els.promptInput.addEventListener('keyup',event=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key))updateReferenceMentions()});
+els.promptInput.addEventListener('blur',closeReferenceMentions);
+els.promptInput.addEventListener('keydown',event=>{
+  if(referenceMentionMenu.hidden||event.isComposing||event.ctrlKey||event.metaKey)return;
+  if(['ArrowDown','ArrowUp','Enter','Escape','Tab'].includes(event.key)){
+    event.preventDefault();event.stopImmediatePropagation();
+    if(event.key==='Escape'){closeReferenceMentions();return}
+    if(event.key==='Enter'||event.key==='Tab'){selectReferenceMention(referenceMentionChoices[referenceMentionSelected]);return}
+    referenceMentionSelected=(referenceMentionSelected+(event.key==='ArrowDown'?1:-1)+referenceMentionChoices.length)%referenceMentionChoices.length;
+    highlightReferenceMention();
+  }
+});
+window.addEventListener('resize',closeReferenceMentions);
+window.addEventListener('scroll',event=>{if(!referenceMentionMenu.contains(event.target))closeReferenceMentions()},true);
 els.refBtn.onclick=()=>els.fileInput.click();
 async function addReferenceFiles(fileList){
   const files=Array.from(fileList||[]);
@@ -332,7 +420,7 @@ function renderRefRow(){
     stack.className='ref-stack';
     stack.classList.toggle('is-single',refs.length===1);
     stack.style.setProperty('--ref-count',String(refs.length));
-    stack.addEventListener('mouseleave',()=>stack.classList.remove('is-expanded'));
+    stack.addEventListener('mouseleave',()=>{if(draggedReferenceIndex===null)stack.classList.remove('is-expanded')});
     refs.forEach((ref,i)=>{
       const thumb=document.createElement('div');
       thumb.className='ref-thumb';
@@ -340,9 +428,35 @@ function renderRefRow(){
       thumb.style.setProperty('--ref-angle',i%2===0?'-3deg':'3deg');
       thumb.style.setProperty('--ref-left',(i%3===2?-4:i%2===0?0:7)+'px');
       thumb.style.setProperty('--ref-top',(i%3)*2+'px');
-      thumb.innerHTML='<img src="'+ref.dataUrl+'" alt="参考图"><button class="ref-remove" data-i="'+i+'">×</button>';
+      const image=document.createElement('img');image.src=ref.dataUrl;image.alt='参考图 '+(i+1);image.draggable=false;
+      const label=document.createElement('span');label.className='ref-number';label.textContent='参考图 '+(i+1);
+      const remove=document.createElement('button');remove.type='button';remove.className='ref-remove';remove.textContent='×';remove.setAttribute('aria-label','移除参考图 '+(i+1));
+      thumb.append(image,label,remove);thumb.draggable=true;thumb.title='拖动调整顺序 · 参考图 '+(i+1);
+      thumb.addEventListener('dragstart',event=>{
+        if(preparingGeneration){event.preventDefault();return}
+        draggedReferenceIndex=i;event.dataTransfer.effectAllowed='move';
+        event.dataTransfer.setData('application/x-mihu-reference',String(i));
+        thumb.classList.add('is-dragging');stack.classList.add('is-expanded');closeReferenceMentions();
+      });
+      thumb.addEventListener('dragover',event=>{
+        if(draggedReferenceIndex===null)return;
+        event.preventDefault();event.stopPropagation();event.dataTransfer.dropEffect='move';thumb.classList.add('is-drop-target');
+      });
+      thumb.addEventListener('dragleave',()=>thumb.classList.remove('is-drop-target'));
+      thumb.addEventListener('drop',event=>{
+        if(draggedReferenceIndex===null)return;
+        event.preventDefault();event.stopPropagation();const from=draggedReferenceIndex;draggedReferenceIndex=null;
+        reorderReferences(from,i);
+      });
+      thumb.addEventListener('dragend',()=>{
+        draggedReferenceIndex=null;stack.querySelectorAll('.ref-thumb').forEach(item=>item.classList.remove('is-dragging','is-drop-target'));
+      });
       thumb.addEventListener('mouseenter',()=>stack.classList.add('is-expanded'));
-      thumb.querySelector('.ref-remove').onclick=()=>{mgr.remove(i);renderRefRow()};
+      remove.onclick=()=>{
+        if(preparingGeneration)return;
+        const mapping=refs.map((_,index)=>index===i?undefined:index>i?index-1:index);
+        mgr.remove(i);remapReferenceMentions(mapping);renderRefRow();
+      };
       stack.appendChild(thumb);
     });
     if(refs.length<10){
