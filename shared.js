@@ -16,13 +16,13 @@ const MODEL_CONFIG={
   gpt25flare:{
     name:'GPT Image2.5 Flare',icon:'icon/model-gpt-chatgpt.svg',promptLimit:3000,
     ratios:['auto','1:1','3:2','2:3','4:3','3:4','5:4','4:5','16:9','9:16','21:9'],
-    resolutions:[{v:'1K',l:'标准',price:'0.085积分/张'},{v:'2K',l:'高清',price:'0.14积分/张'},{v:'4K',l:'超清',price:'0.21积分/张'}],
+    resolutions:[{v:'1K',l:'标准',price:'0.085积分/张'},{v:'2K',l:'高清',price:'0.3积分/张'},{v:'4K',l:'超清',price:'0.4积分/张'}],
     defaultResolution:'1K',generationModel:'gpt-image-2.5-ext',editModel:'gpt-image-2.5-ext',apiVersion:'flare'
   },
   gpt25sunburst:{
     name:'GPT Image2.5 Sunburst',icon:'icon/model-gpt-chatgpt.svg',promptLimit:3000,
     ratios:['auto','1:1','3:2','2:3','4:3','3:4','5:4','16:9','9:16','21:9'],
-    resolutions:[{v:'1K',l:'标准',price:'0.085积分/张'},{v:'2K',l:'高清',price:'0.14积分/张'},{v:'4K',l:'超清',price:'0.21积分/张'}],
+    resolutions:[{v:'1K',l:'标准',price:'0.085积分/张'},{v:'2K',l:'高清',price:'0.3积分/张'},{v:'4K',l:'超清',price:'0.4积分/张'}],
     defaultResolution:'1K',generationModel:'gpt-image-2.5-ext',editModel:'gpt-image-2.5-ext',apiVersion:'sunburst'
   },
   nano:{
