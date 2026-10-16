@@ -2,6 +2,13 @@
 const CREATION_MODEL_ICONS=Object.fromEntries(
   Object.entries(MODEL_CONFIG).map(([key,config])=>[key,config.icon])
 );
+CREATION_MODEL_ICONS.seedream=CREATION_MODEL_ICONS.seedreamflash;
+const MODEL_VERSIONS={
+  gpt:[{value:'gpt',label:'2.0'},{value:'gpt25flare',label:'2.5 Flare'},{value:'gpt25sunburst',label:'2.5 Sunburst'}],
+  seedream:[{value:'seedreamflash',label:'FLASH'},{value:'seedreampro',label:'PRO'}]
+};
+const selectedModelVersions={gpt:activeModel,seedream:'seedreamflash'};
+function creationModelFamily(key){return key.startsWith('gpt')?'gpt':key.startsWith('seedream')?'seedream':key}
 const RESOLUTION_ICONS={
   '1k':'icon/resolution-1k.png','1K':'icon/resolution-1k.png',
   '1.5K':'icon/resolution-1k-plus.png','2k':'icon/resolution-2k.png',
@@ -28,7 +35,7 @@ function makeCreationVisual(type,value){
   }
   if(type==='gpt-version'){
     const img=document.createElement('img');
-    img.className='model-mark model-mark-gpt';img.src=CREATION_MODEL_ICONS.gpt;img.alt='';
+    img.className='model-mark';img.src=CREATION_MODEL_ICONS[value]||CREATION_MODEL_ICONS.gpt;img.alt='';
     return img;
   }
   if(type==='ratio'){
@@ -159,7 +166,8 @@ function initCreationDropdowns(){
 }
 
 els.creationModelSelect.onchange=()=>{
-  const key=els.creationModelSelect.value==='gpt'?(els.creationGptVersionSelect?.value||'gpt'):els.creationModelSelect.value;
+  const family=els.creationModelSelect.value;
+  const key=selectedModelVersions[family]||family;
   switchModel(key);
 };
 els.creationGptVersionSelect.onchange=()=>switchModel(els.creationGptVersionSelect.value);
@@ -184,10 +192,10 @@ function switchModel(key){
     state.promptText=currentPrompt.slice(0,MODEL_CONFIG[modelKey].promptLimit);
   });
   activeModel=key;
-  els.creationModelSelect.value=key.startsWith('gpt')?'gpt':key;
-  if(els.creationGptVersionSelect)els.creationGptVersionSelect.value=key.startsWith('gpt')?key:'gpt';
+  const family=creationModelFamily(key);
+  if(MODEL_VERSIONS[family])selectedModelVersions[family]=key;
+  els.creationModelSelect.value=family;
   syncCreationDropdown(els.creationModelSelect.closest('.creation-dropdown'));
-  syncCreationDropdown(els.creationGptVersionSelect?.closest('.creation-dropdown'));
   els.promptInput.value=modelState[key].promptText;
   els.promptInput.maxLength=MODEL_CONFIG[key].promptLimit;
   els.charCount.textContent=els.promptInput.value.length;
@@ -198,7 +206,7 @@ function switchModel(key){
   renderResPop();
   renderRatioPop();
   syncTransparentBackgroundControl();
-  renderGptVersionControl();
+  renderModelVersionControl();
   // 更新占位符
   updatePlaceholder();
 }
@@ -252,11 +260,19 @@ function renderModelSettings(){
   renderOptionalSetting(config.moderations,els.creationModerationControl,els.creationModerationSelect,'moderation');
 }
 
-function renderGptVersionControl(){
+function renderModelVersionControl(){
   const control=els.creationGptVersionControl;
   if(!control)return;
-  control.hidden=!activeModel.startsWith('gpt');
-  if(els.creationGptVersionSelect){els.creationGptVersionSelect.value=activeModel.startsWith('gpt')?activeModel:'gpt';syncCreationDropdown(control)}
+  const family=creationModelFamily(activeModel),versions=MODEL_VERSIONS[family];
+  control.hidden=!versions;
+  if(!versions)return;
+  const label=family==='seedream'?'Seedream 5.0 档位':'GPT IMAGE 版本';
+  els.creationGptVersionSelect.replaceChildren(...versions.map(version=>{
+    const option=document.createElement('option');option.value=version.value;option.textContent=version.label;return option;
+  }));
+  els.creationGptVersionSelect.value=activeModel;
+  els.creationGptVersionSelect.setAttribute('aria-label',label);control.querySelector('.creation-select-menu').setAttribute('aria-label',label);
+  syncCreationDropdown(control);
 }
 
 function syncTransparentBackgroundControl(){
@@ -601,6 +617,8 @@ els.oneClickStyleInput?.addEventListener('change',async event=>{
 
 /* ===================== 优化提示词 ===================== */
 const ENHANCE_SYSTEMS={
+  seedreamflash:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 Seedream 5.0 FLASH，保留主体、构图、文字、光线和参考图引用。只输出优化后的提示词，不要解释。',
+  seedreampro:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 Seedream 5.0 PRO，准确保留主体、构图、文字、材质、光线和参考图引用。只输出优化后的提示词，不要解释。',
   gpt:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其结构清晰、具体且适合图片生成模型。不得改变核心意图、主体数量、人物身份和指定元素。只输出优化后的最终提示词，不要解释。',
   gpt25flare:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 GPT Image 2.5 Flare 快速图像生成，保留核心意图并清晰描述主体、构图、文字、光线和材质。只输出优化后的最终提示词，不要解释。',
   gpt25sunburst:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 GPT Image 2.5 Sunburst 高质量图像生成与精细编辑，保留核心意图并准确描述主体、构图、文字、光线、材质和细节。只输出优化后的最终提示词，不要解释。',

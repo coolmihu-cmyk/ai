@@ -21,6 +21,7 @@ async function buildPendingGeneration(){
     return '第'+Number(number)+'张参考图';
   });
   const transparentRequested=config.supportsTransparent&&els.transparentBgBtn.value==='yes';
+  if(transparentRequested&&config.transparentRequiresSingleReference&&refCount!==1)throw new Error('透明背景需要且只能上传 1 张本身带透明通道的参考图。');
   const referenceUrls=refCount?await refMgr.persist():[];
   const endpoint='/images/generations';
   if(transparentRequested){
