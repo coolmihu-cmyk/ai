@@ -1,5 +1,5 @@
 /* ===================== 常量与状态 ===================== */
-let activeModel='gpt';
+let activeModel='gpt25flare';
 const modelState=Object.fromEntries(Object.entries(MODEL_CONFIG).map(([key,config])=>[
   key,
   {ratio:config.ratios[0],...(config.defaultResolution?{resolution:config.defaultResolution}:{}),...(config.defaultQuality?{quality:config.defaultQuality}:{}),...(config.defaultModeration?{moderation:config.defaultModeration}:{}),promptText:''}
