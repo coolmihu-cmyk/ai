@@ -502,6 +502,33 @@ async function resetPendingGenerationForRetry(job){
   await PendingGeneration.save(job);
   PromptLog.update(job.promptLogId,{status:'submitted',errorMessage:null});
 }
+function appendFailedPromptActions(actions,job,promptElement){
+  const fullPrompt=job.prompt||job.body?.prompt||'';
+  promptElement.textContent=fullPrompt;
+  const expand=document.createElement('button');expand.type='button';expand.textContent='展开提示词';expand.setAttribute('aria-expanded','false');
+  expand.onclick=()=>{
+    const expanded=promptElement.classList.toggle('is-expanded');
+    expand.textContent=expanded?'收起提示词':'展开提示词';expand.setAttribute('aria-expanded',String(expanded));
+  };
+  const copy=document.createElement('button');copy.type='button';copy.textContent='复制提示词';
+  copy.onclick=async()=>{
+    try{
+      if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(fullPrompt);
+      else{
+        const input=document.createElement('textarea');input.value=fullPrompt;input.readOnly=true;
+        input.style.cssText='position:fixed;left:-9999px;top:0';document.body.append(input);
+        try{input.select();if(!document.execCommand('copy'))throw new Error('copy failed')}finally{input.remove();copy.focus()}
+      }
+      toast('已复制完整提示词');
+    }catch(_){toast('复制失败，请展开提示词后选择文字复制')}
+  };
+  const edit=document.createElement('button');edit.type='button';edit.textContent='修改提示词';
+  edit.onclick=()=>sendAssetToComposer({
+    prompt:fullPrompt,model:job.model,settings:job.settings||{ratio:job.body?.size,resolution:job.body?.resolution,quality:job.body?.quality,moderation:job.body?.moderation},
+    referenceUrls:job.referenceUrls?.length?job.referenceUrls:(Array.isArray(job.body?.image_urls)?job.body.image_urls:[])
+  });
+  actions.append(expand,copy,edit);
+}
 async function renderTaskCenter(){
   if(!assetsEls.taskCenter)return;
   const currentJob=await PendingGeneration.load();
@@ -520,6 +547,7 @@ async function renderTaskCenter(){
     const prompt=document.createElement('p');prompt.textContent=job.prompt||'正在准备图片任务';copy.append(head,prompt);
     const actions=document.createElement('div');actions.className='asset-task-actions';
     if(job.scope!=='editor'&&job.failedAt){
+      appendFailedPromptActions(actions,job,prompt);
       const retry=document.createElement('button');retry.type='button';retry.textContent='重试';retry.onclick=async()=>{retry.disabled=true;await resetPendingGenerationForRetry(job);runNextPendingGeneration().catch(()=>{})};actions.appendChild(retry);
     }
     const cancel=document.createElement('button');cancel.type='button';cancel.className='is-quiet';cancel.textContent='取消';cancel.onclick=async()=>{cancel.disabled=true;await PendingGeneration.delete(job.id);renderTaskCenter()};actions.appendChild(cancel);
@@ -735,6 +763,7 @@ function showGeneration(job){
   }
   assetsEls.generationModel.textContent=ASSET_MODEL_NAMES[job.model]||job.model||'生成任务';
   assetsEls.generationPrompt.textContent=job.prompt||'正在生成图片';
+  assetsEls.generationPrompt.classList.remove('is-expanded');
   setGenerationStatus(job.taskId?'正在恢复任务':'正在提交任务');
   assetsEls.generationPercent.textContent='0%';
   assetsEls.generationBar.style.width='0%';
@@ -775,6 +804,7 @@ function showGenerationFailure(job,message){
   text.textContent=message;
   const actions=document.createElement('span');
   actions.className='assets-generation-error-actions';
+  appendFailedPromptActions(actions,job,assetsEls.generationPrompt);
   const retry=document.createElement('button');
   retry.type='button';retry.textContent='重试';
   const cancel=document.createElement('button');

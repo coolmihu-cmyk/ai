@@ -1471,5 +1471,8 @@ body.home-page{height:100%;min-height:0;overflow:hidden}.home-page .app{height:1
 .asset-compare-range:focus-visible{opacity:1;outline:2px solid #141313;outline-offset:-2px}
 .asset-compare-label{position:absolute;bottom:10px;z-index:2;padding:4px 7px;border-radius:5px;background:#141313;color:#fff;font-size:10px;font-weight:700;line-height:1;pointer-events:none}
 .asset-compare-label.is-original{left:10px}.asset-compare-label.is-generated{right:10px}
+.assets-generation-content>p.is-expanded,.asset-task-row p.is-expanded{max-width:100%;max-height:none;overflow:visible;white-space:pre-wrap;overflow-wrap:anywhere;text-overflow:clip;user-select:text}
+.assets-generation-error-actions,.asset-task-row.is-failed .asset-task-actions{flex-wrap:wrap}
+.asset-task-row.is-failed{flex-wrap:wrap}
 .asset-compare-dialog>p{margin:10px 0 0;color:#898989;font-size:11px;line-height:1.4;text-align:center}
 @media(max-width:640px){.asset-compare-layer{padding:10px}.asset-compare-dialog{width:100%;padding:13px;border-radius:13px}.asset-compare-dialog>header h2{font-size:16px}.asset-compare-stage{border-radius:9px}}
