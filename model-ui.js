@@ -85,6 +85,10 @@ function closeCreationDropdowns(except){
   });
 }
 
+function appendModelFreeLabel(label,value){
+  if(value!=='mosssft')return;
+  const free=document.createElement('small');free.className='creation-model-free';free.textContent='FREE';label.appendChild(free);
+}
 function syncCreationDropdown(dropdown){
   if(!dropdown)return;
   const type=dropdown.dataset.creationDropdown;
@@ -93,6 +97,7 @@ function syncCreationDropdown(dropdown){
   const currentLabel=current?.textContent||'';
   const currentValue=current?.value||'';
   dropdown.querySelector('[data-creation-current]').textContent=currentLabel;
+  if(type==='model')appendModelFreeLabel(dropdown.querySelector('[data-creation-current]'),currentValue);
   const triggerVisual=dropdown.querySelector('[data-creation-visual]');
   triggerVisual.innerHTML='';
   const currentVisual=makeCreationVisual(type,currentValue);
@@ -120,6 +125,7 @@ function syncCreationDropdown(dropdown){
     copy.className='creation-option-copy';
     const title=document.createElement('strong');
     title.textContent=option.textContent;
+    if(type==='model')appendModelFreeLabel(title,option.value);
     copy.appendChild(title);
     if(type==='model'&&option.dataset.description){
       const description=document.createElement('small');

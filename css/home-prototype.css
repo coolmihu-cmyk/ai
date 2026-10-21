@@ -74,3 +74,4 @@ body.home-page{background:#f0f0f0}.home-page .app-rail{display:none}
 .home-page .prompt-editor.has-reference-mentions .composer-input::selection{background:#cce1ff;color:#141313}
 .home-page .composer.is-text-only-model .prompt-input-shell{padding-left:0}
 .home-page .composer.is-text-only-model .ref-upload-btn,.home-page .composer.is-text-only-model .ref-row,.home-page .composer.is-text-only-model .one-click-style-btn{display:none!important}
+.home-page .creation-model-free{display:inline-block;margin-left:5px;font-size:8px;font-weight:600;line-height:1;letter-spacing:.04em;vertical-align:middle}
