@@ -1,7 +1,7 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 // 每次完成一次改动并提交时递增。
-const APP_VERSION='436.0';
+const APP_VERSION='437.0';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
@@ -36,6 +36,12 @@ const MODEL_CONFIG={
     ratios:['auto','1:1','4:3','3:4','16:9','9:16','3:2','2:3','2:1','21:9'],
     resolutions:[{v:'1K',l:'标准',price:'0.2925积分/张'},{v:'1.5K',l:'推荐',price:'0.2925积分/张'},{v:'2K',l:'高清',price:'0.585积分/张'}],
     defaultResolution:'1.5K',generationModel:'seedream-5-0-pro',supportsTransparent:true,transparentRequiresSingleReference:true
+  },
+  mosssft:{
+    name:'MOSS Image SFT',icon:'icon/model-moss.svg',promptLimit:4000,provider:'moss',supportsReferences:false,
+    ratios:['1:1','3:2','2:3','4:3','3:4','16:9','9:16','2:1','1:2'],
+    sizes:{'1:1':'1024x1024','3:2':'1536x1024','2:3':'1024x1536','4:3':'1152x864','3:4':'864x1152','16:9':'1536x864','9:16':'864x1536','2:1':'1536x768','1:2':'768x1536'},
+    generationModel:'moss-image-sft-1.0'
   },
   nano:{
     name:'Nano Banana PRO',icon:'icon/model-nbpro-banana.svg',promptLimit:2000,
@@ -203,6 +209,16 @@ function generationErrorMessage(error){
   return '生成服务暂时无法完成任务，请稍后重试。';
 }
 
+const Moss={
+  async generate(body,signal){
+    const response=await fetch('/api/moss-image',{method:'POST',signal,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok||!data.url){
+      const error=new Error(data.error||'MOSS 生成失败，请稍后重试。');error.status=response.status;throw error;
+    }
+    return data.url;
+  }
+};
 const Apimart={
   async getUserBalance(apiKey,signal){
     const key=String(apiKey||'').trim();

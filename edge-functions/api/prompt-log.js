@@ -40,7 +40,7 @@ export async function onRequestPost(context){
   try{
     if(!isSiteRequest(context.request))return json({error:'不允许跨站记录请求。'},403);
     if(!historyToken(context.request))return json({error:'缺少有效的请求身份。'},401);
-    const input=await context.request.json(),prompt=cleanText(input.prompt,3000);
+    const input=await context.request.json(),prompt=cleanText(input.prompt,4000);
     if(!prompt)return json({error:'提示词不能为空。'},400);
     const rows=await supabaseRequest(context.env,'prompt_logs?select=id',{body:{
       task_id:cleanText(input.taskId,200)||null,

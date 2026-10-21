@@ -15,7 +15,7 @@ async function buildPendingGeneration(){
   let prompt=els.promptInput.value.trim();
   const config=MODEL_CONFIG[key];
   if(!config)throw new Error('当前图片模型不可用，请重新选择。');
-  const refMgr=refManagers[key],refCount=refMgr?refMgr.count():0;
+  const refMgr=refManagers[key],refCount=config.supportsReferences===false?0:(refMgr?refMgr.count():0);
   prompt=prompt.replace(/@参考图(\d+)(?!\d)/g,(_,number)=>{
     if(Number(number)<1||Number(number)>refCount)throw new Error('参考图 '+number+' 不存在，请重新选择。');
     return '第'+Number(number)+'张参考图';
@@ -24,6 +24,14 @@ async function buildPendingGeneration(){
   if(transparentRequested&&config.transparentRequiresSingleReference&&refCount!==1)throw new Error('透明背景需要且只能上传 1 张本身带透明通道的参考图。');
   const referenceUrls=refCount?await refMgr.persist():[];
   const endpoint='/images/generations';
+  if(config.provider==='moss'){
+    return {
+      id:'generation-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),
+      body:{model:config.generationModel,prompt,size:config.sizes[state.ratio],n:1,response_format:'url'},
+      endpoint:'/api/moss-image',provider:'moss',maxWaitMs:300000,prompt,model:key,
+      settings:snapshotCreationState(key),referenceUrls:[],createdAt:new Date().toISOString(),taskId:null
+    };
+  }
   if(transparentRequested){
     prompt+=','+TRANSPARENT_ELEMENT_PROMPT;
     if(!/background\s*=\s*["']transparent["']/i.test(prompt))prompt+='\nbackground="transparent"';
@@ -48,7 +56,7 @@ async function doGenerate(){
   if(preparingGeneration)return;
   hideComposerError();
   const apiKey=Settings.getKey(),initialPrompt=els.promptInput.value.trim();
-  if(!apiKey){Settings.openPage();toast('请先保存 API Key');return}
+  if(!apiKey&&MODEL_CONFIG[activeModel].provider!=='moss'){Settings.openPage();toast('请先保存 API Key');return}
   if(!initialPrompt){showComposerError('请填写提示词。');return}
 
   preparingGeneration=true;

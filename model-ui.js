@@ -224,7 +224,7 @@ function resizePromptInput(){
   renderPromptHighlights();
 }
 
-function updatePlaceholder(){els.promptInput.placeholder='请输入提示词，输入 @ 引用参考图'}
+function updatePlaceholder(){els.promptInput.placeholder=MODEL_CONFIG[activeModel].supportsReferences===false?'MOSS SFT 限时免费，仅支持文生图，请输入提示词':'请输入提示词，输入 @ 引用参考图'}
 
 /* ===================== 外置模型输出设置 ===================== */
 function renderModelSettings(){
@@ -379,6 +379,7 @@ function highlightReferenceMention(){
   if(selected){els.promptInput.setAttribute('aria-activedescendant',selected.id);selected.scrollIntoView({block:'nearest'})}
 }
 function updateReferenceMentions(){
+  if(MODEL_CONFIG[activeModel].supportsReferences===false){closeReferenceMentions();return}
   const input=els.promptInput,caret=input.selectionStart;
   if(document.activeElement!==input||caret!==input.selectionEnd){closeReferenceMentions();return}
   const match=input.value.slice(0,caret).match(/@(?:参考图)?(\d*)$/);
@@ -419,6 +420,7 @@ window.addEventListener('resize',closeReferenceMentions);
 window.addEventListener('scroll',event=>{if(!referenceMentionMenu.contains(event.target))closeReferenceMentions()},true);
 els.refBtn.onclick=()=>els.fileInput.click();
 async function addReferenceFiles(fileList){
+  if(MODEL_CONFIG[activeModel].supportsReferences===false){toast('MOSS SFT 仅支持文生图，不能上传参考图');return}
   const files=Array.from(fileList||[]);
   if(!files.length)return;
   await refManagers[activeModel].addFiles(files);
@@ -433,13 +435,14 @@ let composerDragDepth=0;
 els.composer.addEventListener('dragenter',event=>{
   if(!event.dataTransfer?.types?.includes('Files'))return;
   event.preventDefault();
+  if(MODEL_CONFIG[activeModel].supportsReferences===false)return;
   composerDragDepth++;
   els.composer.classList.add('is-dragover');
 });
 els.composer.addEventListener('dragover',event=>{
   if(!event.dataTransfer?.types?.includes('Files'))return;
   event.preventDefault();
-  event.dataTransfer.dropEffect='copy';
+  event.dataTransfer.dropEffect=MODEL_CONFIG[activeModel].supportsReferences===false?'none':'copy';
 });
 els.composer.addEventListener('dragleave',event=>{
   if(!event.dataTransfer?.types?.includes('Files'))return;
@@ -458,6 +461,12 @@ function renderRefRow(){
   const mgr=refManagers[activeModel];
   const refs=mgr?mgr.getAll():[];
   els.refRow.innerHTML='';
+  const textOnly=MODEL_CONFIG[activeModel].supportsReferences===false;
+  els.refRow.hidden=textOnly;els.refBtn.hidden=textOnly;els.fileInput.disabled=textOnly;
+  if(els.oneClickStyleBtn)els.oneClickStyleBtn.hidden=textOnly;
+  els.composer.classList.toggle('is-text-only-model',textOnly);
+  closeReferenceMentions();
+  if(textOnly){els.refRow.classList.remove('has-refs');return}
   if(!refs.length){els.refRow.classList.remove('has-refs')}
   else{
     els.refRow.classList.add('has-refs');
@@ -533,7 +542,7 @@ function applyReferenceLibraryPayload(){
       }
     }
     const manager=refManagers[activeModel];
-    const referenceUrls=[...new Set([
+    const referenceUrls=MODEL_CONFIG[activeModel].supportsReferences===false?[]:[...new Set([
       ...(Array.isArray(payload.urls)?payload.urls:[]),
       payload.url||''
     ].filter(Boolean))];
@@ -617,6 +626,7 @@ els.oneClickStyleInput?.addEventListener('change',async event=>{
 
 /* ===================== 优化提示词 ===================== */
 const ENHANCE_SYSTEMS={
+  mosssft:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 MOSS Image SFT 文生图，清楚描述主体、构图、文字和光线。只输出最终提示词，不要添加参考图引用。',
   seedreamflash:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 Seedream 5.0 FLASH，保留主体、构图、文字、光线和参考图引用。只输出优化后的提示词，不要解释。',
   seedreampro:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 Seedream 5.0 PRO，准确保留主体、构图、文字、材质、光线和参考图引用。只输出优化后的提示词，不要解释。',
   gpt:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其结构清晰、具体且适合图片生成模型。不得改变核心意图、主体数量、人物身份和指定元素。只输出优化后的最终提示词，不要解释。',

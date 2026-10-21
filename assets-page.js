@@ -499,6 +499,7 @@ function taskState(job){
 async function resetPendingGenerationForRetry(job){
   delete job.failedAt;delete job.lastError;
   job.taskId=null;
+  delete job.synchronousStartedAt;
   await PendingGeneration.save(job);
   PromptLog.update(job.promptLogId,{status:'submitted',errorMessage:null});
 }
@@ -845,7 +846,8 @@ async function runNextPendingGeneration(){
 }
 async function runPendingGeneration(job){
   const apiKey=Settings.getKey();
-  if(!apiKey){
+  const isMoss=job.provider==='moss'||MODEL_CONFIG[job.model]?.provider==='moss';
+  if(!apiKey&&!isMoss){
     assetsEls.generation.classList.remove('is-running','is-complete');
     assetsEls.generation.classList.add('is-failed');
     assetsEls.generationStatus.textContent='等待接口设置';
@@ -859,7 +861,16 @@ async function runPendingGeneration(job){
   const startedAt=performance.now();
   try{
     let url;
-    if(job.taskId){
+    if(isMoss){
+      if(job.resultUrl)url=job.resultUrl;
+      else{
+        if(job.synchronousStartedAt)throw new Error('上次 MOSS 生成连接已中断，请先确认结果；如需重新生成，请手动点击重试。');
+        job.synchronousStartedAt=new Date().toISOString();await PendingGeneration.save(job);
+        setGenerationStatus('MOSS 正在生成图片，请保持页面打开');updateGeneration('processing',0);
+        url=await Moss.generate(job.body,controller.signal);
+        job.resultUrl=url;await PendingGeneration.save(job);
+      }
+    }else if(job.taskId){
       url=await Apimart.pollTask(apiKey,job.taskId,updateGeneration,controller.signal,maxWaitMs);
     }else{
       url=await Apimart.generate({
@@ -905,7 +916,9 @@ async function runPendingGeneration(job){
     return true;
   }catch(error){
     console.warn('图片生成失败',error);
-    const message=generationErrorMessage(error);
+    const message=isMoss
+      ?(error?.name==='AbortError'?'MOSS 连接中断或等待超时，原请求可能仍在生成，请稍后确认，避免立即重复提交。':String(error?.message||'MOSS 生成失败，请稍后重试。'))
+      :generationErrorMessage(error);
     job.failedAt=new Date().toISOString();
     job.lastError=message;
     PromptLog.update(job.promptLogId,{status:'failed',errorMessage:message});

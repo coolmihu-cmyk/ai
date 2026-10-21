@@ -72,3 +72,5 @@ body.home-page{background:#f0f0f0}.home-page .app-rail{display:none}
 .home-page .prompt-reference-mention{color:#1677ff!important}
 .home-page .prompt-editor.has-reference-mentions .composer-input{position:relative;background:transparent;color:transparent!important;caret-color:#141313}
 .home-page .prompt-editor.has-reference-mentions .composer-input::selection{background:#cce1ff;color:#141313}
+.home-page .composer.is-text-only-model .prompt-input-shell{padding-left:0}
+.home-page .composer.is-text-only-model .ref-upload-btn,.home-page .composer.is-text-only-model .ref-row,.home-page .composer.is-text-only-model .one-click-style-btn{display:none!important}
