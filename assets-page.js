@@ -176,7 +176,7 @@ function localEditBlobToDataURI(blob){return new Promise((resolve,reject)=>{cons
 async function localEditCurrentImageData(){
   const imageUrl=localEdit.item?.url||'';
   if(/^data:image\//i.test(imageUrl))return imageUrl;
-  const response=await fetch(imageUrl,{mode:'cors'});
+  const response=await fetch(ImageDelivery.displayUrl(imageUrl),{mode:'cors'});
   if(!response.ok)throw new Error('图片读取失败（HTTP '+response.status+'）');
   const blob=await response.blob();
   if(!blob.type.startsWith('image/'))throw new Error('当前文件不是可分析的图片。');
@@ -285,7 +285,7 @@ function loadLocalEditImage(item,{focus=false,threadPosition='current'}={}){
       if(focus)localEdit.prompt.focus({preventScroll:true});resolve();
     };
     localEdit.image.onerror=()=>{const error=new Error('图片加载失败，可能已经过期。');localEdit.loading.hidden=true;localEditSetError(error.message);localEdit.submit.disabled=true;localEditSetSubmitIcon();reject(error)};
-    localEdit.image.src=item.url;
+    localEdit.image.src=ImageDelivery.displayUrl(item.url);
   });
 }
 function openLocalEdit(item,trigger,{versions=[item],resume=false,threadPosition='current'}={}){

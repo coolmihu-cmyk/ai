@@ -1,7 +1,7 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 // 每次完成一次改动并提交时递增。
-const APP_VERSION='439.0';
+const APP_VERSION='440.0';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
@@ -57,6 +57,8 @@ const MODEL_CONFIG={
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 const COS_THUMBNAIL_RULE='imageMogr2/thumbnail/600x/format/webp/interlace/0/quality/80';
 const ImageDelivery={
+  isMossUrl(sourceUrl){try{const url=new URL(sourceUrl,location.href);return url.protocol==='https:'&&url.hostname==='img.mosi.cn'}catch(_){return false}},
+  displayUrl(sourceUrl){return this.isMossUrl(sourceUrl)?'/api/moss-image-file?url='+encodeURIComponent(sourceUrl):sourceUrl},
   isArchivedUrl(sourceUrl){
     if(!sourceUrl)return false;
     try{
@@ -66,6 +68,7 @@ const ImageDelivery={
   },
   thumbnail(sourceUrl){
     if(!sourceUrl)return sourceUrl;
+    if(this.isMossUrl(sourceUrl))return this.displayUrl(sourceUrl);
     try{
       const url=new URL(sourceUrl,location.href);
       if(!this.isArchivedUrl(url.href)||url.search)return sourceUrl;
@@ -106,12 +109,12 @@ function navigateWithLoading(url){
 function toast(text){const t=$('#toast');if(!t)return;t.textContent=text;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
 function formatDuration(ms){const t=Math.max(0,Math.floor(ms/1000)),m=Math.floor(t/60),s=t%60;return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
 function fileToDataURI(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)})}
-function openImage(url){if(!url)return;const w=window.open(url,'_blank');if(w)w.opener=null;else toast('浏览器拦截了弹出窗口，请允许后重试')}
+function openImage(url){if(!url)return;const w=window.open(ImageDelivery.displayUrl(url),'_blank');if(w)w.opener=null;else toast('浏览器拦截了弹出窗口，请允许后重试')}
 async function downloadImage(url){
   if(!url)return;
   try{
     const endpoint=new URL('/api/download-image',location.origin);endpoint.searchParams.set('url',url);
-    const response=await fetch(endpoint.href);
+    const response=await fetch(ImageDelivery.isMossUrl(url)?ImageDelivery.displayUrl(url):endpoint.href);
     if(!response.ok)throw new Error('下载请求失败');
     const blob=await response.blob();
     const type=blob.type.split('/')[1]||'png';
@@ -498,7 +501,7 @@ const History={
       const img=new Image(),t=setTimeout(()=>{img.src='';resolve(false)},12000);
       img.onload=()=>{clearTimeout(t);resolve(img.naturalWidth>0)};
       img.onerror=()=>{clearTimeout(t);resolve(false)};
-      img.src=url;
+      img.src=ImageDelivery.displayUrl(url);
     });
   }
 };
