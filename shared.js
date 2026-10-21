@@ -1,7 +1,7 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 // 每次完成一次改动并提交时递增。
-const APP_VERSION='438.0';
+const APP_VERSION='439.0';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
@@ -40,7 +40,11 @@ const MODEL_CONFIG={
   mosssft:{
     name:'MOSS Image SFT',icon:'icon/model-moss.svg',promptLimit:4000,provider:'moss',supportsReferences:false,
     ratios:['1:1','3:2','2:3','4:3','3:4','16:9','9:16','2:1','1:2'],
-    sizes:{'1:1':'1024x1024','3:2':'1536x1024','2:3':'1024x1536','4:3':'1152x864','3:4':'864x1152','16:9':'1536x864','9:16':'864x1536','2:1':'1536x768','1:2':'768x1536'},
+    resolutions:[{v:'1K',l:'1K',price:'0积分/张'},{v:'2K',l:'2K',price:'0积分/张'}],defaultResolution:'1K',
+    sizes:{
+      '1K':{'1:1':'1024x1024','3:2':'1008x672','2:3':'672x1008','4:3':'1024x768','3:4':'768x1024','16:9':'1024x576','9:16':'576x1024','2:1':'1024x512','1:2':'512x1024'},
+      '2K':{'1:1':'1440x1440','3:2':'1728x1152','2:3':'1152x1728','4:3':'1664x1248','3:4':'1248x1664','16:9':'1792x1008','9:16':'1008x1792','2:1':'2048x1024','1:2':'1024x2048'}
+    },
     generationModel:'moss-image-sft-1.0'
   },
   nano:{

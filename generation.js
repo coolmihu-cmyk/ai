@@ -27,7 +27,7 @@ async function buildPendingGeneration(){
   if(config.provider==='moss'){
     return {
       id:'generation-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),
-      body:{model:config.generationModel,prompt,size:config.sizes[state.ratio],n:1,response_format:'url'},
+      body:{model:config.generationModel,prompt,size:config.sizes[state.resolution||config.defaultResolution][state.ratio],n:1,response_format:'url'},
       endpoint:'/api/moss-image',provider:'moss',maxWaitMs:300000,prompt,model:key,
       settings:snapshotCreationState(key),referenceUrls:[],createdAt:new Date().toISOString(),taskId:null
     };

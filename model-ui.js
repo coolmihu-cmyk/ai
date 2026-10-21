@@ -173,9 +173,11 @@ els.creationModelSelect.onchange=()=>{
 els.creationGptVersionSelect.onchange=()=>switchModel(els.creationGptVersionSelect.value);
 els.creationRatioSelect.onchange=()=>{
   modelState[activeModel].ratio=els.creationRatioSelect.value;
+  if(MODEL_CONFIG[activeModel].provider==='moss')renderModelSettings();
 };
 els.creationResolutionSelect.onchange=()=>{
   modelState[activeModel].resolution=els.creationResolutionSelect.value;
+  if(MODEL_CONFIG[activeModel].provider==='moss')renderModelSettings();
 };
 els.creationQualitySelect.onchange=()=>{
   modelState[activeModel].quality=els.creationQualitySelect.value;
@@ -243,6 +245,12 @@ function renderModelSettings(){
     }
   }
   syncCreationDropdown(els.creationResolutionControl);
+  els.creationResolutionControl.querySelector('.creation-select-trigger').dataset.tooltip='选择分辨率';
+  if(config.provider==='moss'){
+    const state=modelState[activeModel],size=config.sizes[state.resolution][state.ratio].replace('x','×');
+    els.creationResolutionControl.querySelector('.creation-select-trigger').dataset.tooltip=size+' 像素 · 限时免费 · 2K 档受总像素上限限制';
+    els.creationResolutionControl.querySelectorAll('.creation-select-option').forEach((button,index)=>button.title=config.sizes[res[index].v][state.ratio].replace('x','×')+' 像素（限时免费）');
+  }
 
   const renderOptionalSetting=(items,control,select,stateKey)=>{
     control.hidden=!items?.length;
