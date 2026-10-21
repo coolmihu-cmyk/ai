@@ -248,7 +248,7 @@ function renderModelSettings(){
   els.creationResolutionControl.querySelector('.creation-select-trigger').dataset.tooltip='选择分辨率';
   if(config.provider==='moss'){
     const state=modelState[activeModel],size=config.sizes[state.resolution][state.ratio].replace('x','×');
-    els.creationResolutionControl.querySelector('.creation-select-trigger').dataset.tooltip=size+' 像素 · 限时免费 · 2K 档受总像素上限限制';
+    els.creationResolutionControl.querySelector('.creation-select-trigger').dataset.tooltip=size+' 像素 · 限时免费 · 高清档受总像素上限限制';
     els.creationResolutionControl.querySelectorAll('.creation-select-option').forEach((button,index)=>button.title=config.sizes[res[index].v][state.ratio].replace('x','×')+' 像素（限时免费）');
   }
 
