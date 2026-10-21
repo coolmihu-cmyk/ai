@@ -15,7 +15,7 @@ export async function onRequestPost({request}){
     const response=await fetch('https://api.mosi.cn/v1/images/generations',{
       method:'POST',headers:{Authorization:'Bearer '+MOSS_API_KEY,'Content-Type':'application/json'},signal:controller.signal,
       eo:{timeoutSetting:{connectTimeout:30000,readTimeout:300000,writeTimeout:30000}},
-      body:JSON.stringify({model:'moss-image-sft-1.0',prompt:input.prompt,size:input.size,n:1,response_format:'url',output_watermark:{enabled:false}})
+      body:JSON.stringify({model:'moss-image-sft-1.0',prompt:input.prompt,negative_prompt:'worst quality, bad anatomy, watermark, jpeg artifact',size:input.size,n:1,response_format:'url',output_watermark:{enabled:false}})
     });
     const data=await response.json().catch(()=>({}));
     if(!response.ok){
