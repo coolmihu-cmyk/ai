@@ -4,6 +4,14 @@ const HomeGeneration=(()=>{
   const sessionKey='mihu-home-generation-start';
   let sessionStart=Number(sessionStorage.getItem(sessionKey))||Date.now(),revision=0,lastSignature='';
   sessionStorage.setItem(sessionKey,String(sessionStart));
+  let taskNumbers;try{taskNumbers=JSON.parse(sessionStorage.getItem('mihu-home-task-numbers')||'{}')}catch(_){taskNumbers={}}
+  function taskNumber(job){
+    if(!taskNumbers[job.id]){
+      taskNumbers[job.id]=Math.max(0,...Object.values(taskNumbers).map(Number))+1;
+      sessionStorage.setItem('mihu-home-task-numbers',JSON.stringify(taskNumbers));
+    }
+    return String(taskNumbers[job.id]).padStart(2,'0');
+  }
   function button(label,action){const node=document.createElement('button');node.type='button';node.textContent=label;node.onclick=action;return node}
   function edit(item){
     if(preparingGeneration){toast('参考图正在准备，请稍候');return}
@@ -30,9 +38,16 @@ const HomeGeneration=(()=>{
       const state=GenerationQueue.states.get(job.id),running=!!(state||job.taskId||job.synchronousStartedAt)&&!job.failedAt;
       const row=document.createElement('article');row.className='home-generation-task';row.dataset.jobId=job.id;
       const heading=document.createElement('div');heading.className='home-generation-task-head';
-      const name=document.createElement('b');name.textContent=MODEL_CONFIG[job.model]?.name||job.model;
-      const status=document.createElement('span');status.textContent=job.failedAt?'生成失败':running?(state?.message||(state?.progress>0?'生成中 '+Math.round(state.progress)+'%':'正在生成')):'排队中';heading.append(name,status);
+      const name=document.createElement('b');name.textContent='任务 '+taskNumber(job)+' · '+(MODEL_CONFIG[job.model]?.name||job.model);
+      const progress=Math.max(0,Math.min(100,Number(state?.progress)||0));
+      const status=document.createElement('span');status.textContent=job.failedAt?'生成失败':running?(progress>0?'生成中 '+Math.round(progress)+'%':state?.message||'正在生成 · 处理中'):'排队中';heading.append(name,status);
       const details=promptDetails(job);details.open=expanded.has(job.id);row.append(heading,details);
+      if(running){
+        const bar=document.createElement('progress');bar.className='home-generation-progress';bar.max=100;
+        bar.setAttribute('aria-label','任务 '+taskNumber(job)+' 生成进度');
+        if(progress>0)bar.value=progress;
+        bar.setAttribute('aria-valuetext',progress>0?Math.round(progress)+'%':'处理中');row.append(bar);
+      }
       if(job.failedAt){const error=document.createElement('p');error.className='home-generation-error';error.textContent=job.lastError||'生成未完成';row.append(error)}
       const actions=document.createElement('div');actions.className='home-generation-actions';
       if(job.failedAt)actions.append(button('重试',async()=>{await GenerationQueue.retry(job);GenerationQueue.run().catch(()=>{});refresh()}),button('修改提示词',()=>edit(job)));
