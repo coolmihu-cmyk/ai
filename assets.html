@@ -11,13 +11,13 @@
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="stylesheet" href="css/base.css?v=20260923-428">
 <link rel="stylesheet" href="css/pages.css?v=20260923-428">
-<link rel="stylesheet" href="css/modern-ui.css?v=451">
+<link rel="stylesheet" href="css/modern-ui.css?v=454">
 <link rel="stylesheet" href="css/inner-prototype.css?v=20260914-004">
 <link rel="stylesheet" href="css/typography.css?v=450">
 </head>
 <body class="assets-page">
 
-<header class="inner-prototype-header"><div class="inner-prototype-tab"><b>我的资产</b><span>PIC.SUPMIHU.CN BETA <strong id="appVersion">V453.0</strong></span></div><nav><a href="index.html"><img src="icon/home-gemini-solid.png" alt="">返回首页</a><a href="settings.html"><img src="icon/key-solid.png" alt="">输入密钥</a></nav></header>
+<header class="inner-prototype-header"><div class="inner-prototype-tab"><b>我的资产</b><span>PIC.SUPMIHU.CN BETA <strong id="appVersion">V454.0</strong></span></div><nav><a href="index.html"><img src="icon/home-gemini-solid.png" alt="">返回首页</a><a href="settings.html"><img src="icon/key-solid.png" alt="">输入密钥</a></nav></header>
 
 <nav class="app-rail" aria-label="主要功能" data-app-rail data-current="assets"></nav>
 
@@ -28,6 +28,14 @@
   </header>
   <div class="assets-ledger">
   <div class="assets-ledger-head"><span>YOUR ARCHIVE</span><div class="assets-ledger-meta"><label class="assets-date-filter" for="assetsDateFilter"><select id="assetsDateFilter" aria-label="按月份筛选历史图片"><option value="all">全部时间</option></select></label><div class="assets-count" id="assetsCount">0 张图片</div></div></div>
+  <div class="asset-batch-toolbar">
+    <button type="button" id="assetBatchToggle" aria-pressed="false">批量选择</button>
+    <div id="assetBatchControls" hidden>
+      <button type="button" id="assetBatchAll">全选当前筛选</button>
+      <span id="assetBatchCount" aria-live="polite">已选 0 张</span>
+      <button type="button" id="assetBatchDelete" disabled>删除所选</button>
+    </div>
+  </div>
   <section class="assets-generation" id="assetsGeneration" aria-live="polite" hidden>
     <header class="assets-generation-list-head">
       <span>TASK LIST</span>
@@ -107,10 +115,10 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<script src="shared.js?v=453"></script>
+<script src="shared.js?v=454"></script>
 <script src="generation-queue.js?v=450"></script>
 <script src="asset-card.js?v=450"></script>
-<script src="assets-page.js?v=450"></script>
+<script src="assets-page.js?v=454"></script>
 <script src="site-scrollbars.js?v=20260911-104034"></script>
 </body>
 </html>

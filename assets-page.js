@@ -17,6 +17,41 @@ const assetsEls={
 };
 let assetItems=[],activeAssetMonth='all',generationElapsedTimer=null,activeGenerationUsesHighDefinition=false;
 let unavailableAssetIds=new Set();
+const assetBatch={active:false,busy:false,ids:new Set(),toggle:$('#assetBatchToggle'),controls:$('#assetBatchControls'),all:$('#assetBatchAll'),count:$('#assetBatchCount'),remove:$('#assetBatchDelete')};
+function syncAssetBatch(){
+  const valid=new Set(visibleAssetItems().map(item=>String(item.id)));
+  assetBatch.ids.forEach(id=>{if(!valid.has(id))assetBatch.ids.delete(id)});
+  assetBatch.controls.hidden=!assetBatch.active;
+  assetBatch.toggle.textContent=assetBatch.active?'取消选择':'批量选择';
+  assetBatch.toggle.setAttribute('aria-pressed',String(assetBatch.active));
+  assetBatch.count.textContent='已选 '+assetBatch.ids.size+' 张';
+  assetBatch.remove.disabled=assetBatch.busy||!assetBatch.ids.size;
+  assetBatch.toggle.disabled=assetBatch.all.disabled=assetBatch.busy;
+  assetBatch.all.textContent=valid.size&&assetBatch.ids.size===valid.size?'取消全选':'全选当前筛选';
+  assetsEls.grid.classList.toggle('is-selecting',assetBatch.active);
+}
+function selectableAssetCard(card,items){
+  if(!assetBatch.active)return card;
+  const ids=items.map(item=>String(item.id)),selected=ids.every(id=>assetBatch.ids.has(id));
+  card.classList.toggle('is-selected',selected);
+  const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.className='asset-batch-check';checkbox.checked=selected;checkbox.disabled=assetBatch.busy;
+  checkbox.setAttribute('aria-label',items.length>1?'选择图组，共 '+items.length+' 张':'选择图片');card.append(checkbox);
+  card.addEventListener('click',event=>{
+    event.preventDefault();event.stopImmediatePropagation();if(assetBatch.busy)return;
+    ids.forEach(id=>selected?assetBatch.ids.delete(id):assetBatch.ids.add(id));renderAssets();
+  },true);
+  return card;
+}
+assetBatch.toggle.onclick=()=>{assetBatch.active=!assetBatch.active;assetBatch.ids.clear();renderAssets()};
+assetBatch.all.onclick=()=>{const items=visibleAssetItems();if(assetBatch.ids.size===items.length)assetBatch.ids.clear();else items.forEach(item=>assetBatch.ids.add(String(item.id)));renderAssets()};
+assetBatch.remove.onclick=async()=>{
+  if(assetBatch.busy||!assetBatch.ids.size)return;
+  const items=visibleAssetItems().filter(item=>assetBatch.ids.has(String(item.id)));
+  if(!confirm('确定删除选中的 '+items.length+' 张图片、记录和文件？此操作不可撤销。'))return;
+  assetBatch.busy=true;syncAssetBatch();
+  try{if(await deleteGeneratedRecords(items,assetBatch.remove))assetBatch.ids.clear()}
+  finally{assetItems=sortAssets((await History.load()).filter(item=>(item.type||'image')==='image'));assetBatch.busy=false;renderAssets()}
+};
 
 const localEdit={
   layer:$('#localEditLayer'),close:$('#localEditClose'),stage:$('#localEditStage'),image:$('#localEditImage'),
@@ -584,6 +619,7 @@ function buildEditGroupCard(root,edits){
 }
 function renderAssets(){
   assetsEls.grid.innerHTML='';
+  syncAssetBatch();
   refreshAssetMonthOptions();
   syncAssetsSummary();
   const visibleItems=visibleAssetItems();
@@ -607,7 +643,7 @@ function renderAssets(){
       group.append(heading,dayGrid);fragment.appendChild(group);
     }
     const edits=editGroups.get(String(item.id));
-    if(edits?.length){dayGrid.appendChild(buildEditGroupCard(item,edits));continue}
+    if(edits?.length){dayGrid.appendChild(selectableAssetCard(buildEditGroupCard(item,edits),[item,...edits]));continue}
     const expiry=assetExpiry(item);
     const meta=document.createElement('div');meta.className='asset-meta';meta.append(assetInfoButton(item,expiry));
     const actions=[{className:'asset-local-edit',label:'编辑图片',icon:'edit',run:button=>openLocalEdit(item,button)}];
@@ -618,7 +654,7 @@ function renderAssets(){
       {className:'asset-download',label:'下载图片',icon:'download',run:()=>downloadImage(item.url)},
       {className:'asset-delete',label:'删除记录和文件',icon:'delete',run:button=>deleteAssetRecords([item],button)}
     );
-    dayGrid.appendChild(createAssetResultCard(item,{expired:expiry.expired,meta,actions,managedLoading:true}));
+    dayGrid.appendChild(selectableAssetCard(createAssetResultCard(item,{expired:expiry.expired,meta,actions,managedLoading:true}),[item]));
   }
   assetsEls.grid.appendChild(fragment);
   setupAssetImageLoading();
