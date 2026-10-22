@@ -110,5 +110,5 @@ async function execute(job,hooks={}){
     delete job.failedAt;delete job.lastError;delete job.synchronousStartedAt;job.taskId=null;
     await PendingGeneration.save(job);PromptLog.update(job.promptLogId,{status:'submitted',errorMessage:null});
   }
-  return {run,retry,execute:runJob,states,get running(){return running},get activeJob(){return activeJob}};
+  return {run,retry,execute:runJob,notify(){emit({type:'history'})},states,get running(){return running},get activeJob(){return activeJob}};
 })();

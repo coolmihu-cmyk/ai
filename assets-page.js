@@ -551,25 +551,6 @@ async function renderTaskCenter(){
     row.append(copy,actions);assetsEls.taskList.appendChild(row);
   }
 }
-function assetImageIcon(name){
-  const image=document.createElement('img');image.src='icon/asset-'+name+(['redo','compare','publish'].includes(name)?'.png':'.svg');image.alt='';image.setAttribute('aria-hidden','true');return image;
-}
-function assetInfoDate(value){
-  const date=new Date(value||Date.now());
-  if(Number.isNaN(date.getTime()))return '日期未知';
-  return date.getFullYear()+'.'+String(date.getMonth()+1).padStart(2,'0')+'.'+String(date.getDate()).padStart(2,'0')+' '+String(date.getHours()).padStart(2,'0')+':'+String(date.getMinutes()).padStart(2,'0');
-}
-function assetInfoButton(item,expiry){
-  const settings=item.settings||{},model=ASSET_MODEL_NAMES[item.model]||item.model||'图片模型',ratio=settings.ratio||settings.size||'自动',resolution=String(settings.resolution||'—').toUpperCase(),quality=settings.quality?String(settings.quality).toUpperCase():'',moderation=settings.moderation||'',date=assetInfoDate(item.createdAt);
-  const info=document.createElement('button');info.type='button';info.className='asset-info '+(expiry.archived?'is-archived':'is-warning');info.setAttribute('aria-label','查看图片信息：模型 '+model+'，比例 '+ratio+'，分辨率 '+resolution+(quality?'，质量 '+quality:'')+(moderation?'，审核 '+moderation:'')+'，生成日期 '+date);info.setAttribute('aria-expanded','false');
-  info.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.25"></circle><path d="M12 10.6v5.2M12 7.7h.01"></path></svg>';
-  const tooltip=document.createElement('span');tooltip.className='asset-info-tooltip';
-  const rows=[['模型',model],['比例',ratio],['分辨率',resolution],...(quality?[['质量',quality]]:[]),...(moderation?[['审核强度',moderation]]:[]),['生成日期',date]];
-  for(const [label,value] of rows){const row=document.createElement('span'),key=document.createElement('b'),content=document.createElement('span');key.textContent=label;content.textContent=value;row.append(key,content);tooltip.append(row)}
-  info.append(tooltip);
-  info.onclick=event=>{event.preventDefault();event.stopPropagation();const open=!info.classList.contains('is-open');info.classList.toggle('is-open',open);info.setAttribute('aria-expanded',String(open))};
-  return info;
-}
 function publishedAssetIds(){try{const value=JSON.parse(localStorage.getItem(PUBLISHED_ASSET_IDS_KEY)||'[]');return new Set(Array.isArray(value)?value:[])}catch(_){return new Set()}}
 async function syncPublishedAssetIds(){
   try{
@@ -623,47 +604,10 @@ function sendAssetToComposer(item){
   }catch(_){toast('无法带入图片，请重试')}
 }
 async function deleteAssetRecords(items,button){
+  if(!await deleteGeneratedRecords(items,button))return;
   const ids=new Set(items.map(item=>String(item.id)));
-  button.disabled=true;
-  try{
-    const needsCloudDelete=items.filter(item=>item.historyKey||ImageDelivery.isArchivedUrl(item.url));
-    if(needsCloudDelete.length&&await CloudHistory.token()){
-      await Promise.all(needsCloudDelete.map(item=>CloudHistory.remove(item.historyKey||'',item.id)));
-    }
-    const results=await Promise.all(items.map(item=>History.delete(item.id)));
-    if(results.some(result=>!result))throw new Error('删除失败');
-    assetItems=assetItems.filter(item=>!ids.has(String(item.id)));renderAssets();
-    toast(items.length>1?'已删除图组记录和文件':'已删除记录和文件');
-  }catch(error){
-    console.warn('历史删除失败',error);button.disabled=false;toast('删除失败，请稍后重试');
-  }
+  assetItems=assetItems.filter(item=>!ids.has(String(item.id)));renderAssets();
 }
-const assetCompare=(()=>{
-  const layer=document.createElement('div');
-  layer.className='asset-compare-layer';layer.hidden=true;
-  layer.innerHTML='<section class="asset-compare-dialog" role="dialog" aria-modal="true" aria-labelledby="assetCompareTitle"><header><div><span>IMAGE COMPARE</span><h2 id="assetCompareTitle">原图与生成图对比</h2></div><button type="button" class="asset-compare-close" aria-label="关闭对比">×</button></header><div class="asset-compare-stage" style="--asset-compare-position:50%"><img class="asset-compare-original" alt="原图"><img class="asset-compare-generated" alt="生成图"><div class="asset-compare-divider" aria-hidden="true"><i></i></div><span class="asset-compare-label is-original">原图</span><span class="asset-compare-label is-generated">生成图</span><input class="asset-compare-range" type="range" min="0" max="100" value="50" aria-label="拖动分隔线比较原图和生成图"></div><p>拖动中线查看原图与生成图的差异</p></section>';
-  document.body.append(layer);
-  const dialog=layer.querySelector('.asset-compare-dialog'),stage=layer.querySelector('.asset-compare-stage'),original=layer.querySelector('.asset-compare-original'),generated=layer.querySelector('.asset-compare-generated'),range=layer.querySelector('.asset-compare-range'),close=layer.querySelector('.asset-compare-close');
-  let lastFocus=null;
-  const setPosition=value=>{const numeric=Number(value),position=Math.max(0,Math.min(100,Number.isFinite(numeric)?numeric:50));stage.style.setProperty('--asset-compare-position',position+'%');range.value=String(position)};
-  const fitStage=()=>{
-    if(!generated.naturalWidth||!generated.naturalHeight)return;
-    const ratio=generated.naturalWidth/generated.naturalHeight;
-    const compact=window.matchMedia('(max-width:640px)').matches;
-    const outerSpace=compact?20:48,dialogPadding=compact?26:36,dialogChrome=compact?106:134;
-    const maxStageWidth=Math.min(864,Math.max(96,window.innerWidth-outerSpace-dialogPadding));
-    const maxStageHeight=Math.max(96,window.innerHeight-outerSpace-dialogChrome);
-    const stageWidth=Math.max(96,Math.min(maxStageWidth,Math.floor(maxStageHeight*ratio)));
-    stage.style.aspectRatio=generated.naturalWidth+'/'+generated.naturalHeight;
-    dialog.style.setProperty('--asset-compare-dialog-width',Math.ceil(stageWidth+dialogPadding)+'px');
-    stage.style.setProperty('--asset-compare-stage-width',stageWidth+'px');
-  };
-  const closeDialog=()=>{layer.hidden=true;document.body.classList.remove('asset-compare-open');original.removeAttribute('src');generated.removeAttribute('src');dialog.style.removeProperty('--asset-compare-dialog-width');stage.style.removeProperty('--asset-compare-stage-width');lastFocus?.focus?.()};
-  close.onclick=closeDialog;layer.addEventListener('click',event=>{if(event.target===layer)closeDialog()});range.addEventListener('input',()=>setPosition(range.value));
-  generated.addEventListener('load',fitStage);window.addEventListener('resize',()=>{if(!layer.hidden)fitStage()});
-  window.addEventListener('keydown',event=>{if(!layer.hidden&&event.key==='Escape'){event.preventDefault();closeDialog()}});
-  return {open(originalUrl,generatedUrl,trigger){lastFocus=trigger;setPosition(50);dialog.style.removeProperty('--asset-compare-dialog-width');stage.style.removeProperty('--asset-compare-stage-width');original.src=originalUrl;generated.src=generatedUrl;layer.hidden=false;document.body.classList.add('asset-compare-open');requestAnimationFrame(()=>{fitStage();range.focus()})}};
-})();
 function buildEditGroupCard(root,edits){
   const versions=[root,...edits].sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
   const card=document.createElement('article');card.className='asset-card asset-edit-group';card.dataset.assetId=root.id;
@@ -703,33 +647,18 @@ function renderAssets(){
     const edits=editGroups.get(String(item.id));
     if(edits?.length){dayGrid.appendChild(buildEditGroupCard(item,edits));continue}
     const expiry=assetExpiry(item);
-    const card=document.createElement('article');card.className='asset-card'+(expiry.expired?' is-expired':'');card.dataset.assetId=item.id;
-    const media=document.createElement('button');
-    media.type='button';media.className='asset-media';media.title='在新标签页打开图片';
-    const image=document.createElement('img');
-    image.dataset.src=ImageDelivery.thumbnail(item.url);image.dataset.original=item.url;image.alt=item.prompt||'生成图片';image.loading='lazy';image.decoding='async';image.className='is-loading';media.appendChild(image);
-    media.onclick=()=>openImage(item.url);
-    const meta=document.createElement('div');meta.className='asset-meta';
-    meta.append(assetInfoButton(item,expiry));
-    const actions=document.createElement('div');actions.className='asset-actions';
+    const meta=document.createElement('div');meta.className='asset-meta';meta.append(assetInfoButton(item,expiry));
     const publish=document.createElement('button');publish.type='button';publish.className='asset-favorite asset-publish';
     setAssetPublishButton(publish,publishedAssetIds().has(String(item.id)));publish.onclick=()=>openAssetPublish(item,publish);meta.append(publish);
-    const edit=document.createElement('button');edit.type='button';edit.className='asset-local-edit';edit.title='编辑图片';edit.setAttribute('aria-label','编辑图片');
-    edit.appendChild(assetImageIcon('edit'));
-    edit.onclick=()=>openLocalEdit(item,edit);actions.appendChild(edit);
+    const actions=[{className:'asset-local-edit',label:'编辑图片',icon:'edit',run:button=>openLocalEdit(item,button)}];
     const referenceUrl=item.referenceUrls?.[0]||item.referenceUrl;
-    if(referenceUrl){
-      const compare=document.createElement('button');compare.type='button';compare.className='asset-compare';compare.title='对比参考图与生成图';compare.setAttribute('aria-label','对比参考图与生成图');compare.appendChild(assetImageIcon('compare'));compare.onclick=()=>assetCompare.open(referenceUrl,item.url,compare);actions.appendChild(compare);
-    }
-    const send=document.createElement('button');send.type='button';send.className='asset-send';send.title='重新生成';send.setAttribute('aria-label','重新生成');
-    send.appendChild(assetImageIcon('redo'));
-    send.onclick=()=>sendAssetToComposer(item);actions.appendChild(send);
-    const download=document.createElement('button');download.type='button';download.className='asset-download';download.title='下载图片';download.setAttribute('aria-label','下载图片');
-    download.appendChild(assetImageIcon('download'));download.onclick=()=>downloadImage(item.url);actions.appendChild(download);
-    const remove=document.createElement('button');remove.type='button';remove.className='asset-delete';remove.title='删除记录和文件';remove.setAttribute('aria-label','删除记录和文件');
-    remove.appendChild(assetImageIcon('delete'));
-    remove.onclick=()=>deleteAssetRecords([item],remove);
-    actions.appendChild(remove);card.append(media,meta,actions);dayGrid.appendChild(card);
+    if(referenceUrl)actions.push({className:'asset-compare',label:'对比参考图与生成图',icon:'compare',run:button=>assetCompare.open(referenceUrl,item.url,button)});
+    actions.push(
+      {className:'asset-send',label:'重新生成',icon:'redo',run:()=>sendAssetToComposer(item)},
+      {className:'asset-download',label:'下载图片',icon:'download',run:()=>downloadImage(item.url)},
+      {className:'asset-delete',label:'删除记录和文件',icon:'delete',run:button=>deleteAssetRecords([item],button)}
+    );
+    dayGrid.appendChild(createAssetResultCard(item,{expired:expiry.expired,meta,actions,managedLoading:true}));
   }
   assetsEls.grid.appendChild(fragment);
   setupAssetImageLoading();
@@ -860,6 +789,13 @@ requestAnimationFrame(async()=>{
   finally{
     assetsEls.loading.hidden=true;renderAssets();
   }
+  try{
+    const action=JSON.parse(sessionStorage.getItem('mihu_asset_action')||'null');sessionStorage.removeItem('mihu_asset_action');
+    const item=action&&assetItems.find(item=>String(item.id)===String(action.id));
+    const card=item&&[...assetsEls.grid.querySelectorAll('[data-asset-id]')].find(card=>card.dataset.assetId===String(item.id));
+    if(item&&action.action==='edit')openLocalEdit(item,card?.querySelector('.asset-local-edit'));
+    if(item&&action.action==='publish')openAssetPublish(item,card?.querySelector('.asset-publish'));
+  }catch(error){console.warn('图片操作恢复失败',error)}
   syncPublishedAssetIds().then(()=>renderAssets());
   syncCloudHistory();
   History.validate([...assetItems],{concurrency:3})

@@ -57,13 +57,18 @@ const HomeGeneration=(()=>{
     if(results.length){
       const grid=document.createElement('div');grid.className='home-generation-results';
       for(const item of results){
-        const card=document.createElement('article');card.className='home-generation-result';
-        const preview=button('',()=>openImage(item.url));preview.className='home-generation-preview';preview.setAttribute('aria-label','查看生成图片');
-        const image=document.createElement('img');image.src=ImageDelivery.thumbnail(item.url);image.alt='生成结果';image.loading='lazy';
-        image.onerror=()=>{image.hidden=true;preview.textContent='图片暂时无法读取'};preview.append(image);
-        const name=document.createElement('small');name.textContent=MODEL_CONFIG[item.model]?.name||item.model;
-        const actions=document.createElement('div');actions.className='home-generation-actions';actions.append(button('下载',()=>downloadImage(item.url)),button('继续创作',()=>edit(item)));
-        card.append(preview,name,actions);grid.append(card);
+        const meta=document.createElement('div');meta.className='asset-meta';
+        meta.append(assetInfoButton(item,{archived:!!(item.archived||item.historyKey||ImageDelivery.isArchivedUrl(item.url))}));
+        const publish=button('',()=>openAssetWorkspaceAction(item,'publish'));publish.className='asset-favorite asset-publish';publish.title='发布到公共库';publish.setAttribute('aria-label',publish.title);publish.append(assetImageIcon('publish'));meta.append(publish);
+        const actions=[{className:'asset-local-edit',label:'编辑图片',icon:'edit',run:()=>openAssetWorkspaceAction(item,'edit')}];
+        const reference=item.referenceUrls?.[0]||item.referenceUrl;
+        if(reference)actions.push({className:'asset-compare',label:'对比参考图与生成图',icon:'compare',run:button=>assetCompare.open(reference,item.url,button)});
+        actions.push(
+          {className:'asset-send',label:'重新生成',icon:'redo',run:()=>edit(item)},
+          {className:'asset-download',label:'下载图片',icon:'download',run:()=>downloadImage(item.url)},
+          {className:'asset-delete',label:'删除记录和文件',icon:'delete',run:async button=>{if(await deleteGeneratedRecords([item],button))schedule()}}
+        );
+        grid.append(createAssetResultCard(item,{className:'home-generation-result',meta,actions}));
       }
       list.append(grid);
     }
