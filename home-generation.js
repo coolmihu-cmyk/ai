@@ -1,6 +1,13 @@
 /* Homepage task feedback; execution is shared with the assets page. */
 const HomeGeneration=(()=>{
   const panel=document.querySelector('#homeGeneration'),list=document.querySelector('#homeGenerationList');
+  const toggle=document.querySelector('#homeGenerationToggle');
+  toggle.onclick=()=>{
+    const collapsed=!list.hidden;list.hidden=collapsed;
+    panel.classList.toggle('is-collapsed',collapsed);
+    toggle.setAttribute('aria-expanded',String(!collapsed));
+    toggle.textContent=collapsed?'展开 ▾':'折叠 ▴';
+  };
   const sessionKey='mihu-home-generation-start';
   let sessionStart=Number(sessionStorage.getItem(sessionKey))||Date.now(),revision=0,lastSignature='';
   sessionStorage.setItem(sessionKey,String(sessionStart));
