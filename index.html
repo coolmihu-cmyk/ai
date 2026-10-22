@@ -14,12 +14,12 @@
   <link rel="stylesheet" href="css/layout.css?v=20260923-428">
   <link rel="stylesheet" href="css/components.css?v=20260923-428">
   <link rel="stylesheet" href="css/pages.css?v=20260923-428">
-  <link rel="stylesheet" href="css/modern-ui.css?v=436">
-<link rel="stylesheet" href="css/home-prototype.css?v=449">
-  <link rel="stylesheet" href="css/typography.css?v=432">
+  <link rel="stylesheet" href="css/modern-ui.css?v=450">
+<link rel="stylesheet" href="css/home-prototype.css?v=450">
+  <link rel="stylesheet" href="css/typography.css?v=450">
 </head>
 <body class="home-page">
-<header class="prototype-header"><div class="prototype-tab"><b>New folder</b><span>PIC.SUPMIHU.CN BETA <strong id="appVersion">V449.0</strong></span></div><nav><a href="assets.html"><img src="icon/folder-solid.png" alt="">资产 / 任务</a><a href="settings.html"><img src="icon/key-solid.png" alt="">输入密钥</a></nav></div></header>
+<header class="prototype-header"><div class="prototype-tab"><b>New folder</b><span>PIC.SUPMIHU.CN BETA <strong id="appVersion">V450.0</strong></span></div><nav><a href="assets.html"><img src="icon/folder-solid.png" alt="">资产 / 任务</a><a href="settings.html"><img src="icon/key-solid.png" alt="">输入密钥</a></nav></div></header>
 <div class="home-mascot-action" aria-hidden="true">
   <img class="home-mascot-screen" src="image/tv-signal.gif?v=20260909-300" alt="" aria-hidden="true">
   <img class="home-mascot" src="image/cat.png?v=20260910-301" alt="拿着画笔的黑猫">
@@ -31,7 +31,7 @@
   <main class="main">
     <section class="home-intro" aria-labelledby="homeIntroTitle">
       <div class="home-title-block">
-<h1 id="homeIntroTitle"><img class="home-brand-logo" src="image/chat-admin.png?v=20260911-1" alt="" aria-hidden="true"><span>MIHU DESIGN <strong>LA<button class="home-title-secret" id="publicReferenceManage" type="button" aria-label="输入发布口令" title="输入发布口令">B</button></strong></span></h1>
+<h1 id="homeIntroTitle"><img class="home-brand-logo" src="image/chat-admin.png?v=20260911-1" alt="" aria-hidden="true"><span>MIHU DESIGN <strong>LAB</strong></span></h1>
         <p class="home-artist-quote" id="homeArtistQuote" aria-live="polite">
           <span id="homeArtistQuoteText"></span>
           <cite id="homeArtistQuoteAuthor"></cite>
@@ -146,31 +146,6 @@
         <div id="homeGenerationList" aria-live="polite"></div>
       </section>
     </div>
-    <section class="home-public-library" aria-label="公共参考库">
-      <h2 class="prototype-library-title">更多灵感</h2>
-      <div class="prototype-placeholders" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
-      <div class="home-public-library-tools">
-        <div class="reference-filter" role="group" aria-label="公共参考分类">
-          <button type="button" class="is-active" data-public-reference-filter="all">全部</button>
-          <button type="button" data-public-reference-filter="graphic-design">平面设计</button>
-          <button type="button" data-public-reference-filter="portrait-photography">摄影写真</button>
-          <button type="button" data-public-reference-filter="illustration-art">插画艺术</button>
-          <button type="button" data-public-reference-filter="architecture-space">建筑空间</button>
-          <button type="button" data-public-reference-filter="3d-modeling">3D建模</button>
-          <button type="button" data-public-reference-filter="character-storyboard">角色分镜</button>
-          <button type="button" data-public-reference-filter="ecommerce-details">电商详情</button>
-          <button type="button" data-public-reference-filter="creative-play">创意玩法</button>
-          <button type="button" data-public-reference-filter="ui-ux">UI/UX</button>
-          <button type="button" data-public-reference-filter="other">其它</button>
-        </div>
-      </div>
-      <section class="home-public-reference-empty" id="publicReferenceEmpty" hidden>
-        <b id="publicReferenceEmptyTitle">公共参考库正在整理</b>
-        <p>这里会持续收录可直接用于创作的公开参考。</p>
-        <a href="settings.html#artist-welcome">新建参考</a>
-      </section>
-      <section class="home-public-reference-grid" id="publicReferenceGrid" aria-live="polite"></section>
-    </section>
     <footer class="home-site-footer">PIC.SUPMIHU.CN</footer>
   </main>
 </div>
@@ -186,29 +161,14 @@
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 10 6-6 6 6"/><path d="M12 4v16"/></svg>
 </button>
 
-<div class="reference-modal" id="publicReferenceModal" hidden>
-  <div class="reference-modal-card" role="dialog" aria-modal="true" aria-labelledby="publicReferenceModalTitle">
-    <div class="reference-modal-head"><div><span>PUBLIC REFERENCE</span><h2 id="publicReferenceModalTitle">新建公共参考</h2></div><button type="button" id="publicReferenceClose" aria-label="关闭">×</button></div>
-    <form id="publicReferenceForm">
-      <label>图片链接<input id="publicReferenceImageUrl" name="imageUrl" type="url" placeholder="粘贴图片链接，或从本地上传" autocomplete="url"></label>
-      <label>本地图片<input id="publicReferenceFile" name="imageFile" type="file" accept="image/png,image/jpeg,image/webp"></label>
-      <label>分类<select id="publicReferenceCategory" name="category"><option value="graphic-design">平面设计</option><option value="portrait-photography">摄影写真</option><option value="illustration-art">插画艺术</option><option value="architecture-space">建筑空间</option><option value="3d-modeling">3D建模</option><option value="character-storyboard">角色分镜</option><option value="ecommerce-details">电商详情</option><option value="creative-play">创意玩法</option><option value="ui-ux">UI/UX</option><option value="other">其它</option></select></label>
-      <label>提示词<textarea id="publicReferencePrompt" name="prompt" rows="5" placeholder="记录这张图片的提示词、画面描述或灵感…"></textarea></label>
-      <p class="reference-form-error" id="publicReferenceFormError" hidden></p>
-      <div class="reference-modal-actions"><button type="button" id="publicReferenceCancel">取消</button><button type="submit">发布参考</button></div>
-    </form>
-  </div>
-</div>
-
-<script src="shared.js?v=449"></script>
-<script src="generation-queue.js?v=449"></script>
-<script src="asset-card.js?v=449"></script>
+<script src="shared.js?v=450"></script>
+<script src="generation-queue.js?v=450"></script>
+<script src="asset-card.js?v=450"></script>
 <script src="core.js?v=433"></script>
 <script src="model-ui.js?v=446"></script>
 <script src="generation.js?v=446"></script>
-<script src="home-generation.js?v=449"></script>
-<script src="app.js?v=446"></script>
-<script src="public-reference-library-v2.js?v=20260910-114505"></script>
+<script src="home-generation.js?v=450"></script>
+<script src="app.js?v=450"></script>
 <script src="site-scrollbars.js?v=20260911-104034"></script>
 </body>
 </html>

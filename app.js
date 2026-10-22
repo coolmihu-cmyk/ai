@@ -51,30 +51,8 @@ syncTransparentBackgroundControl();
 
 (() => {
   const canvas = document.querySelector(".home-page .app");
-  const inspiration = document.querySelector(".home-page .home-public-library");
   const backToTop = document.getElementById("homeBackToTop");
-  if (!canvas || !inspiration || !backToTop) return;
-
-  const inspirationTop = () => {
-    const canvasRect = canvas.getBoundingClientRect();
-    const inspirationRect = inspiration.getBoundingClientRect();
-    return Math.max(0, Math.round(canvas.scrollTop + inspirationRect.top - canvasRect.top - 14));
-  };
-
-  canvas.addEventListener("wheel", (event) => {
-    if(document.querySelector('#homeGeneration:not([hidden])'))return;
-    if (event.ctrlKey || event.metaKey || Math.abs(event.deltaY) < 2) return;
-    const target = inspirationTop();
-    if (event.deltaY > 0 && canvas.scrollTop <= 2) {
-      event.preventDefault();
-      canvas.scrollTop = target;
-      return;
-    }
-    if (event.deltaY < 0 && canvas.scrollTop > 2 && canvas.scrollTop <= target + 6) {
-      event.preventDefault();
-      canvas.scrollTop = 0;
-    }
-  }, { passive: false });
+  if (!canvas || !backToTop) return;
 
   const syncBackToTop = () => backToTop.classList.toggle("is-visible", canvas.scrollTop > 120);
   canvas.addEventListener("scroll", syncBackToTop, { passive: true });

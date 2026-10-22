@@ -59,7 +59,6 @@ const HomeGeneration=(()=>{
       for(const item of results){
         const meta=document.createElement('div');meta.className='asset-meta';
         meta.append(assetInfoButton(item,{archived:!!(item.archived||item.historyKey||ImageDelivery.isArchivedUrl(item.url))}));
-        const publish=button('',()=>openAssetWorkspaceAction(item,'publish'));publish.className='asset-favorite asset-publish';publish.title='发布到公共库';publish.setAttribute('aria-label',publish.title);publish.append(assetImageIcon('publish'));meta.append(publish);
         const actions=[{className:'asset-local-edit',label:'编辑图片',icon:'edit',run:()=>openAssetWorkspaceAction(item,'edit')}];
         const reference=item.referenceUrls?.[0]||item.referenceUrl;
         if(reference)actions.push({className:'asset-compare',label:'对比参考图与生成图',icon:'compare',run:button=>assetCompare.open(reference,item.url,button)});

@@ -15,10 +15,8 @@ const assetsEls={
   generationVisual:$('#assetsGenerationVisual'),generationReference:$('#assetsGenerationReference'),
   taskCenter:$('#assetsTaskCenter'),taskCount:$('#assetsTaskCount'),taskList:$('#assetsTaskList')
 };
-const assetPublish={modal:$('#assetPublishModal'),form:$('#assetPublishForm'),close:$('#assetPublishClose'),cancel:$('#assetPublishCancel'),url:$('#assetPublishImageUrl'),model:$('#assetPublishModel'),category:$('#assetPublishCategory'),prompt:$('#assetPublishPrompt'),error:$('#assetPublishError'),submit:$('#assetPublishSubmit'),item:null,button:null};
 let assetItems=[],activeAssetMonth='all',generationElapsedTimer=null,activeGenerationUsesHighDefinition=false;
 let unavailableAssetIds=new Set();
-const PUBLISHED_ASSET_IDS_KEY='mihu-published-public-assets-v1',PUBLIC_REFERENCE_ADMIN_TOKEN_KEY='mihu_public_reference_admin_token';
 
 const localEdit={
   layer:$('#localEditLayer'),close:$('#localEditClose'),stage:$('#localEditStage'),image:$('#localEditImage'),
@@ -551,42 +549,6 @@ async function renderTaskCenter(){
     row.append(copy,actions);assetsEls.taskList.appendChild(row);
   }
 }
-function publishedAssetIds(){try{const value=JSON.parse(localStorage.getItem(PUBLISHED_ASSET_IDS_KEY)||'[]');return new Set(Array.isArray(value)?value:[])}catch(_){return new Set()}}
-async function syncPublishedAssetIds(){
-  try{
-    const response=await fetch('/api/public-references',{headers:{Accept:'application/json'},cache:'no-store'}),data=await response.json().catch(()=>({}));
-    if(!response.ok)throw new Error(data.error||'公共参考库状态读取失败。');
-    const publishedUrls=new Set((Array.isArray(data.items)?data.items:[]).map(item=>String(item?.imageUrl||'')).filter(Boolean));
-    const confirmed=assetItems.filter(item=>publishedUrls.has(String(item.url||''))).map(item=>String(item.id));
-    localStorage.setItem(PUBLISHED_ASSET_IDS_KEY,JSON.stringify(confirmed));
-    return new Set(confirmed);
-  }catch(error){console.warn('公共参考发布状态同步失败',error);return publishedAssetIds()}
-}
-function setAssetPublishButton(button,published){button.classList.toggle('is-published',published);button.classList.toggle('is-favorited',published);button.title=published?'已发布到公共库':'发布到公共库';button.setAttribute('aria-label',button.title);button.disabled=published;button.replaceChildren(assetImageIcon('publish'))}
-function setAssetPublishError(message=''){assetPublish.error.textContent=message;assetPublish.error.hidden=!message}
-async function publicReferenceToken(){
-  let token=localStorage.getItem(PUBLIC_REFERENCE_ADMIN_TOKEN_KEY)||'';
-  if(!token){token=window.prompt('请输入公共参考库管理口令（将仅保存在这台设备的浏览器中）：')?.trim()||'';if(!token)return ''}
-  const response=await fetch('/api/public-references?verify=1',{headers:{'X-Public-Reference-Admin':token,'Accept':'application/json'}}),data=await response.json().catch(()=>({}));
-  if(!response.ok){localStorage.removeItem(PUBLIC_REFERENCE_ADMIN_TOKEN_KEY);throw new Error(data.error||'管理口令无效。')}localStorage.setItem(PUBLIC_REFERENCE_ADMIN_TOKEN_KEY,token);return token;
-}
-async function openAssetPublish(item,button){
-  await syncPublishedAssetIds();
-  const published=publishedAssetIds().has(String(item.id));setAssetPublishButton(button,published);
-  if(published)return;
-  try{assetPublish.token=await publicReferenceToken()}catch(error){toast(error.message);return}if(!assetPublish.token)return;
-  assetPublish.item=item;assetPublish.button=button;assetPublish.form.reset();assetPublish.url.value=item.url||'';assetPublish.model.value=ASSET_MODEL_NAMES[item.model]||item.model||'图片模型';assetPublish.prompt.value=item.prompt||'';setAssetPublishError();assetPublish.modal.hidden=false;requestAnimationFrame(()=>assetPublish.category.focus());
-}
-function closeAssetPublish(){assetPublish.modal.hidden=true;assetPublish.item=null;assetPublish.button=null;setAssetPublishError()}
-async function publishAsset(item,button,category,prompt){
-  const published=publishedAssetIds();if(published.has(String(item.id))){setAssetPublishButton(button,true);return}
-  button.disabled=true;
-  try{
-    const createdAt=new Date().toISOString(),publicItem={id:'public-asset-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),imageUrl:item.url,prompt:prompt||'',model:item.model||'',category,createdAt,updatedAt:createdAt};
-    const response=await fetch('/api/public-references',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json','X-Public-Reference-Admin':assetPublish.token||''},body:JSON.stringify({item:publicItem})}),data=await response.json().catch(()=>({}));
-    if(!response.ok)throw new Error(data.error||'发布失败。');published.add(String(item.id));localStorage.setItem(PUBLISHED_ASSET_IDS_KEY,JSON.stringify([...published].slice(-1000)));setAssetPublishButton(button,true);toast('已发布到公共库');
-  }catch(error){console.warn('发布公共库失败',error);button.disabled=false;toast(error.message||'发布失败，请稍后重试')}
-}
 function sendAssetToComposer(item){
   try{
     const referenceUrls=[...new Set([
@@ -648,8 +610,6 @@ function renderAssets(){
     if(edits?.length){dayGrid.appendChild(buildEditGroupCard(item,edits));continue}
     const expiry=assetExpiry(item);
     const meta=document.createElement('div');meta.className='asset-meta';meta.append(assetInfoButton(item,expiry));
-    const publish=document.createElement('button');publish.type='button';publish.className='asset-favorite asset-publish';
-    setAssetPublishButton(publish,publishedAssetIds().has(String(item.id)));publish.onclick=()=>openAssetPublish(item,publish);meta.append(publish);
     const actions=[{className:'asset-local-edit',label:'编辑图片',icon:'edit',run:button=>openLocalEdit(item,button)}];
     const referenceUrl=item.referenceUrls?.[0]||item.referenceUrl;
     if(referenceUrl)actions.push({className:'asset-compare',label:'对比参考图与生成图',icon:'compare',run:button=>assetCompare.open(referenceUrl,item.url,button)});
@@ -664,7 +624,6 @@ function renderAssets(){
   setupAssetImageLoading();
 }
 assetsEls.dateFilter.onchange=()=>{activeAssetMonth=assetsEls.dateFilter.value;renderAssets()};
-assetPublish.close.onclick=closeAssetPublish;assetPublish.cancel.onclick=closeAssetPublish;assetPublish.modal.addEventListener('click',event=>{if(event.target===assetPublish.modal)closeAssetPublish()});assetPublish.form.onsubmit=async event=>{event.preventDefault();if(!assetPublish.item||!assetPublish.button)return;if(!assetPublish.category.value){setAssetPublishError('请选择分类后再发布。');assetPublish.category.focus();return}assetPublish.submit.disabled=true;assetPublish.submit.textContent='正在发布…';await publishAsset(assetPublish.item,assetPublish.button,assetPublish.category.value,assetPublish.prompt.value.trim());if(assetPublish.button.classList.contains('is-published'))closeAssetPublish();assetPublish.submit.disabled=false;assetPublish.submit.textContent='发布到公共库'};
 function showGeneration(job){
   activeGenerationUsesHighDefinition=isHighDefinitionResolution(job.settings?.resolution||job.body?.resolution);
   assetsEls.generation.hidden=false;
@@ -794,9 +753,7 @@ requestAnimationFrame(async()=>{
     const item=action&&assetItems.find(item=>String(item.id)===String(action.id));
     const card=item&&[...assetsEls.grid.querySelectorAll('[data-asset-id]')].find(card=>card.dataset.assetId===String(item.id));
     if(item&&action.action==='edit')openLocalEdit(item,card?.querySelector('.asset-local-edit'));
-    if(item&&action.action==='publish')openAssetPublish(item,card?.querySelector('.asset-publish'));
   }catch(error){console.warn('图片操作恢复失败',error)}
-  syncPublishedAssetIds().then(()=>renderAssets());
   syncCloudHistory();
   History.validate([...assetItems],{concurrency:3})
     .then(unavailable=>{
