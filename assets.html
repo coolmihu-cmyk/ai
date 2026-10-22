@@ -27,9 +27,8 @@
     <p>查看、整理并继续编辑你的每一次图片创作。</p>
   </header>
   <div class="assets-ledger">
-  <div class="assets-ledger-head"><span>YOUR ARCHIVE</span><div class="assets-ledger-meta"><label class="assets-date-filter" for="assetsDateFilter"><select id="assetsDateFilter" aria-label="按月份筛选历史图片"><option value="all">全部时间</option></select></label><div class="assets-count" id="assetsCount">0 张图片</div></div></div>
+  <div class="assets-ledger-head"><span>YOUR ARCHIVE</span><div class="assets-ledger-meta"><label class="assets-date-filter" for="assetsDateFilter"><select id="assetsDateFilter" aria-label="按月份筛选历史图片"><option value="all">全部时间</option></select></label><div class="assets-count" id="assetsCount">0 张图片</div><button type="button" class="asset-batch-toggle" id="assetBatchToggle" aria-pressed="false">批量选择</button></div></div>
   <div class="asset-batch-toolbar">
-    <button type="button" id="assetBatchToggle" aria-pressed="false">批量选择</button>
     <div id="assetBatchControls" hidden>
       <button type="button" id="assetBatchAll">全选当前筛选</button>
       <span id="assetBatchCount" aria-live="polite">已选 0 张</span>
@@ -115,7 +114,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<script src="shared.js?v=454"></script>
+<script src="shared.js?v=455"></script>
 <script src="generation-queue.js?v=450"></script>
 <script src="asset-card.js?v=450"></script>
 <script src="assets-page.js?v=454"></script>
