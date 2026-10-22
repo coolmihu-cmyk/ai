@@ -73,6 +73,7 @@ body.home-page{background:#f0f0f0}.home-page .app-rail{display:none}
 .home-page .creation-model-free{display:inline-block;margin-left:5px;font-size:8px;font-weight:600;line-height:1;letter-spacing:.04em;vertical-align:middle}
 .home-page .home-generation{margin-top:16px;padding:18px 22px;border:1px solid #b8b8b8;border-radius:20px;background:#fff;font-size:12px;text-align:left}
 .home-generation[hidden]{display:none}
+.home-page .bottom-area:has(.home-generation:not([hidden])){padding-bottom:32px}
 .home-generation>header,.home-generation-task-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .home-generation>header{margin-bottom:14px}.home-generation>header b{font-size:14px}.home-generation>header span{margin-left:12px;color:#898989}.home-generation a{font-size:11px;text-decoration:none}
 .home-generation-task{padding:12px 0;border-top:1px solid #b8b8b8}.home-generation-task-head span{color:#898989;font-size:11px}.home-generation details{margin-top:9px}.home-generation summary{cursor:pointer;color:#898989}.home-generation details p,.home-generation-error{margin:8px 0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}
