@@ -11,7 +11,7 @@ function snapshotCreationState(model){
 }
 
 async function buildPendingGeneration(){
-  const key=activeModel,state=modelState[key];
+  const key=activeModel,state={...modelState[key]};
   let prompt=els.promptInput.value.trim();
   const config=MODEL_CONFIG[key];
   if(!config)throw new Error('当前图片模型不可用，请重新选择。');
@@ -69,7 +69,9 @@ async function doGenerate(){
     const job=await buildPendingGeneration();
     job.promptLogId=await PromptLog.create(job);
     await PendingGeneration.save(job);
-    navigateWithLoading('assets.html');
+    HomeGeneration.refresh();
+    toast('已加入生成队列，可以继续创作');
+    GenerationQueue.run().catch(error=>console.warn('生成队列暂时无法执行',error));
   }catch(error){
     const message=error?.message||'任务准备失败，请重试。';
     showComposerError(message);

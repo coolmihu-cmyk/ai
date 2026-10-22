@@ -16,7 +16,7 @@ const assetsEls={
   taskCenter:$('#assetsTaskCenter'),taskCount:$('#assetsTaskCount'),taskList:$('#assetsTaskList')
 };
 const assetPublish={modal:$('#assetPublishModal'),form:$('#assetPublishForm'),close:$('#assetPublishClose'),cancel:$('#assetPublishCancel'),url:$('#assetPublishImageUrl'),model:$('#assetPublishModel'),category:$('#assetPublishCategory'),prompt:$('#assetPublishPrompt'),error:$('#assetPublishError'),submit:$('#assetPublishSubmit'),item:null,button:null};
-let assetItems=[],activeAssetMonth='all',generationElapsedTimer=null,queueAdvancing=false,activeGenerationUsesHighDefinition=false;
+let assetItems=[],activeAssetMonth='all',generationElapsedTimer=null,activeGenerationUsesHighDefinition=false;
 let unavailableAssetIds=new Set();
 const PUBLISHED_ASSET_IDS_KEY='mihu-published-public-assets-v1',PUBLIC_REFERENCE_ADMIN_TOKEN_KEY='mihu_public_reference_admin_token';
 
@@ -497,11 +497,7 @@ function taskState(job){
   return job.taskId?{label:'正在生成',kind:'running'}:{label:'排队中',kind:'queued'};
 }
 async function resetPendingGenerationForRetry(job){
-  delete job.failedAt;delete job.lastError;
-  job.taskId=null;
-  delete job.synchronousStartedAt;
-  await PendingGeneration.save(job);
-  PromptLog.update(job.promptLogId,{status:'submitted',errorMessage:null});
+  await GenerationQueue.retry(job);
 }
 function appendFailedPromptActions(actions,job,promptElement){
   const fullPrompt=job.prompt||job.body?.prompt||'';
@@ -532,7 +528,7 @@ function appendFailedPromptActions(actions,job,promptElement){
 }
 async function renderTaskCenter(){
   if(!assetsEls.taskCenter)return;
-  const currentJob=await PendingGeneration.load();
+  const currentJob=GenerationQueue.activeJob||await PendingGeneration.load();
   const jobs=(await PendingGeneration.loadAll({includeEditor:true}))
     .filter(job=>job.id!==currentJob?.id);
   assetsEls.taskCenter.hidden=!jobs.length;
@@ -827,111 +823,34 @@ function showGenerationFailure(job,message){
   actions.append(retry,cancel);
   assetsEls.generationError.append(text,actions);
 }
-async function runNextPendingGeneration(){
-  if(queueAdvancing)return;
-  const acquired=await GenerationExecutionLock.run(()=>runNextPendingGenerationUnlocked());
-  if(!acquired)renderTaskCenter();
-}async function runNextPendingGenerationUnlocked(){
-  if(queueAdvancing)return;
-  queueAdvancing=true;
-  try{
-    while(true){
-      const next=await PendingGeneration.load();
-      if(!next){assetsEls.generation.hidden=true;syncAssetsSummary();break}
-      if(next.failedAt){showGeneration(next);showGenerationFailure(next,next.lastError||'上次生成未完成。');break}
-      showGeneration(next);
-      if(!await runPendingGeneration(next))break;
-    }
-  }finally{queueAdvancing=false}
-}
-async function runPendingGeneration(job){
-  const apiKey=Settings.getKey();
-  const isMoss=job.provider==='moss'||MODEL_CONFIG[job.model]?.provider==='moss';
-  if(!apiKey&&!isMoss){
-    assetsEls.generation.classList.remove('is-running','is-complete');
-    assetsEls.generation.classList.add('is-failed');
-    assetsEls.generationStatus.textContent='等待接口设置';
-    assetsEls.generationPercent.textContent='—';
-    assetsEls.generationError.hidden=false;
-    assetsEls.generationError.innerHTML='尚未配置 API Key。<a href="settings.html">前往设置</a>';
-    clearInterval(generationElapsedTimer);return;
+const ASSET_QUEUE_HOOKS={
+  started:showGeneration,
+  status:setGenerationStatus,
+  progress:updateGeneration,
+  completed(job,item){
+    assetItems=sortAssets([item,...assetItems.filter(asset=>asset.id!==item.id)]);renderAssets();
+    assetsEls.generation.classList.remove('is-running','is-failed');assetsEls.generation.classList.add('is-complete');
+    assetsEls.generationStatus.textContent='生成完成';assetsEls.generationPercent.textContent='100%';assetsEls.generationBar.style.width='100%';clearInterval(generationElapsedTimer);
+  },
+  failed(job,message){showGenerationFailure(job,message);clearInterval(generationElapsedTimer)},
+  idle(jobs){
+    if(jobs.length){showGeneration(jobs[0]);showGenerationFailure(jobs[0],jobs[0].lastError||'生成未完成。')}
+    else assetsEls.generation.hidden=true;
+    syncAssetsSummary();renderTaskCenter().catch(()=>{});
   }
-  const maxWaitMs=Math.max(300000,Math.min(Number(job.maxWaitMs)||300000,30*60*1000));
-  const controller=new AbortController(),timeoutId=setTimeout(()=>controller.abort(),maxWaitMs+15000);
-  const startedAt=performance.now();
-  try{
-    let url;
-    if(isMoss){
-      if(job.resultUrl)url=job.resultUrl;
-      else{
-        if(job.synchronousStartedAt)throw new Error('上次 MOSS 生成连接已中断，请先确认结果；如需重新生成，请手动点击重试。');
-        job.synchronousStartedAt=new Date().toISOString();await PendingGeneration.save(job);
-        setGenerationStatus('MOSS 正在生成图片，请保持页面打开');updateGeneration('processing',0);
-        url=await Moss.generate(job.body,controller.signal);
-        job.resultUrl=url;await PendingGeneration.save(job);
-      }
-    }else if(job.taskId){
-      url=await Apimart.pollTask(apiKey,job.taskId,updateGeneration,controller.signal,maxWaitMs);
-    }else{
-      url=await Apimart.generate({
-        apiKey,body:job.body,endpoint:job.endpoint,signal:controller.signal,
-        onSubmitted:taskId=>{
-          job.taskId=taskId;
-          PendingGeneration.save(job).catch(()=>{});
-          PromptLog.update(job.promptLogId,{taskId,status:'processing'});
-          setGenerationStatus('任务已提交');
-        },
-        onProgress:updateGeneration
-      });
-    }
-    const itemId=Date.now(),createdAt=new Date().toISOString();
-    let archived=false,historyKey='';
-    if(!isMoss&&Archive.isAvailable()){
-      try{
-        const archive=await Archive.image(url,{
-          id:itemId,prompt:job.prompt||'',model:job.model||'gpt',settings:job.settings||{},referenceUrl:job.referenceUrls?.[0]||'',referenceUrls:job.referenceUrls||[],createdAt,type:'image'
-        });
-        url=archive.url;archived=true;historyKey=archive.historyKey||'';
-      }catch(error){
-        console.warn('图片归档失败，暂时保留 APIMart 临时地址',error);
-        toast('图片已生成，但永久归档失败；请先下载原图。');
-      }
-    }
-    const item={
-      id:itemId,url,prompt:job.prompt||'',model:job.model||'gpt',settings:job.settings||{},referenceUrl:job.referenceUrls?.[0]||'',referenceUrls:job.referenceUrls||[],archived,historyKey,
-      createdAt,durationMs:Math.round(performance.now()-startedAt)
-    };
-    await History.save(item);
-    PromptLog.update(job.promptLogId,{status:'completed',cosUrl:archived?url:null,errorMessage:null});
-    await PendingGeneration.delete(job.id);
-    assetItems=sortAssets([item,...assetItems.filter(asset=>asset.id!==item.id)]);
-    renderAssets();
-    assetsEls.generation.classList.remove('is-running','is-failed');
-    assetsEls.generation.classList.add('is-complete');
-    assetsEls.generationStatus.textContent='生成完成';
-    assetsEls.generationPercent.textContent='100%';
-    assetsEls.generationBar.style.width='100%';
-    clearInterval(generationElapsedTimer);
-    notifyGenerated(ASSET_MODEL_NAMES[item.model]||item.model);
-    return true;
-  }catch(error){
-    console.warn('图片生成失败',error);
-    const message=isMoss
-      ?(error?.name==='AbortError'?'MOSS 连接中断或等待超时，原请求可能仍在生成，请稍后确认，避免立即重复提交。':String(error?.message||'MOSS 生成失败，请稍后重试。'))
-      :generationErrorMessage(error);
-    job.failedAt=new Date().toISOString();
-    job.lastError=message;
-    PromptLog.update(job.promptLogId,{status:'failed',errorMessage:message});
-    await PendingGeneration.save(job);
-    showGenerationFailure(job,message);
-    clearInterval(generationElapsedTimer);
-    return false;
-  }finally{
-    clearTimeout(timeoutId);
-  }
-}
+};
+function runNextPendingGeneration(){return GenerationQueue.run(ASSET_QUEUE_HOOKS)}
+function runPendingGeneration(job){return GenerationQueue.execute(job,ASSET_QUEUE_HOOKS)}
 
 window.addEventListener('mihu-pending-generation-change',()=>renderTaskCenter().catch(()=>{}));
+window.addEventListener('mihu-generation-updated',()=>{
+  renderTaskCenter().catch(()=>{});
+  History.load().then(items=>{
+    const next=sortAssets(items.filter(item=>(item.type||'image')==='image'));
+    if(assetRenderSignature(next)!==assetRenderSignature(assetItems)){assetItems=next;renderAssets()}
+  }).catch(()=>{});
+});
+setInterval(()=>{PendingGeneration.loadAll().then(jobs=>{if(jobs.some(job=>!job.failedAt))runNextPendingGeneration().catch(()=>{})}).catch(()=>{})},3000);
 
 requestAnimationFrame(async()=>{
   const pendingJob=await PendingGeneration.load();
@@ -951,6 +870,6 @@ requestAnimationFrame(async()=>{
     .catch(error=>console.warn('历史记录后台检查失败',error));
   if(pendingJob){
     if(pendingJob.failedAt)showGenerationFailure(pendingJob,pendingJob.lastError||'上次生成未完成。');
-    else runNextPendingGeneration();
+    runNextPendingGeneration();
   }
 });

@@ -427,6 +427,7 @@ window.addEventListener('resize',closeReferenceMentions);
 window.addEventListener('scroll',event=>{if(!referenceMentionMenu.contains(event.target))closeReferenceMentions()},true);
 els.refBtn.onclick=()=>els.fileInput.click();
 async function addReferenceFiles(fileList){
+  if(preparingGeneration){toast('参考图正在准备，请稍候');return}
   if(MODEL_CONFIG[activeModel].supportsReferences===false){toast('MOSS SFT 仅支持文生图，不能上传参考图');return}
   const files=Array.from(fileList||[]);
   if(!files.length)return;

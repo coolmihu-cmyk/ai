@@ -62,6 +62,7 @@ syncTransparentBackgroundControl();
   };
 
   canvas.addEventListener("wheel", (event) => {
+    if(document.querySelector('#homeGeneration:not([hidden])'))return;
     if (event.ctrlKey || event.metaKey || Math.abs(event.deltaY) < 2) return;
     const target = inspirationTop();
     if (event.deltaY > 0 && canvas.scrollTop <= 2) {
