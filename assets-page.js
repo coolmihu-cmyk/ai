@@ -6,6 +6,7 @@ const ASSET_MODEL_NAMES=Object.fromEntries(
 ASSET_MODEL_NAMES.midjourney='Midjourney';
 ASSET_MODEL_NAMES.grok='Grok';
 ASSET_MODEL_NAMES.edit='GPT Image2 · 图片编辑';
+ASSET_MODEL_NAMES.seedreamflash='Seedream 5.0 FLASH';
 const assetsEls={
   grid:$('#assetsGrid'),loading:$('#assetsLoading'),empty:$('#assetsEmpty'),count:$('#assetsCount'),dateFilter:$('#assetsDateFilter'),
   generation:$('#assetsGeneration'),generationModel:$('#assetsGenerationModel'),

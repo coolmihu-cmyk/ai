@@ -2,12 +2,12 @@
 const CREATION_MODEL_ICONS=Object.fromEntries(
   Object.entries(MODEL_CONFIG).map(([key,config])=>[key,config.icon])
 );
-CREATION_MODEL_ICONS.seedream=CREATION_MODEL_ICONS.seedreamflash;
+CREATION_MODEL_ICONS.seedream=CREATION_MODEL_ICONS.seedream55;
 const MODEL_VERSIONS={
   gpt:[{value:'gpt',label:'2.0'},{value:'gpt25flare',label:'2.5 Flare'},{value:'gpt25sunburst',label:'2.5 Sunburst'}],
-  seedream:[{value:'seedreamflash',label:'FLASH'},{value:'seedreampro',label:'PRO'}]
+  seedream:[{value:'seedream55',label:'5.5'},{value:'seedreampro',label:'5.0 PRO'}]
 };
-const selectedModelVersions={gpt:activeModel,seedream:'seedreamflash'};
+const selectedModelVersions={gpt:activeModel,seedream:'seedream55'};
 function creationModelFamily(key){return key.startsWith('gpt')?'gpt':key.startsWith('seedream')?'seedream':key}
 const RESOLUTION_ICONS={
   '1k':'icon/resolution-1k.png','1K':'icon/resolution-1k.png',
@@ -273,7 +273,7 @@ function renderModelVersionControl(){
   const family=creationModelFamily(activeModel),versions=MODEL_VERSIONS[family];
   control.hidden=!versions;
   if(!versions)return;
-  const label=family==='seedream'?'Seedream 5.0 档位':'GPT IMAGE 版本';
+  const label=family==='seedream'?'Seedream 版本':'GPT IMAGE 版本';
   els.creationGptVersionSelect.replaceChildren(...versions.map(version=>{
     const option=document.createElement('option');option.value=version.value;option.textContent=version.label;return option;
   }));
@@ -537,6 +537,7 @@ function applyReferenceLibraryPayload(){
     const payload=JSON.parse(sessionStorage.getItem('mihu_reference_payload')||'null');
     sessionStorage.removeItem('mihu_reference_payload');
     if(!payload)return;
+    if(payload.model==='seedreamflash')payload.model='seedream55';
     if(payload.model&&MODEL_CONFIG[payload.model]){
       const config=MODEL_CONFIG[payload.model],settings=payload.settings||{},state=modelState[payload.model];
       if(config.ratios.includes(settings.ratio))state.ratio=settings.ratio;
@@ -635,7 +636,7 @@ els.oneClickStyleInput?.addEventListener('change',async event=>{
 /* ===================== 优化提示词 ===================== */
 const ENHANCE_SYSTEMS={
   mosssft:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 MOSS Image SFT 文生图，清楚描述主体、构图、文字和光线。只输出最终提示词，不要添加参考图引用。',
-  seedreamflash:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 Seedream 5.0 FLASH，保留主体、构图、文字、光线和参考图引用。只输出优化后的提示词，不要解释。',
+  seedream55:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 Seedream 5.5，保留主体、构图、文字、光线和参考图引用。只输出优化后的提示词，不要解释。',
   seedreampro:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 Seedream 5.0 PRO，准确保留主体、构图、文字、材质、光线和参考图引用。只输出优化后的提示词，不要解释。',
   gpt:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其结构清晰、具体且适合图片生成模型。不得改变核心意图、主体数量、人物身份和指定元素。只输出优化后的最终提示词，不要解释。',
   gpt25flare:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 GPT Image 2.5 Flare 快速图像生成，保留核心意图并清晰描述主体、构图、文字、光线和材质。只输出优化后的最终提示词，不要解释。',

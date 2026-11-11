@@ -32,11 +32,15 @@ async function buildPendingGeneration(){
       settings:snapshotCreationState(key),referenceUrls:[],createdAt:new Date().toISOString(),taskId:null
     };
   }
-  if(transparentRequested){
+  if(transparentRequested&&!config.autoSizeUsesResolution){
     prompt+=','+TRANSPARENT_ELEMENT_PROMPT;
     if(!/background\s*=\s*["']transparent["']/i.test(prompt))prompt+='\nbackground="transparent"';
   }
   const body={model:config.generationModel,prompt,size:state.ratio,resolution:state.resolution,n:1};
+  if(config.autoSizeUsesResolution&&state.ratio==='auto'){
+    body.size=state.resolution||config.defaultResolution;
+    delete body.resolution;
+  }
   if(config.apiVersion)body.version=config.apiVersion;
   if(state.quality)body.quality=state.quality;
   if(state.moderation||config.defaultModeration)body.moderation=state.moderation||config.defaultModeration;
