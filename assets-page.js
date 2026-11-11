@@ -65,7 +65,7 @@ const localEdit={
 let localEditScrollTimer=0;
 function isHighDefinitionResolution(value){return Number.parseFloat(String(value||'').toLowerCase())>1}
 const LOCAL_EDIT_HIGH_DEFINITION_WAIT='高画质图片需要更多生成时间，请耐心等候。';
-const LOCAL_EDIT_MODEL_KEYS=['gpt25sunburst'];
+const LOCAL_EDIT_MODEL_KEYS=['gpt25sunburst','seedream55'];
 function highDefinitionWaitNotice(message){return isHighDefinitionResolution(localEdit.resolution)?message+'（'+LOCAL_EDIT_HIGH_DEFINITION_WAIT+'）':message}
 localEdit.image.draggable=false;
 localEdit.upload.textContent='+';
@@ -360,6 +360,10 @@ async function submitLocalEdit({prompt:providedPrompt='',alreadyRecorded=false,s
     const editPrompt=prompt+'。以输入图片为基础进行编辑，保留用户未明确要求改变的主体、构图和重要视觉特征。';
     const config=MODEL_CONFIG[localEdit.model];
     const body={model:config.editModel||config.generationModel,prompt:editPrompt,size:localEdit.ratio,resolution:localEdit.resolution,n:1,image_urls:[localEdit.item.url,...(localEdit.referenceData?[localEdit.referenceData]:[])]};
+    if(config.autoSizeUsesResolution&&body.size==='auto'){
+      body.size=body.resolution||config.defaultResolution;
+      delete body.resolution;
+    }
     if(config.apiVersion)body.version=config.apiVersion;
     if(localEdit.quality)body.quality=localEdit.quality;
     if(localEdit.moderation)body.moderation=localEdit.moderation;
