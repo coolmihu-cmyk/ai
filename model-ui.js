@@ -180,7 +180,8 @@ els.creationGptVersionSelect.onchange=()=>switchModel(els.creationGptVersionSele
 els.transparentBgBtn.onchange=()=>{
   if(!MODEL_CONFIG[activeModel].supportsGif)return;
   modelState[activeModel].outputFormat=els.transparentBgBtn.value;
-  renderRatioPop();
+  renderRefRow();
+  updatePlaceholder();
 };
 els.creationRatioSelect.onchange=()=>{
   modelState[activeModel].ratio=els.creationRatioSelect.value;
@@ -235,7 +236,9 @@ function resizePromptInput(){
   renderPromptHighlights();
 }
 
-function updatePlaceholder(){els.promptInput.placeholder=MODEL_CONFIG[activeModel].supportsReferences===false?'MOSS SFT 限时免费，仅支持文生图，请输入提示词':'请输入提示词，输入 @ 引用参考图'}
+function isGifOutput(){return MODEL_CONFIG[activeModel].supportsGif&&modelState[activeModel].outputFormat==='gif'}
+function isTextOnlyCreation(){return MODEL_CONFIG[activeModel].supportsReferences===false||isGifOutput()}
+function updatePlaceholder(){els.promptInput.placeholder=isGifOutput()?'GIF 仅支持文生图，请描述动作和循环方式':MODEL_CONFIG[activeModel].supportsReferences===false?'MOSS SFT 限时免费，仅支持文生图，请输入提示词':'请输入提示词，输入 @ 引用参考图'}
 
 /* ===================== 外置模型输出设置 ===================== */
 function renderModelSettings(){
@@ -298,12 +301,10 @@ function syncTransparentBackgroundControl(){
     select.replaceChildren(...(config.supportsGif?[new Option('PNG','png'),new Option('GIF','gif')]:[new Option('否','no'),new Option('是','yes')]));
   }
   if(config.supportsGif){
-    const hasRefs=!!refManagers[activeModel]?.count();
-    if(hasRefs)modelState[activeModel].outputFormat='png';
     select.value=modelState[activeModel].outputFormat||'png';
     select.setAttribute('aria-label','输出格式');
     control.querySelector('.creation-select-menu').setAttribute('aria-label','输出格式');
-    control.hidden=hasRefs;
+    control.hidden=false;
     trigger.dataset.tooltip='输出格式：GIF 仅支持文生图';
     syncCreationDropdown(control);
     return;
@@ -412,7 +413,7 @@ function highlightReferenceMention(){
   if(selected){els.promptInput.setAttribute('aria-activedescendant',selected.id);selected.scrollIntoView({block:'nearest'})}
 }
 function updateReferenceMentions(){
-  if(MODEL_CONFIG[activeModel].supportsReferences===false){closeReferenceMentions();return}
+  if(isTextOnlyCreation()){closeReferenceMentions();return}
   const input=els.promptInput,caret=input.selectionStart;
   if(document.activeElement!==input||caret!==input.selectionEnd){closeReferenceMentions();return}
   const match=input.value.slice(0,caret).match(/@(?:参考图)?(\d*)$/);
@@ -454,7 +455,7 @@ window.addEventListener('scroll',event=>{if(!referenceMentionMenu.contains(event
 els.refBtn.onclick=()=>els.fileInput.click();
 async function addReferenceFiles(fileList){
   if(preparingGeneration){toast('参考图正在准备，请稍候');return}
-  if(MODEL_CONFIG[activeModel].supportsReferences===false){toast('MOSS SFT 仅支持文生图，不能上传参考图');return}
+  if(isTextOnlyCreation()){toast(isGifOutput()?'GIF 仅支持文生图，不能上传参考图':'MOSS SFT 仅支持文生图，不能上传参考图');return}
   const files=Array.from(fileList||[]);
   if(!files.length)return;
   await refManagers[activeModel].addFiles(files);
@@ -469,14 +470,14 @@ let composerDragDepth=0;
 els.composer.addEventListener('dragenter',event=>{
   if(!event.dataTransfer?.types?.includes('Files'))return;
   event.preventDefault();
-  if(MODEL_CONFIG[activeModel].supportsReferences===false)return;
+  if(isTextOnlyCreation())return;
   composerDragDepth++;
   els.composer.classList.add('is-dragover');
 });
 els.composer.addEventListener('dragover',event=>{
   if(!event.dataTransfer?.types?.includes('Files'))return;
   event.preventDefault();
-  event.dataTransfer.dropEffect=MODEL_CONFIG[activeModel].supportsReferences===false?'none':'copy';
+  event.dataTransfer.dropEffect=isTextOnlyCreation()?'none':'copy';
 });
 els.composer.addEventListener('dragleave',event=>{
   if(!event.dataTransfer?.types?.includes('Files'))return;
@@ -497,12 +498,12 @@ function renderRefRow(){
   if(MODEL_CONFIG[activeModel].supportsGif){syncTransparentBackgroundControl();renderRatioPop()}
   if(MODEL_CONFIG[activeModel].referenceCredits)renderModelSettings();
   els.refRow.innerHTML='';
-  const textOnly=MODEL_CONFIG[activeModel].supportsReferences===false;
+  const textOnly=isTextOnlyCreation();
   els.refRow.hidden=textOnly;els.refBtn.hidden=textOnly;els.fileInput.disabled=textOnly;
   if(els.oneClickStyleBtn)els.oneClickStyleBtn.hidden=textOnly;
   els.composer.classList.toggle('is-text-only-model',textOnly);
   closeReferenceMentions();
-  if(textOnly){els.refRow.classList.remove('has-refs');return}
+  if(textOnly){composerDragDepth=0;els.composer.classList.remove('is-dragover');els.refRow.classList.remove('has-refs');return}
   if(!refs.length){els.refRow.classList.remove('has-refs')}
   else{
     els.refRow.classList.add('has-refs');
@@ -582,7 +583,7 @@ function applyReferenceLibraryPayload(){
       }
     }
     const manager=refManagers[activeModel];
-    const referenceUrls=MODEL_CONFIG[activeModel].supportsReferences===false?[]:[...new Set([
+    const referenceUrls=isTextOnlyCreation()?[]:[...new Set([
       ...(Array.isArray(payload.urls)?payload.urls:[]),
       payload.url||''
     ].filter(Boolean))];
@@ -661,6 +662,7 @@ els.oneClickStyleBtn?.addEventListener('click',()=>els.oneClickStyleInput?.click
 els.oneClickStyleInput?.addEventListener('change',async event=>{
   const [file]=Array.from(event.target.files||[]);
   event.target.value='';
+  if(isTextOnlyCreation())return;
   await reverseStyleFromImage(file);
 });
 
@@ -684,7 +686,7 @@ async function optimizeCurrentPrompt(){
   els.enhanceBtn.disabled=true;
   els.enhanceBtn.closest('.prompt-enhance-switch')?.classList.add('is-loading');
   try{
-    const refCount=refManagers[activeModel]?refManagers[activeModel].count():0;
+    const refCount=isTextOnlyCreation()?0:(refManagers[activeModel]?.count()||0);
     let modeRule='';
     if(refCount>0){
       modeRule='这是多参考图的图生图任务，当前共有 '+refCount+' 张参考图。必须保留参考图中的主体身份、人物外貌、姿势、构图和产品结构，只优化用户明确要求修改的部分。';
