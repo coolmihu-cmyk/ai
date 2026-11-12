@@ -8,9 +8,8 @@ const HomeGeneration=(()=>{
     toggle.setAttribute('aria-expanded',String(!collapsed));
     toggle.textContent=collapsed?'展开 ▾':'折叠 ▴';
   };
-  const sessionKey='mihu-home-generation-start';
-  let sessionStart=Number(sessionStorage.getItem(sessionKey))||Date.now(),revision=0,lastSignature='';
-  sessionStorage.setItem(sessionKey,String(sessionStart));
+  const recentImageLimit=6;
+  let revision=0,lastSignature='';
   let taskNumbers;try{taskNumbers=JSON.parse(sessionStorage.getItem('mihu-home-task-numbers')||'{}')}catch(_){taskNumbers={}}
   function taskNumber(job){
     if(!taskNumbers[job.id]){
@@ -34,7 +33,7 @@ const HomeGeneration=(()=>{
     const current=++revision;
     const [jobs,history]=await Promise.all([PendingGeneration.loadAll(),History.load()]);
     if(current!==revision)return;
-    const results=history.filter(item=>(item.type||'image')==='image'&&new Date(item.createdAt).getTime()>=sessionStart).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,8);
+    const results=history.filter(item=>(item.type||'image')==='image'&&item.url).slice(0,recentImageLimit);
     const signature=JSON.stringify([jobs.map(job=>[job.id,job.model,job.prompt,job.failedAt,job.lastError,job.taskId,job.synchronousStartedAt,GenerationQueue.states.get(job.id)]),results.map(item=>[item.id,item.url])]);
     if(signature===lastSignature)return;lastSignature=signature;
     const expanded=new Set([...list.querySelectorAll('article[data-job-id] details[open]')].map(node=>node.closest('article').dataset.jobId));
