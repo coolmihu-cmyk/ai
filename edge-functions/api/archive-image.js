@@ -5,7 +5,7 @@ const ARCHIVE_LIMIT_PER_WINDOW=24;
 const APIMART_IMAGE_HOSTS=new Set(['upload.apimart.ai','getapib.org']);
 const APIMART_IMAGE_HOST_SUFFIXES=['.apimart.ai','.byteimg.com','.douyinpic.com','.volces.com'];
 const ALLOWED_TYPES=new Map([
-  ['image/png','png'],['image/jpeg','jpg'],['image/webp','webp']
+  ['image/png','png'],['image/jpeg','jpg'],['image/webp','webp'],['image/gif','gif']
 ]);
 
 const encoder=new TextEncoder();

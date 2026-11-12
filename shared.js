@@ -1,7 +1,7 @@
 "use strict";
 const APIMART_BASE='https://api.apimart.ai/v1';
 // 每次完成一次改动并提交时递增。
-const APP_VERSION='459.0';
+const APP_VERSION='460.0';
 const DB_NAME='mihu-design-os',DB_VERSION=2,STORE_NAME='images',JOB_STORE_NAME='generation-jobs';
 const HISTORY_BACKUP_KEY='mihu-history-backup-v1';
 const PROMPT_ANALYSIS_MODEL='gpt-5.6-luna';
@@ -13,17 +13,17 @@ const MODEL_CONFIG={
     resolutions:[{v:'1k',l:'快速',price:'0.085积分/张'},{v:'2k',l:'高清',price:'0.14积分/张'},{v:'4k',l:'超清',price:'0.21积分/张'}],
     defaultResolution:'1k',generationModel:'gpt-image-2',editModel:'gpt-image-2',supportsTransparent:true
   },
-  gpt25flare:{
-    name:'GPT Image2.5 Flare',icon:'icon/model-gpt-chatgpt.svg',promptLimit:3000,
+  gpt26flare:{
+    name:'GPT Image2.6 Flare',icon:'icon/model-gpt-chatgpt.svg',promptLimit:3000,
     ratios:['auto','1:1','3:2','2:3','4:3','3:4','5:4','4:5','16:9','9:16','21:9'],
     resolutions:[{v:'1K',l:'标准',price:'0.085积分/张'},{v:'2K',l:'高清',price:'0.3积分/张'},{v:'4K',l:'超清',price:'0.4积分/张'}],
-    defaultResolution:'1K',generationModel:'gpt-image-2.5-ext',editModel:'gpt-image-2.5-ext',apiVersion:'flare'
+    defaultResolution:'1K',generationModel:'gpt-image-2.6-ext',editModel:'gpt-image-2.6-ext',apiVersion:'flare',supportsGif:true
   },
-  gpt25sunburst:{
-    name:'GPT Image2.5 Sunburst',icon:'icon/model-gpt-chatgpt.svg',promptLimit:3000,
+  gpt26sunburst:{
+    name:'GPT Image2.6 Sunburst',icon:'icon/model-gpt-chatgpt.svg',promptLimit:3000,
     ratios:['auto','1:1','3:2','2:3','4:3','3:4','5:4','16:9','9:16','21:9'],
     resolutions:[{v:'1K',l:'标准',price:'0.085积分/张'},{v:'2K',l:'高清',price:'0.3积分/张'},{v:'4K',l:'超清',price:'0.4积分/张'}],
-    defaultResolution:'1K',generationModel:'gpt-image-2.5-ext',editModel:'gpt-image-2.5-ext',apiVersion:'sunburst'
+    defaultResolution:'1K',generationModel:'gpt-image-2.6-ext',editModel:'gpt-image-2.6-ext',apiVersion:'sunburst',supportsGif:true
   },
   seedream55:{
     name:'Seedream 5.5',icon:'icon/model-sd5-jimeng.svg',promptLimit:3000,
@@ -76,7 +76,7 @@ const ImageDelivery={
     if(this.isMossUrl(sourceUrl))return this.displayUrl(sourceUrl);
     try{
       const url=new URL(sourceUrl,location.href);
-      if(!this.isArchivedUrl(url.href)||url.search)return sourceUrl;
+      if(!this.isArchivedUrl(url.href)||url.search||/\.gif$/i.test(url.pathname))return sourceUrl;
       url.search=COS_THUMBNAIL_RULE;
       return url.href;
     }catch(_){return sourceUrl}

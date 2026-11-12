@@ -4,7 +4,7 @@ const CREATION_MODEL_ICONS=Object.fromEntries(
 );
 CREATION_MODEL_ICONS.seedream=CREATION_MODEL_ICONS.seedream55;
 const MODEL_VERSIONS={
-  gpt:[{value:'gpt',label:'2.0'},{value:'gpt25flare',label:'2.5 Flare'},{value:'gpt25sunburst',label:'2.5 Sunburst'}],
+  gpt:[{value:'gpt',label:'2.0'},{value:'gpt26flare',label:'2.6 Flare'},{value:'gpt26sunburst',label:'2.6 Sunburst'}],
   seedream:[{value:'seedream55',label:'5.5'},{value:'seedreampro',label:'5.0 PRO'}]
 };
 const selectedModelVersions={gpt:activeModel,seedream:'seedream55'};
@@ -51,10 +51,10 @@ function makeCreationVisual(type,value){
     frame.style.height=size.height+'px';
     return frame;
   }
-  if(type==='quality'||type==='moderation'){
+  if(type==='quality'||type==='moderation'||type==='format'){
     const mark=document.createElement('span');
     mark.className='creation-parameter-mark';
-    mark.textContent=type==='quality'?'Q':'S';
+    mark.textContent=type==='format'?'F':type==='quality'?'Q':'S';
     return mark;
   }
   if(type==='transparent'){
@@ -177,6 +177,11 @@ els.creationModelSelect.onchange=()=>{
   switchModel(key);
 };
 els.creationGptVersionSelect.onchange=()=>switchModel(els.creationGptVersionSelect.value);
+els.transparentBgBtn.onchange=()=>{
+  if(!MODEL_CONFIG[activeModel].supportsGif)return;
+  modelState[activeModel].outputFormat=els.transparentBgBtn.value;
+  renderRatioPop();
+};
 els.creationRatioSelect.onchange=()=>{
   modelState[activeModel].ratio=els.creationRatioSelect.value;
 };
@@ -287,14 +292,34 @@ function syncTransparentBackgroundControl(){
   const control=els.transparentBgBtn?.closest('.creation-transparent-select');
   if(!control)return;
   const config=MODEL_CONFIG[activeModel],trigger=control.querySelector('.creation-select-trigger');
+  const select=els.transparentBgBtn,mode=config.supportsGif?'format':'transparent';
+  if(control.dataset.creationDropdown!==mode){
+    control.dataset.creationDropdown=mode;
+    select.replaceChildren(...(config.supportsGif?[new Option('PNG','png'),new Option('GIF','gif')]:[new Option('否','no'),new Option('是','yes')]));
+  }
+  if(config.supportsGif){
+    const hasRefs=!!refManagers[activeModel]?.count();
+    if(hasRefs)modelState[activeModel].outputFormat='png';
+    select.value=modelState[activeModel].outputFormat||'png';
+    select.setAttribute('aria-label','输出格式');
+    control.querySelector('.creation-select-menu').setAttribute('aria-label','输出格式');
+    control.hidden=hasRefs;
+    trigger.dataset.tooltip='输出格式：GIF 仅支持文生图';
+    syncCreationDropdown(control);
+    return;
+  }
+  select.setAttribute('aria-label','透明背景');
+  control.querySelector('.creation-select-menu').setAttribute('aria-label','选择是否使用透明背景');
   control.hidden=!config.supportsTransparent;
   if(trigger)trigger.dataset.tooltip=config.transparentRequiresSingleReference?'仅适用于单张带透明通道的参考图':'是否打开透明背景';
+  syncCreationDropdown(control);
 }
 function renderResPop(){renderModelSettings()}
 
 /* ===================== 外置宽高比 ===================== */
 function renderRatioPop(){
-  const ratios=MODEL_CONFIG[activeModel].ratios;
+  const gif=MODEL_CONFIG[activeModel].supportsGif&&modelState[activeModel].outputFormat==='gif';
+  const ratios=gif?['auto']:MODEL_CONFIG[activeModel].ratios;
   els.creationRatioSelect.innerHTML='';
   for(const r of ratios){
     const option=document.createElement('option');
@@ -469,6 +494,7 @@ els.composer.addEventListener('drop',event=>{
 function renderRefRow(){
   const mgr=refManagers[activeModel];
   const refs=mgr?mgr.getAll():[];
+  if(MODEL_CONFIG[activeModel].supportsGif){syncTransparentBackgroundControl();renderRatioPop()}
   if(MODEL_CONFIG[activeModel].referenceCredits)renderModelSettings();
   els.refRow.innerHTML='';
   const textOnly=MODEL_CONFIG[activeModel].supportsReferences===false;
@@ -540,9 +566,12 @@ function applyReferenceLibraryPayload(){
     sessionStorage.removeItem('mihu_reference_payload');
     if(!payload)return;
     if(payload.model==='seedreamflash')payload.model='seedream55';
+    if(payload.model==='gpt25flare')payload.model='gpt26flare';
+    if(payload.model==='gpt25sunburst')payload.model='gpt26sunburst';
     if(payload.model&&MODEL_CONFIG[payload.model]){
       const config=MODEL_CONFIG[payload.model],settings=payload.settings||{},state=modelState[payload.model];
       if(config.ratios.includes(settings.ratio))state.ratio=settings.ratio;
+      if(config.supportsGif)state.outputFormat=settings.outputFormat==='gif'?'gif':'png';
       if(config.resolutions?.some(item=>item.v===settings.resolution))state.resolution=settings.resolution;
       if(config.qualities?.some(item=>item.v===settings.quality))state.quality=settings.quality;
       if(config.moderations?.some(item=>item.v===settings.moderation))state.moderation=settings.moderation;
@@ -641,8 +670,8 @@ const ENHANCE_SYSTEMS={
   seedream55:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 Seedream 5.5，保留主体、构图、文字、光线和参考图引用。只输出优化后的提示词，不要解释。',
   seedreampro:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 Seedream 5.0 PRO，准确保留主体、构图、文字、材质、光线和参考图引用。只输出优化后的提示词，不要解释。',
   gpt:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其结构清晰、具体且适合图片生成模型。不得改变核心意图、主体数量、人物身份和指定元素。只输出优化后的最终提示词，不要解释。',
-  gpt25flare:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 GPT Image 2.5 Flare 快速图像生成，保留核心意图并清晰描述主体、构图、文字、光线和材质。只输出优化后的最终提示词，不要解释。',
-  gpt25sunburst:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 GPT Image 2.5 Sunburst 高质量图像生成与精细编辑，保留核心意图并准确描述主体、构图、文字、光线、材质和细节。只输出优化后的最终提示词，不要解释。',
+  gpt26flare:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 GPT Image 2.6 Flare 快速图像生成，保留核心意图并清晰描述主体、构图、文字、光线和材质。只输出优化后的最终提示词，不要解释。',
+  gpt26sunburst:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 GPT Image 2.6 Sunburst 高质量图像生成与精细编辑，保留核心意图并准确描述主体、构图、文字、光线、材质和细节。只输出优化后的最终提示词，不要解释。',
   nano:'你是一名专业的 AI 图像提示词编辑器。请优化用户提示词，使其适合 Nano Banana PRO（Gemini 3 Pro Image）图片生成模型。突出主体、构图、光线、材质、文字内容和参考图一致性。只输出优化后的最终提示词，不要解释。'
 };
 

@@ -7,6 +7,7 @@ function snapshotCreationState(model){
   if(state.resolution)snapshot.resolution=state.resolution;
   if(state.quality)snapshot.quality=state.quality;
   if(state.moderation)snapshot.moderation=state.moderation;
+  if(MODEL_CONFIG[model].supportsGif&&state.outputFormat==='gif'){snapshot.ratio='auto';snapshot.outputFormat='gif'}
   return snapshot;
 }
 
@@ -16,6 +17,8 @@ async function buildPendingGeneration(){
   const config=MODEL_CONFIG[key];
   if(!config)throw new Error('当前图片模型不可用，请重新选择。');
   const refMgr=refManagers[key],refCount=config.supportsReferences===false?0:(refMgr?refMgr.count():0);
+  const gifRequested=config.supportsGif&&state.outputFormat==='gif';
+  if(gifRequested&&refCount)throw new Error('GIF 仅支持文生图，请先移除参考图。');
   prompt=prompt.replace(/@参考图(\d+)(?!\d)/g,(_,number)=>{
     if(Number(number)<1||Number(number)>refCount)throw new Error('参考图 '+number+' 不存在，请重新选择。');
     return '第'+Number(number)+'张参考图';
@@ -37,6 +40,7 @@ async function buildPendingGeneration(){
     if(!/background\s*=\s*["']transparent["']/i.test(prompt))prompt+='\nbackground="transparent"';
   }
   const body={model:config.generationModel,prompt,size:state.ratio,resolution:state.resolution,n:1};
+  if(gifRequested){body.size='auto';body.output_format='gif'}
   if(config.autoSizeUsesResolution&&state.ratio==='auto'){
     body.size=state.resolution||config.defaultResolution;
     delete body.resolution;

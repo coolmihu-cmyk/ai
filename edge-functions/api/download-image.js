@@ -1,5 +1,5 @@
 const IMAGE_HOST=/^(img\.supmihu\.cn|[a-z0-9-]+\.cos\.[a-z0-9-]+\.myqcloud\.com)$/i;
-const EXTENSIONS={"image/png":"png","image/jpeg":"jpg","image/webp":"webp"};
+const EXTENSIONS={"image/png":"png","image/jpeg":"jpg","image/webp":"webp","image/gif":"gif"};
 
 function error(message,status){return new Response(JSON.stringify({error:message}),{status,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"}})}
 
