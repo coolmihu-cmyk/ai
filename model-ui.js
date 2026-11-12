@@ -236,7 +236,7 @@ function resizePromptInput(){
   renderPromptHighlights();
 }
 
-function isGifOutput(){return MODEL_CONFIG[activeModel].supportsGif&&modelState[activeModel].outputFormat==='gif'}
+function isGifOutput(){return MODEL_CONFIG[activeModel].supportsGif===true&&modelState[activeModel].outputFormat==='gif'}
 function isTextOnlyCreation(){return MODEL_CONFIG[activeModel].supportsReferences===false||isGifOutput()}
 function updatePlaceholder(){els.promptInput.placeholder=isGifOutput()?'GIF 仅支持文生图，请描述动作和循环方式':MODEL_CONFIG[activeModel].supportsReferences===false?'MOSS SFT 限时免费，仅支持文生图，请输入提示词':'请输入提示词，输入 @ 引用参考图'}
 
@@ -550,13 +550,14 @@ function renderRefRow(){
       };
       stack.appendChild(thumb);
     });
-    if(refs.length<10){
-      const add=document.createElement('button');
-      add.className='ref-add';
-      add.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>';
-      add.onclick=()=>els.fileInput.click();
-      stack.appendChild(add);
-    }
+    const add=document.createElement('button');
+    add.type='button';add.className='ref-add';
+    add.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
+    add.disabled=refs.length>=10;
+    add.title=add.disabled?'已达 10 张参考图上限':'添加参考图';
+    add.setAttribute('aria-label',add.title);
+    add.onclick=()=>els.fileInput.click();
+    stack.appendChild(add);
     els.refRow.appendChild(stack);
   }
 }
