@@ -243,7 +243,8 @@ function renderModelSettings(){
       const option=document.createElement('option');
       option.value=r.v;
       option.textContent=r.l;
-      option.dataset.price=r.price||'';
+      const estimate=estimatedImageCredits(config,r.v,refManagers[activeModel]?.count()||0);
+      option.dataset.price=estimate?'预计 '+estimate:(r.price||'');
       option.selected=modelState[activeModel].resolution===r.v;
       els.creationResolutionSelect.appendChild(option);
     }
@@ -468,6 +469,7 @@ els.composer.addEventListener('drop',event=>{
 function renderRefRow(){
   const mgr=refManagers[activeModel];
   const refs=mgr?mgr.getAll():[];
+  if(MODEL_CONFIG[activeModel].referenceCredits)renderModelSettings();
   els.refRow.innerHTML='';
   const textOnly=MODEL_CONFIG[activeModel].supportsReferences===false;
   els.refRow.hidden=textOnly;els.refBtn.hidden=textOnly;els.fileInput.disabled=textOnly;
