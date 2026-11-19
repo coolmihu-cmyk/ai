@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>视频生成 · MIHU DESIGN LAB</title>
+<link rel="icon" href="favicon.ico">
+<link rel="stylesheet" href="css/base.css?v=20260923-428">
+<link rel="stylesheet" href="css/modern-ui.css?v=458">
+<link rel="stylesheet" href="css/inner-prototype.css?v=20260914-004">
+<link rel="stylesheet" href="css/video.css?v=465">
+</head>
+<body class="settings-page video-page">
+<header class="inner-prototype-header"><div class="inner-prototype-tab"><b>视频生成</b><span>PIC.SUPMIHU.CN BETA <strong id="appVersion">V465.0</strong></span></div><nav><a href="index.html">返回首页</a><a href="settings.html">输入密钥</a></nav></header>
+<main class="video-workspace">
+  <header class="video-page-head"><div><a class="video-wordmark" href="index.html">MIHU DESIGN LAB</a><h1>视频生成</h1><p>Seedance 2.5 · 从一个画面，到一段故事。</p></div><nav aria-label="视频页导航"><a href="index.html">返回首页</a><a href="settings.html">输入密钥</a></nav></header>
+  <div class="video-layout">
+    <form id="videoForm" class="video-form">
+      <fieldset id="videoFields">
+        <label for="videoMode">创作方式</label>
+        <select id="videoMode"><option value="text">文生视频</option><option value="reference">多模态参考</option><option value="frames">首帧 / 首尾帧</option><option value="edit">视频编辑</option><option value="extend">视频延长</option></select>
+        <label for="videoPrompt">提示词</label>
+        <textarea id="videoPrompt" rows="5" required placeholder="描述主体、动作、镜头运动、场景变化和声音。"></textarea>
+        <div class="video-field-grid">
+          <label>画面比例<select id="videoSize"><option value="adaptive">自动</option><option>16:9</option><option>9:16</option><option>1:1</option><option>4:3</option><option>3:4</option><option>21:9</option></select></label>
+          <label>分辨率<select id="videoResolution"><option>480p</option><option selected>720p</option><option>1080p</option><option value="4k">4K</option></select></label>
+          <label>时长（秒）<select id="videoDuration"><option value="-1">自动（最多 30 秒）</option></select></label>
+          <label>输出格式<select id="videoFormat"><option value="mp4">MP4</option><option value="mov">MOV</option></select></label>
+        </div>
+        <div class="video-check-row"><label><input id="videoAudio" type="checkbox" checked>生成声音</label><label><input id="videoWatermark" type="checkbox">AI 水印</label></div>
+        <p id="videoModeNote" class="video-note"></p>
+        <section id="videoReferences" hidden aria-labelledby="videoReferenceTitle">
+          <h2 id="videoReferenceTitle">参考素材</h2>
+          <div id="videoImageReferences">
+            <label for="videoImages">参考图片链接（每行一张，最多 30 张）</label><textarea id="videoImages" rows="2" placeholder="https://… 或 asset://…"></textarea>
+            <label class="video-file-label">上传本地图片<input id="videoImageFiles" type="file" accept="image/png,image/jpeg,image/webp" multiple></label>
+            <p class="video-note">本地支持 PNG / JPEG / WebP，单张最多 20 MB；宽高 300–6000px，宽高比 0.4–2.5。</p>
+          </div>
+          <div id="videoFrameReferences" hidden>
+            <label for="videoFirstFrame">首帧图片</label><input id="videoFirstFrame" type="text" placeholder="https://… 或 asset://…">
+            <label class="video-file-label">上传首帧<input type="file" id="videoFirstFile" accept="image/png,image/jpeg,image/webp"></label>
+            <label for="videoLastFrame">尾帧图片（可选）</label><input id="videoLastFrame" type="text" placeholder="https://… 或 asset://…">
+            <label class="video-file-label">上传尾帧<input type="file" id="videoLastFile" accept="image/png,image/jpeg,image/webp"></label>
+          </div>
+          <div id="videoOtherReferences">
+            <label for="videoVideos">参考视频链接（每行一段，最多 10 段）</label><textarea id="videoVideos" rows="2" placeholder="MP4 / MOV 的公网链接，或 asset://…"></textarea>
+            <p class="video-note">视频单段 2–30 秒，总时长不超过 30 秒；编辑源视频至少 4 秒。单个最大 200 MB，24–60fps。</p>
+            <label for="videoAudios">参考音频链接（每行一段，最多 10 段）</label><textarea id="videoAudios" rows="2" placeholder="WAV / MP3 的公网链接，或 asset://…"></textarea>
+            <p class="video-note">音频单段 2–30 秒，总时长不超过 30 秒，单个最大 15 MB。</p>
+          </div>
+          <p class="video-note">真人脸素材请先在 APIMart 素材库审核后，以 asset:// 引用。素材不得侵犯他人权益。</p>
+        </section>
+        <p id="videoEstimate" class="video-estimate"></p>
+        <p class="video-note">参考价按黄金价估算，实际以账户扣费为准。自动时长按 30 秒预扣；有参考视频时还计入输入视频时长。<a href="https://apimart.ai/zh/model/seedance-2-5" target="_blank" rel="noopener noreferrer">官方价格</a></p>
+        <p id="videoFormError" class="video-error" role="alert" hidden></p>
+        <button id="videoSubmit" class="video-primary" type="submit">生成视频</button>
+      </fieldset>
+    </form>
+    <section class="video-output" aria-labelledby="videoOutputTitle">
+      <header><h2 id="videoOutputTitle">视频预览</h2><span id="videoKeyState"></span></header>
+      <div class="video-stage" id="videoStage"><div id="videoEmpty"><b>等待第一段视频</b><p>写下镜头描述，生成完成后在这里播放。</p></div><video id="videoPlayer" controls playsinline preload="metadata" hidden></video></div>
+      <p id="videoPlaybackError" class="video-note" hidden>浏览器可能不支持此编码或视频链接已失效，可打开原视频查看。1080p / 4K 使用 H.265，建议下载到本地播放。</p>
+      <div id="videoResultActions" class="video-result-actions" hidden><a id="videoOpen" target="_blank" rel="noopener noreferrer">打开 / 下载原视频</a><button id="videoCopy" type="button">复制视频链接</button></div>
+      <p class="video-note">结果和任务 ID 保存在本浏览器，视频未永久归档。上游链接可能过期，请及时下载。</p>
+      <section class="video-tasks" aria-labelledby="videoTasksTitle"><header><h2 id="videoTasksTitle">视频任务</h2><span id="videoTaskCount">0 项</span></header><p id="videoTasksEmpty" class="video-note">还没有视频任务。</p><div id="videoTaskList"></div></section>
+    </section>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script src="shared.js?v=465"></script>
+<script src="video-page.js?v=465"></script>
+</body>
+</html>
