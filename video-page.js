@@ -9,6 +9,56 @@ const VideoStudio=(()=>{
   const inputRates={'480p':0.576,'720p':1.296,'1080p':3.192,'4k':5.2768};
   let storeKey='',scope='',signature='',busy=false,selected='',lastResult='',polling=false,ready=false;
   const observed=new Map(),sending=new Set();
+  const previewSignatures=new Map(),mediaDurations=new Map();
+  const lines=target=>target.value.split(/\r?\n/).map(value=>value.trim()).filter(Boolean);
+  function materials(){
+    if(el.mode.value==='text')return [];
+    const groups=el.mode.value==='frames'?[[el.first,'图片',0],[el.last,'图片',1]]:[[el.images,'图片',0],[el.videos,'视频',0],[el.audios,'音频',0]];
+    return groups.flatMap(([target,type,offset])=>lines(target).map((url,index)=>({target,url,index,label:type+(index+1+offset)})));
+  }
+  function previews(){
+    for(const [target,container,type,label] of [[el.images,'videoImagePreviews','img','图片'],[el.first,'videoFirstPreview','img','首帧'],[el.last,'videoLastPreview','img','尾帧'],[el.videos,'videoVideoPreviews','video','视频'],[el.audios,'videoAudioPreviews','audio','音频']]){
+      if(previewSignatures.get(container)===target.value)continue;
+      previewSignatures.set(container,target.value);const root=id(container);root.replaceChildren();
+      lines(target).forEach((url,index)=>{
+        const card=document.createElement('div');card.className='video-reference-card';
+        const title=document.createElement('span');title.textContent=label+(index+1);
+        if(safeVideoUrl(url)){
+          const media=document.createElement(type);media.src=url;
+          if(type==='img'){media.alt=title.textContent;media.loading='lazy'}else{media.controls=true;media.preload='metadata'}
+          media.onerror=()=>{const fallback=document.createElement('span');fallback.className='video-preview-fallback';fallback.textContent='预览不可用，请检查链接或重新上传';media.replaceWith(fallback)};
+          card.append(media);
+        }else{const note=document.createElement('span');note.className='video-preview-fallback';note.textContent='素材库素材（无公开预览）';card.append(note)}
+        const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.setAttribute('aria-label','移除'+title.textContent);
+        remove.onclick=()=>{
+          const before=materials(),removed=before.find(item=>item.target===target&&item.index===index),values=lines(target);
+          values.splice(index,1);target.value=values.join('\n');
+          if(removed)el.prompt.value=el.prompt.value.replace(/@(图片|视频|音频)(\d+)/g,(token,type,number)=>{
+            const old=before.find(item=>item.label===type+number);if(!old||old.target!==target)return token;
+            if(old.index===index)return '@已移除'+old.label;
+            return '@'+(materials().find(item=>item.target===target&&item.index===(old.index>index?old.index-1:old.index))?.label||old.label);
+          });sync();
+        };card.append(title,remove);root.append(card);
+      });
+    }
+  }
+  let mentionStart=-1,mentionIndex=0,mentionItems=[];
+  function closeMentions(){id('videoMentions').hidden=true;el.prompt.setAttribute('aria-expanded','false');el.prompt.removeAttribute('aria-activedescendant');mentionStart=-1}
+  function chooseMention(item){
+    const end=el.prompt.selectionStart;el.prompt.setRangeText('@'+item.label+' ',mentionStart,end,'end');closeMentions();el.prompt.focus();
+  }
+  function mentions(){
+    const before=el.prompt.value.slice(0,el.prompt.selectionStart),match=before.match(/@([^@\s]{0,12})$/);
+    if(!match){closeMentions();return}
+    mentionStart=before.length-match[0].length;mentionItems=materials().filter(item=>item.label.includes(match[1]));mentionIndex=0;
+    const menu=id('videoMentions');menu.replaceChildren();menu.hidden=false;el.prompt.setAttribute('aria-expanded','true');
+    if(!mentionItems.length){const note=document.createElement('p');note.textContent='请先选择参考模式并添加对应素材';menu.append(note);return}
+    mentionItems.forEach((item,index)=>{
+      const button=document.createElement('button');button.type='button';button.id='videoMention-'+index;button.role='option';button.setAttribute('aria-selected',String(index===0));
+      if(item.label.startsWith('图片')&&safeVideoUrl(item.url)){const img=document.createElement('img');img.src=item.url;img.alt='';button.append(img)}
+      button.append(document.createTextNode('@'+item.label));button.onmousedown=event=>event.preventDefault();button.onclick=()=>chooseMention(item);menu.append(button);
+    });el.prompt.setAttribute('aria-activedescendant','videoMention-0');
+  }
   for(let seconds=4;seconds<=30;seconds++)el.duration.add(new Option(seconds+' 秒',seconds));
   el.duration.value='5';
   function error(message=''){el.error.textContent=message;el.error.hidden=!message}
@@ -51,10 +101,14 @@ const VideoStudio=(()=>{
     const rate=(hasInput?inputRates:rates)[el.resolution.value];
     const total=Number((rate*seconds).toFixed(4));
     id('videoEstimate').textContent=(seconds===30&&el.duration.value==='-1'?'输出预扣参考':'输出费用参考')+'：'+total+' 积分'+(hasInput?'，另加输入视频总秒数 × '+rate+' 积分':'')+'（'+rate+' 积分/秒）';
+    previews();closeMentions();
   }
   function payload(){
     const prompt=el.prompt.value.trim(),mode=el.mode.value;
     if(!prompt)throw new Error('请填写提示词。');
+    if(/@已移除(?:图片|视频|音频)\d+/.test(prompt))throw new Error('提示词中有已移除的素材，请修改后重新提交。');
+    const available=new Set(materials().map(item=>item.label));
+    for(const match of prompt.matchAll(/@(图片|视频|音频)(\d+)/g))if(!available.has(match[1]+match[2]))throw new Error('@'+match[1]+match[2]+' 对应的素材不存在，请重新选择引用。');
     const duration=Number(el.duration.value);
     if(!Number.isInteger(duration)||(duration!==-1&&(duration<4||duration>30)))throw new Error('时长需为 4–30 秒或自动。');
     if(!['480p','720p','1080p','4k'].includes(el.resolution.value))throw new Error('请选择正确的分辨率。');
@@ -207,15 +261,63 @@ const VideoStudio=(()=>{
         const valid=bitmap.width>=300&&bitmap.height>=300&&bitmap.width<=6000&&bitmap.height<=6000&&ratio>=0.4&&ratio<=2.5;bitmap.close();
         if(!valid)throw new Error('图片宽高需为 300–6000px，宽高比需为 0.4–2.5。');
         const result=await Archive.reference(file);current.push(result.url);target.value=current.join('\n');
+        previews();
       }
       toast('参考图片已上传');
     }catch(cause){error(cause.message)}finally{busy=false;el.fields.disabled=false;sync()}
   }
+  async function uploadMedia(input,target,type){
+    const files=[...input.files];input.value='';if(!files.length||busy)return;
+    if(!Settings.getKey()){error('请先保存 API Key 后再上传素材。');return}
+    busy=true;el.fields.disabled=true;error();
+    const status=id('videoUploadStatus');
+    try{
+      const current=urls(target.value,10,'参考素材');if(current.length+files.length>10)throw new Error('同类素材最多 10 个。');
+      for(const [index,file] of files.entries()){
+        const video=type==='videos',limit=video?50:15;
+        if(!(video?/\.(mp4|mov)$/i:/\.(mp3|wav)$/i).test(file.name)||file.size>limit*1024*1024)throw new Error(video?'视频需为 MP4 / MOV，且不超过 50 MB。':'音频需为 MP3 / WAV，且不超过 15 MB。');
+        status.textContent='正在上传 '+(index+1)+' / '+files.length+'：'+file.name;
+        const duration=await new Promise((resolve,reject)=>{
+          const media=document.createElement(video?'video':'audio'),url=URL.createObjectURL(file);
+          const finish=(cause,value)=>{clearTimeout(timer);media.removeAttribute('src');media.load();URL.revokeObjectURL(url);cause?reject(cause):resolve(value)};
+          const timer=setTimeout(()=>finish(new Error('读取素材超时，请检查文件编码。')),15000);
+          media.onloadedmetadata=()=>{const seconds=media.duration,min=video&&el.mode.value==='edit'?4:2;
+            if(!Number.isFinite(seconds)||seconds<min||seconds>30){finish(new Error('素材时长需为 '+min+'–30 秒。'));return}
+            if(video&&(media.videoWidth<300||media.videoHeight<300||media.videoWidth>6000||media.videoHeight>6000||media.videoWidth/media.videoHeight<.4||media.videoWidth/media.videoHeight>2.5)){finish(new Error('视频宽高需为 300–6000px，宽高比为 0.4–2.5。'));return}
+            finish(null,seconds);
+          };media.onerror=()=>finish(new Error('无法读取素材，请检查格式和编码。'));media.preload='metadata';media.src=url;
+        });
+        if(current.reduce((sum,url)=>sum+(mediaDurations.get(url)||0),0)+duration>30.01)throw new Error('同类参考素材总时长不能超过 30 秒。');
+        const data=new FormData();data.append('file',file,file.name);
+        const response=await fetch(APIMART_BASE+'/uploads/'+type+'?retention_days=3',{method:'POST',headers:{Authorization:'Bearer '+Settings.getKey()},body:data,signal:AbortSignal.timeout(180000)});
+        const result=await response.json().catch(()=>({}));
+        if(!response.ok)throw new Error(generationErrorMessage(result.error?.message||'上传失败（HTTP '+response.status+'）'));
+        const url=safeVideoUrl(result.url);if(!url)throw new Error('上传接口未返回有效链接，请核对 APIMart 上传记录后重试。');
+        current.push(url);mediaDurations.set(url,duration);target.value=current.join('\n');previews();
+      }
+      toast('参考素材已上传');
+    }catch(cause){error(cause.message)}finally{status.textContent='';busy=false;el.fields.disabled=false;sync()}
+  }
   el.form.onsubmit=event=>{event.preventDefault();submit().catch(cause=>error(cause.message))};
-  el.form.addEventListener('input',sync);el.form.addEventListener('change',sync);
+  el.form.addEventListener('input',event=>{if(event.target!==el.prompt)sync()});el.form.addEventListener('change',event=>{if(event.target!==el.prompt)sync()});
+  el.prompt.addEventListener('input',mentions);el.prompt.addEventListener('click',mentions);
+  el.prompt.addEventListener('keydown',event=>{
+    if(id('videoMentions').hidden)return;
+    if(event.key==='Escape'){event.preventDefault();closeMentions();return}
+    if(!mentionItems.length)return;
+    if(event.key==='Enter'){event.preventDefault();chooseMention(mentionItems[mentionIndex])}
+    if(['ArrowDown','ArrowUp'].includes(event.key)){
+      event.preventDefault();mentionIndex=(mentionIndex+(event.key==='ArrowDown'?1:-1)+mentionItems.length)%mentionItems.length;
+      [...id('videoMentions').children].forEach((node,index)=>node.setAttribute('aria-selected',String(index===mentionIndex)));
+      el.prompt.setAttribute('aria-activedescendant','videoMention-'+mentionIndex);id('videoMention-'+mentionIndex).scrollIntoView({block:'nearest'});
+    }
+  });
+  document.addEventListener('click',event=>{if(!event.target.closest('.video-prompt-wrap'))closeMentions()});
   id('videoImageFiles').onchange=event=>upload(event.target,el.images,true);
   id('videoFirstFile').onchange=event=>upload(event.target,el.first,false);
   id('videoLastFile').onchange=event=>upload(event.target,el.last,false);
+  id('videoVideoFiles').onchange=event=>uploadMedia(event.target,el.videos,'videos');
+  id('videoAudioFiles').onchange=event=>uploadMedia(event.target,el.audios,'audios');
   el.player.onerror=()=>{id('videoPlaybackError').hidden=false};
   id('videoCopy').onclick=async()=>{try{await navigator.clipboard.writeText(el.player.src);toast('已复制视频链接')}catch(_){toast('复制失败，请打开原视频复制地址')}};
   window.addEventListener('storage',event=>{if(event.key==='apimart_api_key')location.reload();else if(event.key===storeKey){render();tick()}});
